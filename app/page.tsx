@@ -1,20 +1,35 @@
 import { supabase } from "@/lib/supabase";
 import FundingTable from "@/components/FundingTable";
 
-export default async function HomePage() {
-  const { data, error } = await supabase
-    .from("funding_dashboard_mv")
-    .select("*")
-    .range(0, 10000)
-    .order("15d", { ascending: true });
+const PAGE_SIZE = 1000;
 
-  if (error) {
-    return (
-      <div className="p-6 text-red-600">
-        Error loading data: {error.message}
-      </div>
-    );
+export default async function HomePage() {
+  let allRows: any[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("funding_dashboard_mv")
+      .select("*")
+      .order("15d", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) {
+      return (
+        <div className="p-6 text-red-600">
+          Error loading data: {error.message}
+        </div>
+      );
+    }
+
+    if (!data || data.length === 0) break;
+
+    allRows.push(...data);
+
+    if (data.length < PAGE_SIZE) break;
+
+    from += PAGE_SIZE;
   }
 
-  return <FundingTable rows={data ?? []} />;
+  return <FundingTable rows={allRows} />;
 }
