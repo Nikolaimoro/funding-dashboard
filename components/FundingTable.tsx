@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 /* ================= TYPES ================= */
 
 type Row = {
+  market_id: number;
   exchange: string;
   symbol: string;
   market: string;
@@ -32,6 +34,11 @@ type SortKey =
 
 type SortDir = "asc" | "desc";
 
+type ChartPoint = {
+  funding_time: string;
+  apr: number;
+};
+
 /* ================= CONSTS ================= */
 
 const EXCHANGE_LABEL: Record<string, string> = {
@@ -56,12 +63,22 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
   const [limit, setLimit] = useState<number>(50);
   const [page, setPage] = useState(0);
 
-  /* ---------- reset page on any change ---------- */
+  /* ===== graph modal state ===== */
+  const [chartMarket, setChartMarket] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
+
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartDays, setChartDays] = useState(30);
+
+  /* ---------- reset page ---------- */
   useEffect(() => {
     setPage(0);
   }, [search, selectedExchanges, limit, sortKey, sortDir]);
 
-  /* ---------- exchanges list ---------- */
+  /* ---------- exchanges ---------- */
   const exchanges = useMemo(
     () => Array.from(new Set(rows.map(r => r.exchange))).sort(),
     [rows]
@@ -100,14 +117,10 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
     }
   };
 
-  const sortIndicator = (key: SortKey) => {
-    if (sortKey !== key) return <span className="ml-1 opacity-30">⇅</span>;
-    return (
-      <span className="ml-1 text-blue-300">
-        {sortDir === "asc" ? "↑" : "↓"}
-      </span>
-    );
-  };
+  const sortIndicator = (key: SortKey) =>
+    sortKey !== key
+      ? <span className="ml-1 opacity-30">⇅</span>
+      : <span className="ml-1 text-blue-300">{sortDir === "asc" ? "↑" : "↓"}</span>;
 
   /* ---------- filtering ---------- */
   const filteredAll = useMemo(() => {
@@ -171,6 +184,29 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
     return sortedAll.slice(start, start + limit);
   }, [sortedAll, limit, page]);
 
+  /* ---------- load chart (lazy) ---------- */
+  useEffect(() => {
+    if (!chartMarket) return;
+
+    let active = true;
+    setChartLoading(true);
+
+    supabase
+      .rpc("get_funding_chart", {
+        p_market_id: chartMarket.id,
+        p_days: chartDays,
+      })
+      .then(({ data }) => {
+        if (!active) return;
+        setChartData((data ?? []) as ChartPoint[]);
+        setChartLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [chartMarket, chartDays]);
+
   /* ================= RENDER ================= */
 
   return (
@@ -188,7 +224,6 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
           onChange={e => setSearch(e.target.value)}
         />
 
-        {/* Exchange filter */}
         <div className="relative">
           <button
             onClick={() => setFilterOpen(v => !v)}
@@ -239,6 +274,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
               <th onClick={() => onSort("market")} className="px-4 py-3 cursor-pointer">
                 Market{sortIndicator("market")}
               </th>
+              <th className="px-4 py-3 text-center">📈</th>
               {(["1d","3d","7d","15d","30d","60d"] as SortKey[]).map(h => (
                 <th
                   key={h}
@@ -254,9 +290,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
           <tbody>
             {visible.map(r => (
               <tr key={`${r.exchange}:${r.market}`} className="border-b border-gray-800 hover:bg-gray-700/40">
-                <td className="px-4 py-2">
-                  {formatExchange(r.exchange)}
-                </td>
+                <td className="px-4 py-2">{formatExchange(r.exchange)}</td>
 
                 <td className="px-4 py-2 font-mono font-semibold">
                   {r.ref_url ? (
@@ -268,9 +302,22 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
                     >
                       {r.market}
                     </a>
-                  ) : (
-                    <span>{r.market}</span>
-                  )}
+                  ) : r.market}
+                </td>
+
+                <td className="px-4 py-2 text-center">
+                  <button
+                    onClick={() =>
+                      setChartMarket({
+                        id: r.market_id,
+                        title: `${formatExchange(r.exchange)} · ${r.market}`,
+                      })
+                    }
+                    className="text-blue-300 hover:text-blue-200"
+                    title="Open funding chart"
+                  >
+                    📈
+                  </button>
                 </td>
 
                 <td className="px-4 py-2">{formatAPR(r["1d"])}</td>
@@ -285,7 +332,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         </table>
       </div>
 
-      {/* ---------- Footer / Pagination ---------- */}
+      {/* ---------- Pagination ---------- */}
       <div className="flex justify-between items-center mt-3 text-sm text-gray-400">
         <div>
           Rows:
@@ -322,6 +369,45 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
           </div>
         )}
       </div>
+
+      {/* ---------- Chart Modal ---------- */}
+      {chartMarket && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 w-[900px] max-w-[95vw]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">{chartMarket.title}</h2>
+              <button onClick={() => setChartMarket(null)}>✕</button>
+            </div>
+
+            <div className="flex gap-2 mb-3">
+              {[7, 30, 60].map(d => (
+                <button
+                  key={d}
+                  onClick={() => setChartDays(d)}
+                  className={`px-3 py-1 rounded border ${
+                    chartDays === d
+                      ? "border-blue-500 text-blue-300"
+                      : "border-gray-700"
+                  }`}
+                >
+                  {d}d
+                </button>
+              ))}
+            </div>
+
+            {chartLoading && <div className="text-gray-400">Loading…</div>}
+            {!chartLoading && chartData.length === 0 && (
+              <div className="text-gray-500">No data</div>
+            )}
+
+            {!chartLoading && chartData.length > 0 && (
+              <pre className="text-xs text-gray-400 overflow-auto max-h-80">
+                {JSON.stringify(chartData, null, 2)}
+              </pre>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
