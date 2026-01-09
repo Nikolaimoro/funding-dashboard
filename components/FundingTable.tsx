@@ -6,13 +6,17 @@ import { useMemo, useState, useEffect } from "react";
 
 type Row = {
   exchange: string;
+  symbol: string;
   market: string;
+  ref_url: string | null;
+
   "1d": number | null;
   "3d": number | null;
   "7d": number | null;
   "15d": number | null;
   "30d": number | null;
   "60d": number | null;
+
   updated: string;
 };
 
@@ -39,20 +43,6 @@ const EXCHANGE_LABEL: Record<string, string> = {
 const formatExchange = (ex: string) =>
   EXCHANGE_LABEL[ex] ?? ex;
 
-/* временно: потом вынесем в БД */
-const buildRefUrl = (exchange: string, market: string) => {
-  switch (exchange) {
-    case "bybit":
-      return `https://www.bybit.com/trade/usdt/${market}?affiliate_id=78137`;
-    case "mexc":
-      return `https://www.mexc.com/futures/${market}?inviteCode=3R7vi`;
-    case "bingx":
-      return `https://www.bingx.com/en-us/perpetual/${market}?ref=NMWCTL`;
-    default:
-      return "#";
-  }
-};
-
 /* ================= COMPONENT ================= */
 
 export default function FundingTable({ rows }: { rows: Row[] }) {
@@ -66,7 +56,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
   const [limit, setLimit] = useState<number>(50);
   const [page, setPage] = useState(0);
 
-  /* ---------- reset page on filters ---------- */
+  /* ---------- reset page on any change ---------- */
   useEffect(() => {
     setPage(0);
   }, [search, selectedExchanges, limit, sortKey, sortDir]);
@@ -138,7 +128,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
     return data;
   }, [rows, search, selectedExchanges]);
 
-  /* ---------- sorting after filtering ---------- */
+  /* ---------- sorting ---------- */
   const sortedAll = useMemo(() => {
     const data = [...filteredAll];
     const dir = sortDir === "asc" ? 1 : -1;
@@ -264,17 +254,25 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
           <tbody>
             {visible.map(r => (
               <tr key={`${r.exchange}:${r.market}`} className="border-b border-gray-800 hover:bg-gray-700/40">
-                <td className="px-4 py-2">{formatExchange(r.exchange)}</td>
-                <td className="px-4 py-2 font-mono font-semibold">
-                  <a
-                    href={buildRefUrl(r.exchange, r.market)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-300 hover:underline"
-                  >
-                    {r.market}
-                  </a>
+                <td className="px-4 py-2">
+                  {formatExchange(r.exchange)}
                 </td>
+
+                <td className="px-4 py-2 font-mono font-semibold">
+                  {r.ref_url ? (
+                    <a
+                      href={r.ref_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-300 hover:underline"
+                    >
+                      {r.market}
+                    </a>
+                  ) : (
+                    <span>{r.market}</span>
+                  )}
+                </td>
+
                 <td className="px-4 py-2">{formatAPR(r["1d"])}</td>
                 <td className="px-4 py-2">{formatAPR(r["3d"])}</td>
                 <td className="px-4 py-2">{formatAPR(r["7d"])}</td>
@@ -307,7 +305,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
             <button
               disabled={page === 0}
               onClick={() => setPage(p => Math.max(0, p - 1))}
-              className="border border-gray-700 px-3 py-1 rounded"
+              className="border border-gray-700 px-3 py-1 rounded disabled:opacity-40"
             >
               Prev
             </button>
@@ -317,7 +315,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
             <button
               disabled={page + 1 >= totalPages}
               onClick={() => setPage(p => p + 1)}
-              className="border border-gray-700 px-3 py-1 rounded"
+              className="border border-gray-700 px-3 py-1 rounded disabled:opacity-40"
             >
               Next
             </button>
