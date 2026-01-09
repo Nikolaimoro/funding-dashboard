@@ -274,7 +274,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
               <th onClick={() => onSort("market")} className="px-4 py-3 cursor-pointer">
                 Market{sortIndicator("market")}
               </th>
-              <th className="px-4 py-3 text-center">📈</th>
+              <th className="px-4 py-3 text-center">Chart</th>
               {(["1d","3d","7d","15d","30d","60d"] as SortKey[]).map(h => (
                 <th
                   key={h}
