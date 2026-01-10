@@ -229,8 +229,12 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
       .rpc("get_funding_chart", { p_market_id: chartMarket.id })
       .then(({ data, error }) => {
         if (error) {
-          setChartError(error.message);
-          setChartData([]);
+  console.error("Funding chart error:", error);
+
+  setChartError(
+    "Failed to load funding history. Please try again."
+  );
+  setChartData([]);
         } else {
           const points = (data ?? []) as ChartPoint[];
           setChartData(points);
