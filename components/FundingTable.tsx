@@ -164,7 +164,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
 
     const q = search.trim().toLowerCase();
     if (q) {
-      data = data.filter(r => r.market.toLowerCase().includes(q));
+      data = data.filter(r => r.market.toLowerCase().startsWith(q));
     }
 
     if (selectedExchanges.length) {
@@ -393,30 +393,61 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         </div>
 
         {limit !== -1 && totalPages > 1 && (
-          <div className="flex gap-2 items-center">
-            {[
-              { label: "First", onClick: () => setPage(0), disabled: page === 0 },
-              { label: "Prev", onClick: () => setPage(p => Math.max(0, p - 1)), disabled: page === 0 },
-              { label: "Next", onClick: () => setPage(p => Math.min(totalPages - 1, p + 1)), disabled: page + 1 >= totalPages },
-              { label: "Last", onClick: () => setPage(totalPages - 1), disabled: page + 1 >= totalPages },
-            ].map(b => (
-              <button
-                key={b.label}
-                disabled={b.disabled}
-                onClick={b.onClick}
-                className="border border-gray-700 px-3 py-1 rounded
-                           hover:border-gray-500 hover:text-gray-200
-                           disabled:opacity-40 disabled:cursor-not-allowed
-                           transition"
-              >
-                {b.label}
-              </button>
-            ))}
-            <span className="ml-2">
-              Page {page + 1} / {totalPages}
-            </span>
-          </div>
-        )}
+  <div className="flex gap-2 items-center">
+    {/* First */}
+    <button
+      onClick={() => setPage(0)}
+      disabled={page === 0}
+      className="border border-gray-700 px-3 py-1 rounded
+                 hover:border-gray-500 hover:text-gray-200
+                 disabled:opacity-40 disabled:cursor-not-allowed
+                 transition"
+    >
+      First
+    </button>
+
+    {/* Prev */}
+    <button
+      onClick={() => setPage(p => Math.max(0, p - 1))}
+      disabled={page === 0}
+      className="border border-gray-700 px-3 py-1 rounded
+                 hover:border-gray-500 hover:text-gray-200
+                 disabled:opacity-40 disabled:cursor-not-allowed
+                 transition"
+    >
+      Prev
+    </button>
+
+    {/* Counter */}
+    <span className="px-2 min-w-[64px] text-center tabular-nums text-gray-300">
+  {page + 1} / {totalPages}
+    </span>
+
+    {/* Next */}
+    <button
+      onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+      disabled={page + 1 >= totalPages}
+      className="border border-gray-700 px-3 py-1 rounded
+                 hover:border-gray-500 hover:text-gray-200
+                 disabled:opacity-40 disabled:cursor-not-allowed
+                 transition"
+    >
+      Next
+    </button>
+
+    {/* Last */}
+    <button
+      onClick={() => setPage(totalPages - 1)}
+      disabled={page + 1 >= totalPages}
+      className="border border-gray-700 px-3 py-1 rounded
+                 hover:border-gray-500 hover:text-gray-200
+                 disabled:opacity-40 disabled:cursor-not-allowed
+                 transition"
+    >
+      Last
+    </button>
+  </div>
+)}
       </div>
 
       {/* ---------- Modal ---------- */}
