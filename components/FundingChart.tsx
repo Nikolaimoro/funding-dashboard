@@ -10,7 +10,6 @@ import {
   Tooltip,
   Legend,
   Filler,
-  Title,
   type ChartOptions,
 } from "chart.js";
 import zoomPlugin from "chartjs-plugin-zoom";
@@ -26,7 +25,6 @@ ChartJS.register(
   Tooltip,
   Legend,
   Filler,
-  Title,
   zoomPlugin
 );
 
@@ -38,7 +36,6 @@ export type FundingChartPoint = {
 };
 
 type FundingChartProps = {
-  title?: string;
   data: FundingChartPoint[];
 };
 
@@ -46,8 +43,8 @@ type FundingChartProps = {
 
 export default function FundingChart({ data }: FundingChartProps) {
   /* ---------- chart data ---------- */
-  const chartData = useMemo(() => {
-    return {
+  const chartData = useMemo(
+    () => ({
       datasets: [
         {
           label: "APR %",
@@ -64,92 +61,88 @@ export default function FundingChart({ data }: FundingChartProps) {
           tension: 0.25,
         },
       ],
-    };
-  }, [data]);
+    }),
+    [data]
+  );
 
   /* ---------- chart options ---------- */
-  const options = useMemo<ChartOptions<"line">>(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
+  const options = useMemo<ChartOptions<"line">>(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
 
-    interaction: {
-      mode: "index",
-      intersect: false,
-    },
-
-    plugins: {
-      legend: { display: false },
-
-    
-
-      tooltip: {
-        callbacks: {
-          label: (ctx) => {
-            const v = ctx.parsed.y;
-            return v != null ? `APR: ${v.toFixed(2)}%` : "";
-          },
-        },
+      interaction: {
+        mode: "index",
+        intersect: false,
       },
 
-      /* =========================
-         PAN / ZOOM — ВРЕМЕННО ВЫКЛЮЧЕНО
-         (оставлено для будущего)
-      ========================== */
-      /*
-      zoom: {
-        pan: {
-          enabled: true,
-          mode: "x",
+      plugins: {
+        legend: { display: false },
+
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              return v != null ? `APR: ${v.toFixed(2)}%` : "";
+            },
+          },
         },
+
+        /* =========================
+           PAN / ZOOM — ВРЕМЕННО ВЫКЛЮЧЕНО
+           (оставлено для будущего)
+        ========================== */
+        /*
         zoom: {
-          wheel: { enabled: false },
-          pinch: { enabled: false },
-          drag: { enabled: false },
-          mode: "x",
-        },
-      },
-      */
-    },
-
-    scales: {
-      x: {
-        type: "time",
-        time: {
-          tooltipFormat: "yyyy-MM-dd HH:mm",
-        },
-        ticks: {
-          autoSkip: true,
-          maxRotation: 0,
-          color: "#9ca3af",
-        },
-        grid: {
-          color: "rgba(148, 163, 184, 0.06)",
-        },
-      },
-
-      y: {
-        beginAtZero: false,
-
-        ticks: {
-          color: "#9ca3af",
-          callback: (value) =>
-            typeof value === "number" ? `${value}%` : "",
-        },
-
-        /* ---------- zero line ---------- */
-        grid: {
-          color: (ctx) => {
-            if (ctx.tick && ctx.tick.value === 0) {
-              return "rgba(148, 163, 184, 0.35)";
-            }
-            return "rgba(148, 163, 184, 0.08)";
+          pan: {
+            enabled: true,
+            mode: "x",
           },
-          lineWidth: (ctx) =>
-            ctx.tick && ctx.tick.value === 0 ? 1.2 : 1,
+          zoom: {
+            wheel: { enabled: false },
+            pinch: { enabled: false },
+            drag: { enabled: false },
+            mode: "x",
+          },
+        },
+        */
+      },
+
+      scales: {
+        x: {
+          type: "time",
+          time: {
+            tooltipFormat: "yyyy-MM-dd HH:mm",
+          },
+          ticks: {
+            autoSkip: true,
+            maxRotation: 0,
+            color: "#9ca3af",
+          },
+          grid: {
+            color: "rgba(148, 163, 184, 0.06)",
+          },
+        },
+
+        y: {
+          beginAtZero: false,
+          ticks: {
+            color: "#9ca3af",
+            callback: value =>
+              typeof value === "number" ? `${value}%` : "",
+          },
+          grid: {
+            color: ctx =>
+              ctx.tick?.value === 0
+                ? "rgba(148, 163, 184, 0.35)"
+                : "rgba(148, 163, 184, 0.08)",
+            lineWidth: ctx => (ctx.tick?.value === 0 ? 1.2 : 1),
+          },
         },
       },
-    },
-  }), [title]);
+    }),
+    []
+  );
 
   /* ---------- render ---------- */
   return (
