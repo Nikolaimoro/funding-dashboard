@@ -1,112 +1,147 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useMemo } from "react";
 import {
-  createChart,
-  LineSeries,
-  IChartApi,
-  Time,
-} from "lightweight-charts";
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  TimeScale,
+  Tooltip,
+  Legend,
+  Filler,
+  Title,
+  type ChartOptions,
+} from "chart.js";
+import zoomPlugin from "chartjs-plugin-zoom";
+import "chartjs-adapter-date-fns";
+import { Line } from "react-chartjs-2";
+
+/* ---------- register ---------- */
+ChartJS.register(
+  LineElement,
+  PointElement,
+  LinearScale,
+  TimeScale,
+  Tooltip,
+  Legend,
+  Filler,
+  Title,
+  zoomPlugin
+);
 
 /* ================= TYPES ================= */
 
 export type FundingChartPoint = {
-  funding_time: string; // ISO string
+  funding_time: string; // ISO
   apr: number;
 };
 
 type FundingChartProps = {
-  title: string;
+  title?: string;
   data: FundingChartPoint[];
 };
 
 /* ================= COMPONENT ================= */
 
 export default function FundingChart({ title, data }: FundingChartProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-
-  useEffect(() => {
-    if (!containerRef.current || data.length === 0) return;
-
-    /* ---------- create chart ---------- */
-    const chart = createChart(containerRef.current, {
-      width: containerRef.current.clientWidth,
-      height: 420,
-
-      layout: {
-        background: { color: "#0f172a" }, // gray-900
-        textColor: "#cbd5e1", // gray-300
-      },
-
-      grid: {
-        vertLines: { color: "#1f2933" },
-        horzLines: { color: "#1f2933" },
-      },
-
-      rightPriceScale: {
-        borderColor: "#334155",
-        autoScale: true,
-      },
-
-      timeScale: {
-        borderColor: "#334155",
-        timeVisible: true,
-        secondsVisible: false,
-      },
-
-      crosshair: {
-        mode: 1,
-      },
-    });
-
-    chartRef.current = chart;
-
-    /* ---------- add line series (v5 API) ---------- */
-    const series = chart.addSeries(LineSeries, {
-      color: "#60a5fa", // blue-400
-      lineWidth: 2,
-
-      // ВАЖНО: убираем пунктир последнего значения
-      lastValueVisible: false,
-      priceLineVisible: false,
-    });
-
-    /* ---------- map data ---------- */
-    const chartData = data.map(d => ({
-      time: Math.floor(new Date(d.funding_time).getTime() / 1000) as Time,
-      value: d.apr,
-    }));
-
-    series.setData(chartData);
-
-    chart.timeScale().fitContent();
-
-    /* ---------- resize handling ---------- */
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        chart.applyOptions({
-          width: entry.contentRect.width,
-        });
-      }
-    });
-
-    resizeObserver.observe(containerRef.current);
-
-    /* ---------- cleanup ---------- */
-    return () => {
-      resizeObserver.disconnect();
-      chart.remove();
-      chartRef.current = null;
+  /* ---------- data ---------- */
+  const chartData = useMemo(() => {
+    return {
+      datasets: [
+        {
+          label: "APR %",
+          data: data
+            .filter(d => Number.isFinite(d.apr))
+            .map(d => ({
+              x: new Date(d.funding_time).getTime(), // ms timestamp
+              y: d.apr,
+            })),
+          borderColor: "#60a5fa", // blue-400
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHitRadius: 8,
+          tension: 0.25,
+        },
+      ],
     };
   }, [data]);
 
-  /* ================= RENDER ================= */
+  /* ---------- options ---------- */
+  const options = useMemo<ChartOptions<"line">>(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
 
+    interaction: {
+      mode: "index",
+      intersect: false,
+    },
+
+    plugins: {
+      legend: { display: false },
+
+      title: title
+        ? { display: true, text: title }
+        : { display: false },
+
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const v = ctx.parsed.y;
+            return v != null ? `APR: ${v.toFixed(2)}%` : "";
+          },
+        },
+      },
+
+      /* pan only */
+      zoom: {
+        pan: {
+          enabled: true,
+          mode: "x",
+        },
+        zoom: {
+          wheel: { enabled: false },
+          pinch: { enabled: false },
+          drag: { enabled: false },
+          mode: "x",
+        },
+      },
+    },
+
+    scales: {
+      x: {
+        type: "time",
+        time: {
+          tooltipFormat: "yyyy-MM-dd HH:mm",
+        },
+        ticks: {
+          autoSkip: true,
+          maxRotation: 0,
+        },
+        grid: {
+          display: true,
+        },
+      },
+
+      y: {
+        beginAtZero: false,
+        ticks: {
+          callback: (value) =>
+            typeof value === "number" ? `${value}%` : "",
+        },
+        grid: {
+          display: true,
+        },
+      },
+    },
+  }), [title]);
+
+  /* ---------- render ---------- */
   return (
     <div className="w-full">
-      <div className="mb-2 text-sm text-gray-400">{title}</div>
-      <div ref={containerRef} className="w-full rounded border border-gray-700" />
+      <div className="h-[420px] w-full">
+        <Line data={chartData} options={options} />
+      </div>
     </div>
   );
 }
