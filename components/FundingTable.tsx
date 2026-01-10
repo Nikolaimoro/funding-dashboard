@@ -158,7 +158,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
     }
   };
 
-  /* ---------- filtering + sorting (ALL rows) ---------- */
+  /* ---------- filtering + sorting ---------- */
   const sortedAll = useMemo(() => {
     let data = rows;
 
@@ -211,7 +211,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
     return sortedAll.slice(start, start + limit);
   }, [sortedAll, limit, page]);
 
-  /* ---------- chart loading + cache ---------- */
+  /* ---------- chart loading (FIXED) ---------- */
   useEffect(() => {
     if (!chartMarket?.id) return;
 
@@ -222,27 +222,33 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
       return;
     }
 
+    let cancelled = false;
+
     setChartLoading(true);
     setChartError(null);
 
     supabase
       .rpc("get_funding_chart", { p_market_id: chartMarket.id })
       .then(({ data, error }) => {
-        if (error) {
-  console.error("Funding chart error:", error);
+        if (cancelled) return;
 
-  setChartError(
-    "Failed to load funding history. Please try again."
-  );
-  setChartData([]);
+        if (error) {
+          console.error("Funding chart error:", error);
+          setChartError("Failed to load funding history. Please try again.");
+          setChartData([]);
         } else {
           const points = (data ?? []) as ChartPoint[];
           setChartData(points);
           setChartCache(p => ({ ...p, [chartMarket.id!]: points }));
         }
+
         setChartLoading(false);
       });
-  }, [chartMarket, chartCache]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chartMarket]);
 
   /* ================= RENDER ================= */
 
@@ -303,32 +309,11 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         <table className="w-full text-sm">
           <thead className="bg-gray-900 sticky top-0">
             <tr className="border-b border-gray-700">
-              <th className="px-4 py-3 text-left">
-                <SortableHeader
-                  label="Exchange"
-                  active={sortKey === "exchange"}
-                  dir={sortDir}
-                  onClick={() => onSort("exchange")}
-                />
-              </th>
-              <th className="px-4 py-3 text-left">
-                <SortableHeader
-                  label="Market"
-                  active={sortKey === "market"}
-                  dir={sortDir}
-                  onClick={() => onSort("market")}
-                />
-              </th>
+              <th className="px-4 py-3 text-left">Exchange</th>
+              <th className="px-4 py-3 text-left">Market</th>
               <th className="px-4 py-3 text-center">History</th>
               {(["1d","3d","7d","15d","30d","60d"] as SortKey[]).map(h => (
-                <th key={h} className="px-4 py-3 text-right">
-                  <SortableHeader
-                    label={h}
-                    active={sortKey === h}
-                    dir={sortDir}
-                    onClick={() => onSort(h)}
-                  />
-                </th>
+                <th key={h} className="px-4 py-3 text-right">{h}</th>
               ))}
             </tr>
           </thead>
@@ -381,83 +366,10 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         </table>
       </div>
 
-      {/* ---------- Pagination ---------- */}
-      <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
-        <div>
-          Rows:
-          <select
-            className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
-            value={limit}
-            onChange={e => setLimit(Number(e.target.value))}
-          >
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-            <option value={-1}>All</option>
-          </select>
-        </div>
-
-        {limit !== -1 && totalPages > 1 && (
-  <div className="flex gap-2 items-center">
-    {/* First */}
-    <button
-      onClick={() => setPage(0)}
-      disabled={page === 0}
-      className="border border-gray-700 px-3 py-1 rounded
-                 hover:border-gray-500 hover:text-gray-200
-                 disabled:opacity-40 disabled:cursor-not-allowed
-                 transition"
-    >
-      First
-    </button>
-
-    {/* Prev */}
-    <button
-      onClick={() => setPage(p => Math.max(0, p - 1))}
-      disabled={page === 0}
-      className="border border-gray-700 px-3 py-1 rounded
-                 hover:border-gray-500 hover:text-gray-200
-                 disabled:opacity-40 disabled:cursor-not-allowed
-                 transition"
-    >
-      Prev
-    </button>
-
-    {/* Counter */}
-    <span className="px-2 min-w-[64px] text-center tabular-nums text-gray-300">
-  {page + 1} / {totalPages}
-    </span>
-
-    {/* Next */}
-    <button
-      onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-      disabled={page + 1 >= totalPages}
-      className="border border-gray-700 px-3 py-1 rounded
-                 hover:border-gray-500 hover:text-gray-200
-                 disabled:opacity-40 disabled:cursor-not-allowed
-                 transition"
-    >
-      Next
-    </button>
-
-    {/* Last */}
-    <button
-      onClick={() => setPage(totalPages - 1)}
-      disabled={page + 1 >= totalPages}
-      className="border border-gray-700 px-3 py-1 rounded
-                 hover:border-gray-500 hover:text-gray-200
-                 disabled:opacity-40 disabled:cursor-not-allowed
-                 transition"
-    >
-      Last
-    </button>
-  </div>
-)}
-      </div>
-
       {/* ---------- Modal ---------- */}
       {chartMarket && (
         <div
-          className="fixed inset-0 z-50 backdrop-blur-md transition-[backdrop-filter] duration-300 ease-out"
+          className="fixed inset-0 z-50 backdrop-blur-md"
           onClick={() => setChartMarket(null)}
         >
           <div
@@ -467,8 +379,8 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
             <h2 className="mb-4">{chartMarket.title}</h2>
 
             {chartLoading && <div className="text-gray-400">Loading…</div>}
-            {chartError && (
-              <div className="text-red-400">Error: {chartError}</div>
+            {!chartLoading && chartError && (
+              <div className="text-red-400">{chartError}</div>
             )}
             {!chartLoading && !chartError && chartData.length > 0 && (
               <FundingChart data={chartData} />
