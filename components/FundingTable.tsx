@@ -55,6 +55,47 @@ const EXCHANGE_LABEL: Record<string, string> = {
 
 const formatExchange = (ex: string) => EXCHANGE_LABEL[ex] ?? ex;
 
+/* ================= UI HELPERS ================= */
+
+function SortableHeader({
+  label,
+  active,
+  dir,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  dir: SortDir;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      className="group inline-flex items-center gap-1 cursor-pointer select-none"
+    >
+      <span
+        className={`transition-colors ${
+          active
+            ? "text-blue-400"
+            : "text-gray-300 group-hover:text-gray-100"
+        }`}
+      >
+        {label}
+      </span>
+
+      <span
+        className={`text-xs transition-opacity ${
+          active
+            ? "opacity-100 text-blue-400"
+            : "opacity-0 group-hover:opacity-60"
+        }`}
+      >
+        {dir === "asc" ? "↑" : "↓"}
+      </span>
+    </div>
+  );
+}
+
 /* ================= COMPONENT ================= */
 
 export default function FundingTable({ rows }: { rows: Row[] }) {
@@ -100,9 +141,11 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
     if (v === null || Number.isNaN(v)) {
       return <span className="text-gray-500">–</span>;
     }
-    const cls =
-      v > 0 ? "text-emerald-400" : v < 0 ? "text-rose-400" : "text-gray-400";
-    return <span className={`${cls} font-mono`}>{v.toFixed(2)}%</span>;
+    return (
+      <span className="text-blue-400 font-mono">
+        {v.toFixed(2)}%
+      </span>
+    );
   };
 
   /* ---------- sorting ---------- */
@@ -114,15 +157,6 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
       setSortDir("desc");
     }
   };
-
-  const sortIndicator = (key: SortKey) =>
-    sortKey !== key ? (
-      <span className="ml-1 opacity-30">⇅</span>
-    ) : (
-      <span className="ml-1 text-blue-300">
-        {sortDir === "asc" ? "↑" : "↓"}
-      </span>
-    );
 
   /* ---------- filtering ---------- */
   const filteredAll = useMemo(() => {
@@ -199,14 +233,12 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
       })
       .then(({ data, error }) => {
         if (!active) return;
-
         if (error) {
-          console.error("Funding chart error:", error);
+          console.error(error);
           setChartData([]);
         } else {
           setChartData((data ?? []) as ChartPoint[]);
         }
-
         setChartLoading(false);
       });
 
@@ -282,20 +314,31 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         <table className="w-full text-sm">
           <thead className="bg-gray-900 sticky top-0">
             <tr className="border-b border-gray-700">
-              <th onClick={() => onSort("exchange")} className="px-4 py-3 cursor-pointer">
-                Exchange{sortIndicator("exchange")}
+              <th className="px-4 py-3">
+                <SortableHeader
+                  label="Exchange"
+                  active={sortKey === "exchange"}
+                  dir={sortDir}
+                  onClick={() => onSort("exchange")}
+                />
               </th>
-              <th onClick={() => onSort("market")} className="px-4 py-3 cursor-pointer">
-                Market{sortIndicator("market")}
+              <th className="px-4 py-3">
+                <SortableHeader
+                  label="Market"
+                  active={sortKey === "market"}
+                  dir={sortDir}
+                  onClick={() => onSort("market")}
+                />
               </th>
               <th className="px-4 py-3 text-center">Chart</th>
               {(["1d","3d","7d","15d","30d","60d"] as SortKey[]).map(h => (
-                <th
-                  key={h}
-                  onClick={() => onSort(h)}
-                  className="px-4 py-3 cursor-pointer"
-                >
-                  {h}{sortIndicator(h)}
+                <th key={h} className="px-4 py-3">
+                  <SortableHeader
+                    label={h}
+                    active={sortKey === h}
+                    dir={sortDir}
+                    onClick={() => onSort(h)}
+                  />
                 </th>
               ))}
             </tr>
@@ -307,7 +350,9 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
                 key={`${r.exchange}:${r.market}`}
                 className="border-b border-gray-800 hover:bg-gray-700/40"
               >
-                <td className="px-4 py-2">{formatExchange(r.exchange)}</td>
+                <td className="px-4 py-2">
+                  {formatExchange(r.exchange)}
+                </td>
 
                 <td className="px-4 py-2 font-mono font-semibold">
                   {r.ref_url ? (
@@ -315,7 +360,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
                       href={r.ref_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-300 hover:underline"
+                      className="text-blue-400 hover:underline"
                     >
                       {r.market}
                     </a>
@@ -333,7 +378,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
                           title: `${formatExchange(r.exchange)} · ${r.market}`,
                         })
                       }
-                      className="text-blue-300 hover:text-blue-200"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
                     >
                       📈
                     </button>
@@ -359,7 +404,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         <div>
           Rows:
           <select
-            className="ml-2 bg-gray-800 border border-gray-700 rounded px-20 py-1"
+            className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
             value={limit}
             onChange={e => setLimit(Number(e.target.value))}
           >
@@ -397,7 +442,9 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
           <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 w-[900px] max-w-[95vw]">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">{chartMarket.title}</h2>
+              <h2 className="text-lg font-semibold">
+                {chartMarket.title}
+              </h2>
               <button
                 onClick={closeChart}
                 className="text-gray-400 hover:text-gray-200"
@@ -406,12 +453,17 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
               </button>
             </div>
 
-            {chartLoading && <div className="text-gray-400">Loading…</div>}
+            {chartLoading && (
+              <div className="text-gray-400">Loading…</div>
+            )}
             {!chartLoading && chartData.length === 0 && (
               <div className="text-gray-500">No data</div>
             )}
             {!chartLoading && chartData.length > 0 && (
-              <FundingChart title={chartMarket.title} data={chartData} />
+              <FundingChart
+                title={chartMarket.title}
+                data={chartData}
+              />
             )}
           </div>
         </div>
