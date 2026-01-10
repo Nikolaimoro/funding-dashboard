@@ -73,24 +73,32 @@ function SortableHeader({
       onClick={onClick}
       className="group inline-flex items-center gap-1 cursor-pointer select-none"
     >
+      {/* TEXT */}
       <span
         className={`transition-colors ${
           active
-            ? "text-blue-400"
-            : "text-gray-300 group-hover:text-gray-100"
+            ? "text-gray-300" // active — как обычный
+            : "text-gray-400 group-hover:text-gray-200"
         }`}
       >
         {label}
       </span>
 
-      <span
-        className={`text-xs transition-opacity ${
-          active
-            ? "opacity-100 text-blue-400"
-            : "opacity-0 group-hover:opacity-60"
-        }`}
-      >
-        {dir === "asc" ? "↑" : "↓"}
+      {/* ICONS */}
+      <span className="relative flex items-center w-3 justify-center">
+        {/* hover arrows (⇅) */}
+        {!active && (
+          <span className="absolute text-[10px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+            ⇅
+          </span>
+        )}
+
+        {/* active arrow */}
+        {active && (
+          <span className="text-sm font-semibold text-blue-400">
+            {dir === "asc" ? "↑" : "↓"}
+          </span>
+        )}
       </span>
     </div>
   );
@@ -142,7 +150,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
       return <span className="text-gray-500">–</span>;
     }
     return (
-      <span className="text-blue-400 font-mono">
+      <span className="text-gray-500 font-mono">
         {v.toFixed(2)}%
       </span>
     );
@@ -330,7 +338,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
                   onClick={() => onSort("market")}
                 />
               </th>
-              <th className="px-4 py-3 text-center">Chart</th>
+              <th className="px-4 py-3 text-center">History</th>
               {(["1d","3d","7d","15d","30d","60d"] as SortKey[]).map(h => (
                 <th key={h} className="px-4 py-3">
                   <SortableHeader
