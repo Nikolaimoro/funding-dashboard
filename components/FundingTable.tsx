@@ -359,7 +359,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         <div>
           Rows:
           <select
-            className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
+            className="ml-2 bg-gray-800 border border-gray-700 rounded px-20 py-1"
             value={limit}
             onChange={e => setLimit(Number(e.target.value))}
           >
