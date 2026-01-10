@@ -158,13 +158,15 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
     }
   };
 
-  /* ---------- filtering + sorting ---------- */
+  /* ---------- filtering + sorting (ALL rows) ---------- */
   const sortedAll = useMemo(() => {
     let data = rows;
 
     const q = search.trim().toLowerCase();
     if (q) {
-      data = data.filter(r => r.market.toLowerCase().startsWith(q));
+      data = data.filter(r =>
+        r.market.toLowerCase().startsWith(q)
+      );
     }
 
     if (selectedExchanges.length) {
@@ -211,7 +213,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
     return sortedAll.slice(start, start + limit);
   }, [sortedAll, limit, page]);
 
-  /* ---------- chart loading (FIXED) ---------- */
+  /* ---------- chart loading + cache ---------- */
   useEffect(() => {
     if (!chartMarket?.id) return;
 
@@ -222,39 +224,34 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
       return;
     }
 
-    let cancelled = false;
-
     setChartLoading(true);
     setChartError(null);
 
     supabase
       .rpc("get_funding_chart", { p_market_id: chartMarket.id })
       .then(({ data, error }) => {
-        if (cancelled) return;
-
         if (error) {
           console.error("Funding chart error:", error);
-          setChartError("Failed to load funding history. Please try again.");
+          setChartError(
+            "Failed to load funding history. Please try again."
+          );
           setChartData([]);
         } else {
           const points = (data ?? []) as ChartPoint[];
           setChartData(points);
           setChartCache(p => ({ ...p, [chartMarket.id!]: points }));
         }
-
         setChartLoading(false);
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [chartMarket]);
+  }, [chartMarket, chartCache]);
 
   /* ================= RENDER ================= */
 
   return (
     <main className="min-h-screen bg-gray-900 p-6 text-gray-200">
-      <h1 className="text-2xl font-semibold mb-4">Funding Rates Dashboard</h1>
+      <h1 className="text-2xl font-semibold mb-4">
+        Funding Rates Dashboard
+      </h1>
 
       {/* ---------- Controls ---------- */}
       <div className="flex flex-wrap gap-3 mb-4 items-center">
@@ -309,11 +306,32 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         <table className="w-full text-sm">
           <thead className="bg-gray-900 sticky top-0">
             <tr className="border-b border-gray-700">
-              <th className="px-4 py-3 text-left">Exchange</th>
-              <th className="px-4 py-3 text-left">Market</th>
+              <th className="px-4 py-3 text-left">
+                <SortableHeader
+                  label="Exchange"
+                  active={sortKey === "exchange"}
+                  dir={sortDir}
+                  onClick={() => onSort("exchange")}
+                />
+              </th>
+              <th className="px-4 py-3 text-left">
+                <SortableHeader
+                  label="Market"
+                  active={sortKey === "market"}
+                  dir={sortDir}
+                  onClick={() => onSort("market")}
+                />
+              </th>
               <th className="px-4 py-3 text-center">History</th>
               {(["1d","3d","7d","15d","30d","60d"] as SortKey[]).map(h => (
-                <th key={h} className="px-4 py-3 text-right">{h}</th>
+                <th key={h} className="px-4 py-3 text-right">
+                  <SortableHeader
+                    label={h}
+                    active={sortKey === h}
+                    dir={sortDir}
+                    onClick={() => onSort(h)}
+                  />
+                </th>
               ))}
             </tr>
           </thead>
@@ -366,25 +384,91 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
         </table>
       </div>
 
+      {/* ---------- Pagination ---------- */}
+      <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
+        <div>
+          Rows:
+          <select
+            className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
+            value={limit}
+            onChange={e => setLimit(Number(e.target.value))}
+          >
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value={-1}>All</option>
+          </select>
+        </div>
+
+        {limit !== -1 && totalPages > 1 && (
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={() => setPage(0)}
+              disabled={page === 0}
+              className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
+            >
+              First
+            </button>
+
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
+            >
+              Prev
+            </button>
+
+            <span className="px-2 min-w-[64px] text-center tabular-nums text-gray-300">
+              {page + 1} / {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page + 1 >= totalPages}
+              className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
+            >
+              Next
+            </button>
+
+            <button
+              onClick={() => setPage(totalPages - 1)}
+              disabled={page + 1 >= totalPages}
+              className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
+            >
+              Last
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* ---------- Modal ---------- */}
       {chartMarket && (
         <div
-          className="fixed inset-0 z-50 backdrop-blur-md"
+          className="fixed inset-0 z-50 backdrop-blur-md transition-[backdrop-filter] duration-300 ease-out"
           onClick={() => setChartMarket(null)}
         >
           <div
-            className="bg-gray-900 border border-gray-700 rounded-lg p-6 w-[900px] max-w-[95vw] mx-auto mt-24"
+            className="bg-gray-900 border border-gray-700 rounded-lg p-6
+                       w-[900px] max-w-[95vw] h-[520px]
+                       mx-auto mt-24 flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <h2 className="mb-4">{chartMarket.title}</h2>
 
-            {chartLoading && <div className="text-gray-400">Loading…</div>}
-            {!chartLoading && chartError && (
-              <div className="text-red-400">{chartError}</div>
-            )}
-            {!chartLoading && !chartError && chartData.length > 0 && (
-              <FundingChart data={chartData} />
-            )}
+            <div className="flex-1 flex items-center justify-center">
+              {chartLoading && (
+                <div className="text-gray-400">Loading…</div>
+              )}
+
+              {!chartLoading && chartError && (
+                <div className="text-red-400 text-center max-w-md">
+                  {chartError}
+                </div>
+              )}
+
+              {!chartLoading && !chartError && chartData.length > 0 && (
+                <FundingChart data={chartData} />
+              )}
+            </div>
           </div>
         </div>
       )}
