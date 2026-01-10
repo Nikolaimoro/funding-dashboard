@@ -471,7 +471,7 @@ export default function FundingTable({ rows }: { rows: Row[] }) {
               <div className="text-red-400">Error: {chartError}</div>
             )}
             {!chartLoading && !chartError && chartData.length > 0 && (
-              <FundingChart title={chartMarket.title} data={chartData} />
+              <FundingChart data={chartData} />
             )}
           </div>
         </div>
