@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import dynamic from "next/dynamic";
+import { useMemo, useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import dynamic from "next/dynamic";
 
 /* chart — client only */
 const FundingChart = dynamic(() => import("@/components/FundingChart"), {
@@ -12,7 +11,7 @@ const FundingChart = dynamic(() => import("@/components/FundingChart"), {
 
 /* ================= TYPES ================= */
 
-export type Row = {
+type Row = {
   market_id: number | null;
   exchange: string;
   symbol: string;
@@ -28,31 +27,20 @@ export type Row = {
   updated: string;
 };
 
-export type SortKey =
+type SortKey =
   | "exchange"
   | "market"
   | "1d"
   | "3d"
   | "7d"
   | "15d"
-  | "30d";
+  | "30d"
 
-export type SortDir = "asc" | "desc";
+type SortDir = "asc" | "desc";
 
 type ChartPoint = {
   funding_time: string;
   apr: number;
-};
-
-type Props = {
-  rows: Row[];
-  totalCount: number;
-  page: number; // 0-based
-  limit: number;
-  sortKey: SortKey;
-  sortDir: SortDir;
-  search: string;
-  exchanges: string[]; // selected exchanges (filter)
 };
 
 /* ================= CONSTS ================= */
@@ -110,30 +98,45 @@ function SortableHeader({
 
 /* ================= COMPONENT ================= */
 
-export default function FundingTable(props: Props) {
-  const {
-    rows,
-    totalCount,
-    page,
-    limit,
-    sortKey,
-    sortDir,
-    search,
-    exchanges: selectedExchanges,
-  } = props;
-
-  const router = useRouter();
-  const pathname = usePathname();
-  const sp = useSearchParams();
-
+export default function FundingTable({ rows }: { rows: Row[] }) {
+  /* ---------- state ---------- */
+  const [search, setSearch] = useState("");
+  const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  /* локальное поле поиска (чтобы не дергать роутер на каждый символ) */
-  const [searchDraft, setSearchDraft] = useState(search ?? "");
+  const [sortKey, setSortKey] = useState<SortKey>("15d");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
+  const [limit, setLimit] = useState(20);
+  const [page, setPage] = useState(0);
+
+  /* ---------- chart ---------- */
+  const [chartMarket, setChartMarket] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
+
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartError, setChartError] = useState<string | null>(null);
+  const [chartCache, setChartCache] = useState<Record<number, ChartPoint[]>>({});
+
+  /* ---------- reset page ---------- */
   useEffect(() => {
-    setSearchDraft(search ?? "");
-  }, [search]);
+    setPage(0);
+  }, [search, selectedExchanges, limit, sortKey, sortDir]);
+
+  /* ---------- exchanges ---------- */
+  const exchanges = useMemo(
+    () => Array.from(new Set(rows.map(r => r.exchange))).sort(),
+    [rows]
+  );
+
+  const toggleExchange = (ex: string) => {
+    setSelectedExchanges(prev =>
+      prev.includes(ex) ? prev.filter(e => e !== ex) : [...prev, ex]
+    );
+  };
 
   /* ---------- helpers ---------- */
   const formatAPR = (v: number | null) =>
@@ -145,82 +148,71 @@ export default function FundingTable(props: Props) {
       </span>
     );
 
-  const setParams = useCallback(
-    (patch: Record<string, string | number | null | undefined>) => {
-      const params = new URLSearchParams(sp?.toString());
-
-      for (const [k, v] of Object.entries(patch)) {
-        if (v === null || v === undefined || v === "") params.delete(k);
-        else params.set(k, String(v));
-      }
-
-      router.push(`${pathname}?${params.toString()}`);
-    },
-    [router, pathname, sp]
-  );
-
-  const totalPages =
-    limit === -1 ? 1 : Math.max(1, Math.ceil(totalCount / limit));
-
-  /* ---------- exchanges list (for filter dropdown) ---------- */
-  const exchangeOptions = useMemo(() => {
-    return Array.from(new Set(rows.map(r => r.exchange))).sort();
-  }, [rows]);
-
-  const toggleExchange = (ex: string) => {
-    const set = new Set(selectedExchanges ?? []);
-    if (set.has(ex)) set.delete(ex);
-    else set.add(ex);
-
-    setParams({
-      exchanges: Array.from(set).join(","),
-      page: 0,
-    });
-  };
-
-  /* ---------- sorting ---------- */
   const onSort = (key: SortKey) => {
     if (sortKey === key) {
-      setParams({ dir: sortDir === "asc" ? "desc" : "asc", page: 0 });
+      setSortDir(d => (d === "asc" ? "desc" : "asc"));
     } else {
-      setParams({ sort: key, dir: "desc", page: 0 });
+      setSortKey(key);
+      setSortDir("desc");
     }
   };
 
-  /* ---------- search (debounced) ---------- */
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const q = searchDraft.trim();
-      setParams({ q, page: 0 });
-    }, 250);
+  /* ---------- filtering + sorting (ALL rows) ---------- */
+  const sortedAll = useMemo(() => {
+    let data = rows;
 
-    return () => clearTimeout(t);
-  }, [searchDraft, setParams]);
+    const q = search.trim().toLowerCase();
+    if (q) {
+      data = data.filter(r =>
+        r.market.toLowerCase().startsWith(q)
+      );
+    }
 
-  /* ---------- limit ---------- */
-  const onLimitChange = (v: number) => {
-    setParams({ limit: v, page: 0 });
-  };
+    if (selectedExchanges.length) {
+      const set = new Set(selectedExchanges);
+      data = data.filter(r => set.has(r.exchange));
+    }
+
+    const dir = sortDir === "asc" ? 1 : -1;
+
+    return [...data].sort((a, b) => {
+      const ak = a[sortKey as keyof Row];
+      const bk = b[sortKey as keyof Row];
+
+      if (sortKey === "exchange") {
+        return (
+          formatExchange(String(ak)).localeCompare(
+            formatExchange(String(bk))
+          ) * dir
+        );
+      }
+
+      if (sortKey === "market") {
+        return String(ak).localeCompare(String(bk)) * dir;
+      }
+
+      const av = typeof ak === "number" ? ak : null;
+      const bv = typeof bk === "number" ? bk : null;
+
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+
+      return av < bv ? -dir : av > bv ? dir : 0;
+    });
+  }, [rows, search, selectedExchanges, sortKey, sortDir]);
 
   /* ---------- pagination ---------- */
-  const goPage = (p: number) => {
-    const clamped = Math.max(0, Math.min(totalPages - 1, p));
-    setParams({ page: clamped });
-  };
+  const totalPages =
+    limit === -1 ? 1 : Math.max(1, Math.ceil(sortedAll.length / limit));
 
-  /* ---------- chart ---------- */
-  const [chartMarket, setChartMarket] = useState<{
-    id: number;
-    title: string;
-  } | null>(null);
+  const visible = useMemo(() => {
+    if (limit === -1) return sortedAll;
+    const start = page * limit;
+    return sortedAll.slice(start, start + limit);
+  }, [sortedAll, limit, page]);
 
-  const [chartData, setChartData] = useState<ChartPoint[]>([]);
-  const [chartLoading, setChartLoading] = useState(false);
-  const [chartError, setChartError] = useState<string | null>(null);
-  const [chartCache, setChartCache] = useState<Record<number, ChartPoint[]>>(
-    {}
-  );
-
+  /* ---------- chart loading + cache ---------- */
   useEffect(() => {
     if (!chartMarket?.id) return;
 
@@ -239,7 +231,9 @@ export default function FundingTable(props: Props) {
       .then(({ data, error }) => {
         if (error) {
           console.error("Funding chart error:", error);
-          setChartError("Failed to load funding history. Please try again.");
+          setChartError(
+            "Failed to load funding history. Please try again."
+          );
           setChartData([]);
         } else {
           const points = (data ?? []) as ChartPoint[];
@@ -254,15 +248,17 @@ export default function FundingTable(props: Props) {
 
   return (
     <main className="min-h-screen bg-gray-900 p-6 text-gray-200">
-      <h1 className="text-2xl font-semibold mb-4">Funding Rates Dashboard</h1>
+      <h1 className="text-2xl font-semibold mb-4">
+        Funding Rates Dashboard
+      </h1>
 
       {/* ---------- Controls ---------- */}
       <div className="flex flex-wrap gap-3 mb-4 items-center">
         <input
           className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
           placeholder="Search market"
-          value={searchDraft}
-          onChange={e => setSearchDraft(e.target.value)}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
         />
 
         <div className="relative">
@@ -285,7 +281,7 @@ export default function FundingTable(props: Props) {
                 onClick={() => setFilterOpen(false)}
               />
               <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-2 shadow-lg">
-                {exchangeOptions.map(ex => (
+                {exchanges.map(ex => (
                   <label
                     key={ex}
                     className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded"
@@ -326,8 +322,7 @@ export default function FundingTable(props: Props) {
                 />
               </th>
               <th className="px-4 py-3 text-center">History</th>
-
-              {(["1d", "3d", "7d", "15d", "30d"] as SortKey[]).map(h => (
+              {(["1d","3d","7d","15d","30d"] as SortKey[]).map(h => (
                 <th key={h} className="px-4 py-3 text-right">
                   <SortableHeader
                     label={h}
@@ -341,13 +336,12 @@ export default function FundingTable(props: Props) {
           </thead>
 
           <tbody>
-            {rows.map(r => (
+            {visible.map(r => (
               <tr
                 key={`${r.exchange}:${r.market}`}
                 className="border-b border-gray-800 hover:bg-gray-700/40"
               >
                 <td className="px-4 py-2">{formatExchange(r.exchange)}</td>
-
                 <td className="px-4 py-2 font-mono font-semibold">
                   {r.ref_url ? (
                     <a
@@ -362,7 +356,6 @@ export default function FundingTable(props: Props) {
                     r.market
                   )}
                 </td>
-
                 <td className="px-4 py-2 text-center">
                   {r.market_id && (
                     <button
@@ -378,7 +371,6 @@ export default function FundingTable(props: Props) {
                     </button>
                   )}
                 </td>
-
                 <td className="px-4 py-2 text-right">{formatAPR(r["1d"])}</td>
                 <td className="px-4 py-2 text-right">{formatAPR(r["3d"])}</td>
                 <td className="px-4 py-2 text-right">{formatAPR(r["7d"])}</td>
@@ -386,39 +378,18 @@ export default function FundingTable(props: Props) {
                 <td className="px-4 py-2 text-right">{formatAPR(r["30d"])}</td>
               </tr>
             ))}
-
-            {rows.length === 0 && (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="px-4 py-10 text-center text-gray-400"
-                >
-                  No results
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
 
       {/* ---------- Pagination ---------- */}
       <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
-        <div className="flex items-center gap-2">
-          <span>
-            Showing{" "}
-            {limit === -1
-              ? totalCount
-              : Math.min(totalCount, page * limit + rows.length)}{" "}
-            / {totalCount}
-          </span>
-
-          <span className="opacity-40">•</span>
-
-          <span>Rows:</span>
+        <div>
+          Rows:
           <select
-            className="bg-gray-800 border border-gray-700 rounded px-2 py-1"
+            className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
             value={limit}
-            onChange={e => onLimitChange(Number(e.target.value))}
+            onChange={e => setLimit(Number(e.target.value))}
           >
             <option value={20}>20</option>
             <option value={50}>50</option>
@@ -430,7 +401,7 @@ export default function FundingTable(props: Props) {
         {limit !== -1 && totalPages > 1 && (
           <div className="flex gap-2 items-center">
             <button
-              onClick={() => goPage(0)}
+              onClick={() => setPage(0)}
               disabled={page === 0}
               className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
             >
@@ -438,7 +409,7 @@ export default function FundingTable(props: Props) {
             </button>
 
             <button
-              onClick={() => goPage(page - 1)}
+              onClick={() => setPage(p => Math.max(0, p - 1))}
               disabled={page === 0}
               className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
             >
@@ -450,7 +421,7 @@ export default function FundingTable(props: Props) {
             </span>
 
             <button
-              onClick={() => goPage(page + 1)}
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page + 1 >= totalPages}
               className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
             >
@@ -458,7 +429,7 @@ export default function FundingTable(props: Props) {
             </button>
 
             <button
-              onClick={() => goPage(totalPages - 1)}
+              onClick={() => setPage(totalPages - 1)}
               disabled={page + 1 >= totalPages}
               className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
             >
@@ -483,7 +454,9 @@ export default function FundingTable(props: Props) {
             <h2 className="mb-4">{chartMarket.title}</h2>
 
             <div className="flex-1 flex items-center justify-center">
-              {chartLoading && <div className="text-gray-400">Loading…</div>}
+              {chartLoading && (
+                <div className="text-gray-400">Loading…</div>
+              )}
 
               {!chartLoading && chartError && (
                 <div className="text-red-400 text-center max-w-md">
@@ -493,10 +466,6 @@ export default function FundingTable(props: Props) {
 
               {!chartLoading && !chartError && chartData.length > 0 && (
                 <FundingChart data={chartData} />
-              )}
-
-              {!chartLoading && !chartError && chartData.length === 0 && (
-                <div className="text-gray-500">No chart data</div>
               )}
             </div>
           </div>
