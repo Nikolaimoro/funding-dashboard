@@ -202,13 +202,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
             easing: "linear",
         },
 
-        transitions: {
-            active: {
-                animation: {
-                    duration: 150,
-                },
-            },
-        },
+        transitions: {},
 
       responsive: true,
       maintainAspectRatio: false,
@@ -220,18 +214,11 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
     enabled: true,
     mode: "x",
   },
-  zoom: {
-    wheel: {
-      enabled: true,
-      speed: 0.12,
-    },
-    pinch: {
-      enabled: true,
-    },
+    zoom: {
+    wheel: { enabled: true },
+    pinch: { enabled: true },
     mode: "x",
-    animation: {
-      duration: 120,      // ✅ ускоряет анимацию зума
-  },
+    animation: false,
 },
   limits: {
     x: {
@@ -322,7 +309,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
 
         {/* body */}
         <div className="px-4 py-4">
-            
+
 {loading ? (
   <div className="h-[520px] w-full flex items-center justify-center">
     <div className="flex items-center gap-3 text-gray-300">
