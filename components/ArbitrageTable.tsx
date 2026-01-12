@@ -112,7 +112,7 @@ export default function ArbitrageTable() {
   const [rows, setRows] = useState<ArbRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [windowDays, setWindowDays] = useState<number>(1);
+  const [windowDays, setWindowDays] = useState<number>(0);
 
   const [search, setSearch] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
@@ -122,20 +122,23 @@ export default function ArbitrageTable() {
 
   /* ---------- load data ---------- */
   useEffect(() => {
-    setLoading(true);
+  setLoading(true);
 
-    supabase
-      .rpc("get_arb_opportunities", { p_window_days: windowDays })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("arb fetch error:", error);
-          setRows([]);
-        } else {
-          setRows((data ?? []) as ArbRow[]);
-        }
-        setLoading(false);
-      });
-  }, [windowDays]);
+  supabase
+    .from("arb_opportunities_mv")
+    .select("*")
+    .eq("window_days", windowDays)
+    .order("opportunity_apr", { ascending: false })
+    .then(({ data, error }) => {
+      if (error) {
+        console.error("arb fetch error:", error);
+        setRows([]);
+      } else {
+        setRows((data ?? []) as ArbRow[]);
+      }
+      setLoading(false);
+    });
+}, [windowDays]);
 
   /* ---------- exchanges ---------- */
   const exchanges = useMemo(
