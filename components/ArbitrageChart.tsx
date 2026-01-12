@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
   Chart as ChartJS,
+  LineController,
+  BarController,
   LineElement,
   PointElement,
   BarElement,
@@ -20,11 +22,20 @@ import { X } from "lucide-react";
 
 /* ---------- register ---------- */
 ChartJS.register(
+  // controllers
+  LineController,
+  BarController,
+
+  // elements
   LineElement,
   PointElement,
   BarElement,
+
+  // scales
   LinearScale,
   TimeScale,
+
+  // plugins
   Tooltip,
   Legend,
   Filler
