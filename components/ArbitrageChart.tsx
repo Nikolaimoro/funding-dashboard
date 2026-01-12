@@ -181,6 +181,19 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
     };
   }, [rows, longLabel, shortLabel]);
 
+    const { minX, maxX } = useMemo(() => {
+    const xs = rows
+      .map((r) => (r?.h ? new Date(r.h).getTime() : NaN))
+      .filter((x) => Number.isFinite(x)) as number[];
+
+    if (!xs.length) return { minX: Date.now() - 30 * 24 * 3600 * 1000, maxX: Date.now() };
+
+    return { minX: Math.min(...xs), maxX: Math.max(...xs) };
+  }, [rows]);
+
+  const FULL_RANGE = Math.max(1, maxX - minX); // 30 дней (или сколько реально пришло)
+  const MIN_RANGE = 3 * 24 * 60 * 60 * 1000;  // 3 дня в мс
+
   const options = useMemo<ChartOptions<"bar">>(
     () => ({
 
@@ -206,16 +219,27 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
   pan: {
     enabled: true,
     mode: "x",
-    modifierKey: "shift", // 👈 чтобы не мешать скроллу страницы
   },
   zoom: {
     wheel: {
       enabled: true,
+      speed: 0.12,
     },
     pinch: {
       enabled: true,
     },
     mode: "x",
+    animation: {
+      duration: 120,      // ✅ ускоряет анимацию зума
+  },
+},
+  limits: {
+    x: {
+      min: minX,          // ✅ не уедем левее исходного
+      max: maxX,          // ✅ не уедем правее исходного
+      maxRange: FULL_RANGE, // ✅ нельзя отдалить сильнее, чем исходный full-range
+      minRange: MIN_RANGE,  // ✅ нельзя приблизить сильнее, чем окно < 3 дней
+    },
   },
 },
 
@@ -262,7 +286,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
         },
       },
     }),
-    []
+    [minX, maxX, FULL_RANGE]
   );
 
   if (!open) return null;
@@ -298,12 +322,23 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
 
         {/* body */}
         <div className="px-4 py-4">
-          {loading && <div className="text-gray-400 text-sm mb-3">Loading chart…</div>}
-          {err && <div className="text-red-400 text-sm mb-3">{err}</div>}
-
-          <div className="h-[520px] w-full">
-            <Chart type="bar" data={chartData as any} options={options} />
-          </div>
+            
+{loading ? (
+  <div className="h-[520px] w-full flex items-center justify-center">
+    <div className="flex items-center gap-3 text-gray-300">
+      <div className="h-5 w-5 rounded-full border-2 border-gray-500 border-t-transparent animate-spin" />
+      <span className="text-sm">Loading…</span>
+    </div>
+  </div>
+) : err ? (
+  <div className="h-[520px] w-full flex items-center justify-center">
+    <div className="text-red-400 text-sm">{err}</div>
+  </div>
+) : (
+  <div className="h-[520px] w-full">
+    <Chart type="bar" data={chartData as any} options={options} />
+  </div>
+)}
 
           <div className="mt-3 text-xs text-gray-500">
             Bars = spread (Short APR − Long APR). Lines = normalized hourly APR per leg.
