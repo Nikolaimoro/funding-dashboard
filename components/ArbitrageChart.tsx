@@ -322,14 +322,25 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
     <div className="text-red-400 text-sm">{err}</div>
   </div>
 ) : (
-  <div className="h-[520px] w-full">
-    <Chart type="bar" data={chartData as any} options={options} />
-  </div>
+
+<div className="h-[520px] w-full">
+  {loading && (
+    <div className="flex h-full items-center justify-center text-gray-400">
+      Loading…
+    </div>
+  )}
+
+  {!loading && rows.length > 0 && (
+    <Chart
+      key={`${longMarketId}-${shortMarketId}`}
+      type="bar"
+      data={chartData as any}
+      options={options}
+    />
+  )}
+</div>
 )}
 
-          <div className="mt-3 text-xs text-gray-500">
-            Bars = spread (Short APR − Long APR). Lines = normalized hourly APR per leg.
-          </div>
         </div>
       </div>
     </div>
