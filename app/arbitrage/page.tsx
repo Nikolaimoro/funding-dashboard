@@ -1,5 +1,7 @@
 import ArbitrageTable from "@/components/ArbitrageTable";
 
+export const revalidate = 0;
+
 export const metadata = {
   title: "Arbitrage | Funding Dashboard",
 };

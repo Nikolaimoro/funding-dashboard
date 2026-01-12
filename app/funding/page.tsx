@@ -1,9 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import FundingTable from "@/components/FundingTable";
 
-/*
-export const revalidate = 300;
-*/
+
+export const revalidate = 0;
 
 const PAGE_SIZE = 1000;
 
