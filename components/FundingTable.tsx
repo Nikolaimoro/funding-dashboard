@@ -57,7 +57,8 @@ const EXCHANGE_LABEL: Record<string, string> = {
   mexc: "MEXC",
   bingx: "BingX",
   paradex: "Paradex",
-  binance: "Binance"
+  binance: "Binance",
+  hyperliquid: "Hyperliquid"
 };
 
 const formatExchange = (ex: string) => EXCHANGE_LABEL[ex] ?? ex;

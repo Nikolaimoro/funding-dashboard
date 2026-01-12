@@ -112,7 +112,7 @@ export default function ArbitrageTable() {
   const [rows, setRows] = useState<ArbRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [windowDays, setWindowDays] = useState<number>(15);
+  const [windowDays, setWindowDays] = useState<number>(1);
 
   const [search, setSearch] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
