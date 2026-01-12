@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 //import { Geist, Geist_Mono } from "next/font/google";
-import { Inter } from "next/font/google";
+import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import AppHeader from "@/components/AppHeader";
 
@@ -22,6 +22,12 @@ const inter = Inter({
   display: "swap",
 });
 
+const robotoMono = Roboto_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
 
 export const metadata: Metadata = {
   title: "Funding Dashboard",
@@ -37,7 +43,8 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`
-          ${inter.variable}
+          ${inter.variable} 
+          ${robotoMono.variable}
           antialiased
           bg-gray-900
           text-gray-200
