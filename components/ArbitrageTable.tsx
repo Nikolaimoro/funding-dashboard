@@ -34,9 +34,6 @@ export type ArbRow = {
 type SortKey = "opportunity_apr" | "stability";
 type SortDir = "asc" | "desc";
 
-const [sortKey, setSortKey] = useState<SortKey>("stability");
-const [sortDir, setSortDir] = useState<SortDir>("desc");
-
 
 /* ================= CONSTS ================= */
 
