@@ -19,6 +19,7 @@ import {
 import "chartjs-adapter-date-fns";
 import { Chart } from "react-chartjs-2";
 import { X } from "lucide-react";
+import zoomPlugin from "chartjs-plugin-zoom";
 
 /* ---------- register ---------- */
 ChartJS.register(
@@ -38,7 +39,8 @@ ChartJS.register(
   // plugins
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  zoomPlugin
 );
 
 /* ================= TYPES ================= */
@@ -181,10 +183,42 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
 
   const options = useMemo<ChartOptions<"bar">>(
     () => ({
+
+        animation: {
+            duration: 600,        // было ~1000 по умолчанию
+            easing: "linear",
+        },
+
+        transitions: {
+            active: {
+                animation: {
+                    duration: 150,
+                },
+            },
+        },
+
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: "index", intersect: false },
       plugins: {
+
+        zoom: {
+  pan: {
+    enabled: true,
+    mode: "x",
+    modifierKey: "shift", // 👈 чтобы не мешать скроллу страницы
+  },
+  zoom: {
+    wheel: {
+      enabled: true,
+    },
+    pinch: {
+      enabled: true,
+    },
+    mode: "x",
+  },
+},
+
         legend: { display: true, labels: { color: "#cbd5e1" } },
         tooltip: {
           callbacks: {
