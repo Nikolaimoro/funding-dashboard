@@ -201,7 +201,18 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
             easing: "linear",
         },
 
-        transitions: {},
+            transitions: {
+      zoom: {
+        animation: {
+          duration: 0, // ❗️убираем анимацию при zoom
+        },
+      },
+      pan: {
+        animation: {
+          duration: 0, // ❗️убираем анимацию при pan
+        },
+      },
+    },
 
       responsive: true,
       maintainAspectRatio: false,
