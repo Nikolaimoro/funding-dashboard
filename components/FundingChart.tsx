@@ -200,7 +200,7 @@ export default function FundingChart(props: FundingChartProps) {
       },
 
       interaction: {
-        mode: "x",
+        mode: "nearest",
         intersect: false,
       },
 
