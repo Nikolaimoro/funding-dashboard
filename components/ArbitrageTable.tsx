@@ -374,7 +374,7 @@ export default function ArbitrageTable() {
         <table className="w-full text-sm">
           <thead className="bg-gray-900 sticky top-0">
             <tr className="border-b border-gray-700">
-              <th className="px-4 py-3 text-left">Token</th>
+              <th className="px-4 py-3 text-left text-gray-400 font-medium">Token</th>
 
               <th className="px-4 py-3 text-right">
                 <SortableHeader
@@ -385,9 +385,9 @@ export default function ArbitrageTable() {
                 />
               </th>
 
-              <th className="px-4 py-3 text-left">Long / Short</th>
-              <th className="px-4 py-3 text-right">Open Interest</th>
-              <th className="px-4 py-3 text-right">Volume 24h</th>
+              <th className="px-4 py-3 text-left text-gray-400 font-medium">Long / Short</th>
+              <th className="px-4 py-3 text-left text-gray-400 font-medium">Open Interest</th>
+              <th className="px-4 py-3 text-left text-gray-400 font-medium">Volume 24h</th>
 
               <th className="px-4 py-3 text-right">
                 <SortableHeader

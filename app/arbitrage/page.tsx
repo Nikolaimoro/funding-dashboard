@@ -14,7 +14,7 @@ export default function ArbitragePage() {
     Arbitrage Top Opportunities
   </h1>
 
-  <p className="max-w-xl text-sm text-gray-400">
+  <p className="max-w-xl text-sm text-gray-200">
     Last 15 days
   </p>
 </div>

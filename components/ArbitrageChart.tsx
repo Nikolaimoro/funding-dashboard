@@ -138,8 +138,10 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
           yAxisID: "y2",
           backgroundColor: "rgba(148, 163, 184, 0.18)",
           borderWidth: 0,
-          barPercentage: 1.0,
-          categoryPercentage: 1.0,
+          barPercentage: 0.85,
+          categoryPercentage: 0.8,
+          borderRadius: 4,
+          borderSkipped: false,
         },
 
         // long line
