@@ -87,9 +87,9 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
 
   /* ---------- chart ---------- */
   const [chartOpen, setChartOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState<Row | null>(null);
+  const [selectedRow, setSelectedRow] = useState<FundingRow | null>(null);
 
-  function openChart(r: Row) {
+  function openChart(r: FundingRow) {
     if (r.market_id) {
       setSelectedRow(r);
       setChartOpen(true);
