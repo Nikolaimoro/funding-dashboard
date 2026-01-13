@@ -16,6 +16,46 @@ type SortDir = "asc" | "desc";
 
 /* ================= BUTTONS ================= */
 
+function SortableHeader({
+  label,
+  active,
+  dir,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  dir: SortDir;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group inline-flex items-center gap-1 text-left select-none"
+    >
+      <span
+        className={`transition-colors ${
+          active ? "text-gray-200" : "text-gray-400 group-hover:text-gray-200"
+        }`}
+      >
+        {label}
+      </span>
+
+      {!active && (
+        <span className="text-xs opacity-0 group-hover:opacity-60 transition-opacity text-gray-500">
+          ↑↓
+        </span>
+      )}
+
+      {active && (
+        <span className="text-[13px] text-blue-400">
+          {dir === "asc" ? "↑" : "↓"}
+        </span>
+      )}
+    </button>
+  );
+}
+
 function LongButton({
   href,
   label,
@@ -82,6 +122,10 @@ export default function ArbitrageTable() {
   const [search, setSearch] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [minOI, setMinOI] = useState<number | "">(0);
+  const [minVolume, setMinVolume] = useState<number | "">(0);
 
   const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(0);
@@ -173,6 +217,18 @@ export default function ArbitrageTable() {
       );
     }
 
+    // Apply OI filter
+    const minOIValue = typeof minOI === "number" ? minOI : 0;
+    if (minOIValue > 0) {
+      data = data.filter(r => (r.long_oi ?? 0) >= minOIValue && (r.short_oi ?? 0) >= minOIValue);
+    }
+
+    // Apply Volume filter
+    const minVolValue = typeof minVolume === "number" ? minVolume : 0;
+    if (minVolValue > 0) {
+      data = data.filter(r => (r.long_volume_24h ?? 0) >= minVolValue && (r.short_volume_24h ?? 0) >= minVolValue);
+    }
+
     // MV уже отсортирована по opportunity_apr desc,
     // но после фильтров порядок может "плыть" — перестрахуемся
     return [...data].sort((a, b) => {
@@ -180,7 +236,7 @@ export default function ArbitrageTable() {
   const bv = b[sortKey] ?? 0;
   return sortDir === "asc" ? av - bv : bv - av;
 });
-  }, [rows, search, selectedExchanges, sortKey, sortDir]);
+  }, [rows, search, selectedExchanges, sortKey, sortDir, minOI, minVolume]);
 
   /* ---------- pagination ---------- */
   const totalPages =
@@ -231,7 +287,7 @@ export default function ArbitrageTable() {
                   {exchanges.map((ex) => (
                     <label
                       key={ex}
-                      className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded"
+                      className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded items-center"
                     >
                       <input
                         type="checkbox"
@@ -246,6 +302,52 @@ export default function ArbitrageTable() {
                       No exchanges
                     </div>
                   )}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => setFiltersOpen((v) => !v)}
+              className="bg-gray-800 border border-gray-700 px-3 py-2 rounded text-sm hover:border-gray-600 transition"
+              type="button"
+            >
+              Filters
+              {(minOI > 0 || minVolume > 0) && (
+                <span className="text-blue-400 ml-1">
+                  ({(minOI > 0 ? 1 : 0) + (minVolume > 0 ? 1 : 0)})
+                </span>
+              )}
+            </button>
+
+            {filtersOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setFiltersOpen(false)}
+                />
+                <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-3 shadow-lg space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Min OI</label>
+                    <input
+                      type="number"
+                      value={minOI}
+                      onChange={(e) => setMinOI(e.target.value === "" ? "" : Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Min Volume</label>
+                    <input
+                      type="number"
+                      value={minVolume}
+                      onChange={(e) => setMinVolume(e.target.value === "" ? "" : Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                    />
+                  </div>
                 </div>
               </>
             )}
@@ -274,32 +376,26 @@ export default function ArbitrageTable() {
             <tr className="border-b border-gray-700">
               <th className="px-4 py-3 text-left">Token</th>
 
-             <th
-  onClick={() => toggleSort("opportunity_apr")}
-  className="px-4 py-3 text-right cursor-pointer select-none"
->
-  APR
-  {sortKey === "opportunity_apr" && (
-    <span className="ml-1 text-xs">
-      {sortDir === "asc" ? "▲" : "▼"}
-    </span>
-  )}
-</th>
+              <th className="px-4 py-3 text-right">
+                <SortableHeader
+                  label="APR"
+                  active={sortKey === "opportunity_apr"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("opportunity_apr")}
+                />
+              </th>
 
-              <th className="px-4 py-3 text-left">Long</th>
-              <th className="px-4 py-3 text-left">Short</th>
+              <th className="px-4 py-3 text-left">Long / Short</th>
               <th className="px-4 py-3 text-right">Open Interest</th>
               <th className="px-4 py-3 text-right">Volume 24h</th>
 
-
-              <th onClick={() => toggleSort("stability")} 
-                className="px-4 py-3 text-right cursor-pointer select-none"
-                >Stability
-                {sortKey === "stability" && (
-                <span className="ml-1 text-xs">
-                  {sortDir === "asc" ? "▲" : "▼"}
-                </span>
-                )}
+              <th className="px-4 py-3 text-right">
+                <SortableHeader
+                  label="Stability"
+                  active={sortKey === "stability"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("stability")}
+                />
               </th>
 
               <th className="px-4 py-3 text-right"></th>
@@ -325,14 +421,11 @@ export default function ArbitrageTable() {
                     </span>
                   </td>
 
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 flex gap-2">
                     <LongButton
                       href={r.long_url}
                       label={`${formatExchange(r.long_exchange)}${ r.long_quote ? ` (${r.long_quote})` : ""}`}
                     />
-                  </td>
-
-                  <td className="px-4 py-2">
                     <ShortButton
                       href={r.short_url}
                       label={`${formatExchange(r.short_exchange)}${ r.short_quote ? ` (${r.short_quote})` : ""}`}

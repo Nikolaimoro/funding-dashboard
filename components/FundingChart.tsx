@@ -51,10 +51,17 @@ async function fetchFundingChartData(params: {
 }): Promise<FundingChartPoint[]> {
   const { marketId, days = 30 } = params;
 
-  const { data, error } = await supabase.rpc(RPC_FUNCTIONS.FUNDING_CHART, {
+  // Add 10 second timeout to prevent infinite loading
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Request timeout. Please try again.")), 10000)
+  );
+
+  const fetchPromise = supabase.rpc(RPC_FUNCTIONS.FUNDING_CHART, {
     p_market_id: marketId,
     p_days: days,
   });
+
+  const { data, error } = await Promise.race([fetchPromise, timeoutPromise as any]);
 
   if (error) throw error;
 
@@ -88,7 +95,7 @@ export default function FundingChart(props: FundingChartProps) {
       })
       .catch((e: any) => {
         if (cancelled) return;
-        setErr(e?.message ?? "Failed to load chart data");
+        setErr(e?.message ?? "Failed to load chart. Please try again.");
       })
       .finally(() => {
         if (cancelled) return;

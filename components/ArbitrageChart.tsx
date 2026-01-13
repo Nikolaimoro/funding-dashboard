@@ -58,11 +58,18 @@ async function fetchArbChartData(params: {
 }): Promise<ArbChartRow[]> {
   const { longMarketId, shortMarketId, days = 30 } = params;
 
-  const { data, error } = await supabase.rpc(RPC_FUNCTIONS.ARB_CHART, {
+  // Add 10 second timeout to prevent infinite loading
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Request timeout. Please try again.")), 10000)
+  );
+
+  const fetchPromise = supabase.rpc(RPC_FUNCTIONS.ARB_CHART, {
     p_long_market_id: longMarketId,
     p_short_market_id: shortMarketId,
     p_days: days,
   });
+
+  const { data, error } = await Promise.race([fetchPromise, timeoutPromise as any]);
 
   if (error) throw error;
 
@@ -97,7 +104,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
       })
       .catch((e: any) => {
         if (cancelled) return;
-        setErr(e?.message ?? "Failed to load chart data");
+        setErr(e?.message ?? "Failed to load chart. Please try again.");
       })
       .finally(() => {
         if (cancelled) return;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { LineChart } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import dynamic from "next/dynamic";
 import { EXCHANGE_LABEL, MULTIPLIERS } from "@/lib/constants";
 import { formatCompactUSD, formatAPR, formatExchange, normalizeSymbol } from "@/lib/formatters";
@@ -78,6 +78,10 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
   const [search, setSearch] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [minOI, setMinOI] = useState<number | "">(0);
+  const [minVolume, setMinVolume] = useState<number | "">(0);
 
   const [sortKey, setSortKey] = useState<SortKey>("volume_24h");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -99,7 +103,7 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
   /* ---------- reset page ---------- */
   useEffect(() => {
     setPage(0);
-  }, [search, selectedExchanges, limit, sortKey, sortDir]);
+  }, [search, selectedExchanges, limit, sortKey, sortDir, minOI, minVolume]);
 
   /* ---------- exchanges ---------- */
   const exchanges = useMemo(
@@ -166,6 +170,18 @@ const formatUSD = (v: number | null) =>
       data = data.filter(r => set.has(r.exchange));
     }
 
+    // Apply OI filter
+    const minOIValue = typeof minOI === "number" ? minOI : 0;
+    if (minOIValue > 0) {
+      data = data.filter(r => (r.open_interest ?? 0) >= minOIValue);
+    }
+
+    // Apply Volume filter
+    const minVolValue = typeof minVolume === "number" ? minVolume : 0;
+    if (minVolValue > 0) {
+      data = data.filter(r => (r.volume_24h ?? 0) >= minVolValue);
+    }
+
     const dir = sortDir === "asc" ? 1 : -1;
 
     return [...data].sort((a, b) => {
@@ -193,7 +209,7 @@ const formatUSD = (v: number | null) =>
 
       return av < bv ? -dir : av > bv ? dir : 0;
     });
-  }, [rows, search, selectedExchanges, sortKey, sortDir]);
+  }, [rows, search, selectedExchanges, sortKey, sortDir, minOI, minVolume]);
 
   /* ---------- pagination ---------- */
   const totalPages =
@@ -250,7 +266,7 @@ const formatUSD = (v: number | null) =>
                 {exchanges.map(ex => (
                   <label
                     key={ex}
-                    className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded"
+                    className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded items-center"
                   >
                     <input
                       type="checkbox"
@@ -260,6 +276,51 @@ const formatUSD = (v: number | null) =>
                     {formatExchange(ex)}
                   </label>
                 ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="relative">
+          <button
+            onClick={() => setFiltersOpen(v => !v)}
+            className={`${TAILWIND.input.default} hover:border-gray-600 transition`}
+          >
+            Filters
+            {(minOI > 0 || minVolume > 0) && (
+              <span className="text-blue-400 ml-1">
+                ({(minOI > 0 ? 1 : 0) + (minVolume > 0 ? 1 : 0)})
+              </span>
+            )}
+          </button>
+
+          {filtersOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setFiltersOpen(false)}
+              />
+              <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-3 shadow-lg space-y-3">
+                <div>
+                  <label className="block text-sm text-gray-300 mb-1">Min OI</label>
+                  <input
+                    type="number"
+                    value={minOI}
+                    onChange={(e) => setMinOI(e.target.value === "" ? "" : Number(e.target.value))}
+                    placeholder="0"
+                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-300 mb-1">Min Volume</label>
+                  <input
+                    type="number"
+                    value={minVolume}
+                    onChange={(e) => setMinVolume(e.target.value === "" ? "" : Number(e.target.value))}
+                    placeholder="0"
+                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                  />
+                </div>
               </div>
             </>
           )}
@@ -287,7 +348,6 @@ const formatUSD = (v: number | null) =>
                   onClick={() => onSort("market")}
                 />
               </th>
-              <th className="px-4 py-3 text-center">History</th>
               
 <th className="px-4 py-3 text-right">
   <SortableHeader
@@ -326,6 +386,7 @@ const formatUSD = (v: number | null) =>
                   />
                 </th>
               ))}
+              <th className="px-4 py-3 w-8"></th>
             </tr>
           </thead>
 
@@ -333,7 +394,8 @@ const formatUSD = (v: number | null) =>
             {visible.map(r => (
               <tr
                 key={`${r.exchange}:${r.market}`}
-                className={`${TAILWIND.table.row} ${TAILWIND.bg.hover}`}
+                onClick={() => openChart(r)}
+                className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} cursor-pointer`}
               >
                 <td className={TAILWIND.table.cell}>{formatExchange(r.exchange)}</td>
                 <td className="px-4 py-2 font-mono font-semibold">
@@ -342,22 +404,13 @@ const formatUSD = (v: number | null) =>
                       href={r.ref_url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="text-blue-300 hover:underline"
                     >
                       {r.market}
                     </a>
                   ) : (
                     r.market
-                  )}
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {r.market_id && (
-                    <button
-                      onClick={() => openChart(r)}
-                      className="text-blue-300 hover:text-blue-200"
-                    >
-                      <LineChart size={16} />
-                    </button>
                   )}
                 </td>
 
@@ -378,6 +431,11 @@ const formatUSD = (v: number | null) =>
                 <td className="px-4 py-2 text-right">{formatAPRNode(r["7d"])}</td>
                 <td className="px-4 py-2 text-right">{formatAPRNode(r["15d"])}</td>
                 <td className="px-4 py-2 text-right">{formatAPRNode(r["30d"])}</td>
+                <td className="px-4 py-2 text-center">
+                  {r.market_id && (
+                    <ExternalLink size={16} className="text-gray-500" />
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
