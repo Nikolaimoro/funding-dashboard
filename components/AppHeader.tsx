@@ -25,6 +25,7 @@ export default function AppHeader() {
     <div className="flex gap-6 mb-6 border-b border-gray-800 pb-3">
       {link("/funding", "Funding")}
       {link("/arbitrage", "Arbitrage")}
+      {link("/backtester", "Backtester")}
     </div>
   );
 }

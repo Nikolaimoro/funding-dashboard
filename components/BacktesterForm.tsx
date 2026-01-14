@@ -1,0 +1,291 @@
+"use client";
+
+import { useState, useMemo, useRef, useEffect } from "react";
+import { ArrowRightLeft } from "lucide-react";
+import { normalizeToken } from "@/lib/formatters";
+import { TAILWIND } from "@/lib/theme";
+import BacktesterChart from "@/components/BacktesterChart";
+
+interface BacktesterFormProps {
+  tokens: string[];
+  exchanges: { exchange: string; quotes: string[] }[];
+}
+
+type ComboboxType = "token" | "long-ex" | "short-ex";
+
+export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProps) {
+  const [selectedToken, setSelectedToken] = useState<string>("");
+  const [selectedLongEx, setSelectedLongEx] = useState<string>("");
+  const [selectedLongQuote, setSelectedLongQuote] = useState<string>("");
+  const [selectedShortEx, setSelectedShortEx] = useState<string>("");
+  const [selectedShortQuote, setSelectedShortQuote] = useState<string>("");
+
+  const [tokenSearch, setTokenSearch] = useState("");
+  const [longExSearch, setLongExSearch] = useState("");
+  const [shortExSearch, setShortExSearch] = useState("");
+
+  const [openCombo, setOpenCombo] = useState<ComboboxType | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [chartData, setChartData] = useState<any>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Filtered tokens
+  const filteredTokens = useMemo(() => {
+    if (!tokenSearch) return tokens;
+    const q = normalizeToken(tokenSearch);
+    return tokens.filter(t => normalizeToken(t).startsWith(q));
+  }, [tokens, tokenSearch]);
+
+  // Filtered long exchanges
+  const filteredLongEx = useMemo(() => {
+    if (!longExSearch) return exchanges;
+    const q = longExSearch.toLowerCase();
+    return exchanges.filter(ex => ex.exchange.toLowerCase().startsWith(q));
+  }, [exchanges, longExSearch]);
+
+  // Filtered short exchanges
+  const filteredShortEx = useMemo(() => {
+    if (!shortExSearch) return exchanges;
+    const q = shortExSearch.toLowerCase();
+    return exchanges.filter(ex => ex.exchange.toLowerCase().startsWith(q));
+  }, [exchanges, shortExSearch]);
+
+  // Close combobox when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpenCombo(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSwapExchanges = () => {
+    const tempEx = selectedLongEx;
+    const tempQuote = selectedLongQuote;
+    setSelectedLongEx(selectedShortEx);
+    setSelectedLongQuote(selectedShortQuote);
+    setSelectedShortEx(tempEx);
+    setSelectedShortQuote(tempQuote);
+  };
+
+  const handleRun = async () => {
+    if (!selectedToken || !selectedLongEx || !selectedLongQuote || !selectedShortEx || !selectedShortQuote) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // For now, just set dummy data to show the chart
+      // In a real implementation, this would call a backend API
+      setChartData({
+        token: selectedToken,
+        longEx: selectedLongEx,
+        longQuote: selectedLongQuote,
+        shortEx: selectedShortEx,
+        shortQuote: selectedShortQuote,
+      });
+    } catch (error) {
+      console.error("Backtest failed:", error);
+      alert("Failed to run backtest");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="space-y-6">
+      {/* Inputs Card */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-200">Inputs</h2>
+
+        <div className="space-y-4">
+          {/* Token Combobox */}
+          <div className="relative">
+            <label className="block text-sm text-gray-400 mb-1">Token</label>
+            <button
+              onClick={() => setOpenCombo(openCombo === "token" ? null : "token")}
+              className={`w-full px-3 py-2 rounded border ${
+                openCombo === "token"
+                  ? "border-blue-500 bg-gray-700"
+                  : "border-gray-600 bg-gray-700 hover:border-gray-500"
+              } text-left transition`}
+            >
+              {selectedToken || "Select or type token..."}
+            </button>
+
+            {openCombo === "token" && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setOpenCombo(null)} />
+                <div className="absolute z-20 w-full mt-1 bg-gray-900 border border-gray-600 rounded shadow-lg">
+                  <input
+                    type="text"
+                    placeholder="Search tokens..."
+                    value={tokenSearch}
+                    onChange={e => setTokenSearch(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-800 border-b border-gray-700 rounded-t text-sm"
+                    autoFocus
+                  />
+                  <div className="max-h-48 overflow-y-auto">
+                    {filteredTokens.map(token => (
+                      <button
+                        key={token}
+                        onClick={() => {
+                          setSelectedToken(token);
+                          setTokenSearch("");
+                          setOpenCombo(null);
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
+                      >
+                        {token}
+                      </button>
+                    ))}
+                    {filteredTokens.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-gray-500">No tokens found</div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Long and Short Exchanges */}
+          <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
+            {/* Long Exchange */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Long</label>
+              <button
+                onClick={() => setOpenCombo(openCombo === "long-ex" ? null : "long-ex")}
+                className={`w-full px-3 py-2 rounded border text-left text-sm transition ${
+                  openCombo === "long-ex"
+                    ? "border-blue-500 bg-gray-700"
+                    : "border-gray-600 bg-gray-700 hover:border-gray-500"
+                }`}
+              >
+                {selectedLongEx ? `${selectedLongEx}${selectedLongQuote ? ` (${selectedLongQuote})` : ""}` : "Select..."}
+              </button>
+
+              {openCombo === "long-ex" && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setOpenCombo(null)} />
+                  <div className="absolute z-20 w-80 mt-1 bg-gray-900 border border-gray-600 rounded shadow-lg">
+                    <input
+                      type="text"
+                      placeholder="Search exchanges..."
+                      value={longExSearch}
+                      onChange={e => setLongExSearch(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-800 border-b border-gray-700 rounded-t text-sm"
+                      autoFocus
+                    />
+                    <div className="max-h-48 overflow-y-auto">
+                      {filteredLongEx.map(ex => (
+                        <div key={ex.exchange} className="border-b border-gray-700 last:border-b-0">
+                          {ex.quotes.map(quote => (
+                            <button
+                              key={`${ex.exchange}-${quote}`}
+                              onClick={() => {
+                                setSelectedLongEx(ex.exchange);
+                                setSelectedLongQuote(quote);
+                                setLongExSearch("");
+                                setOpenCombo(null);
+                              }}
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
+                            >
+                              {ex.exchange} ({quote})
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                      {filteredLongEx.length === 0 && (
+                        <div className="px-3 py-2 text-sm text-gray-500">No exchanges found</div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Swap Button */}
+            <button
+              onClick={handleSwapExchanges}
+              disabled={!selectedLongEx || !selectedShortEx}
+              className="p-2 rounded border border-gray-600 hover:border-gray-500 hover:text-blue-400 disabled:opacity-40 transition"
+              title="Swap Long and Short"
+            >
+              <ArrowRightLeft size={18} />
+            </button>
+
+            {/* Short Exchange */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Short</label>
+              <button
+                onClick={() => setOpenCombo(openCombo === "short-ex" ? null : "short-ex")}
+                className={`w-full px-3 py-2 rounded border text-left text-sm transition ${
+                  openCombo === "short-ex"
+                    ? "border-blue-500 bg-gray-700"
+                    : "border-gray-600 bg-gray-700 hover:border-gray-500"
+                }`}
+              >
+                {selectedShortEx ? `${selectedShortEx}${selectedShortQuote ? ` (${selectedShortQuote})` : ""}` : "Select..."}
+              </button>
+
+              {openCombo === "short-ex" && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setOpenCombo(null)} />
+                  <div className="absolute z-20 w-80 mt-1 bg-gray-900 border border-gray-600 rounded shadow-lg">
+                    <input
+                      type="text"
+                      placeholder="Search exchanges..."
+                      value={shortExSearch}
+                      onChange={e => setShortExSearch(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-800 border-b border-gray-700 rounded-t text-sm"
+                      autoFocus
+                    />
+                    <div className="max-h-48 overflow-y-auto">
+                      {filteredShortEx.map(ex => (
+                        <div key={ex.exchange} className="border-b border-gray-700 last:border-b-0">
+                          {ex.quotes.map(quote => (
+                            <button
+                              key={`${ex.exchange}-${quote}`}
+                              onClick={() => {
+                                setSelectedShortEx(ex.exchange);
+                                setSelectedShortQuote(quote);
+                                setShortExSearch("");
+                                setOpenCombo(null);
+                              }}
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
+                            >
+                              {ex.exchange} ({quote})
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                      {filteredShortEx.length === 0 && (
+                        <div className="px-3 py-2 text-sm text-gray-500">No exchanges found</div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* RUN Button */}
+          <button
+            onClick={handleRun}
+            disabled={loading || !selectedToken || !selectedLongEx || !selectedShortEx}
+            className="w-full px-4 py-2 mt-2 rounded bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:opacity-50 text-white font-semibold transition"
+          >
+            {loading ? "Running..." : "RUN"}
+          </button>
+        </div>
+      </div>
+
+      {/* Chart Card */}
+      <BacktesterChart chartData={chartData} selectedLongEx={selectedLongEx} selectedShortEx={selectedShortEx} />
+    </div>
+  );
+}
