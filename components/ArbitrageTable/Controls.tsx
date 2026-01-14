@@ -1,0 +1,68 @@
+"use client";
+
+import ExchangeFilter from "@/components/Table/ExchangeFilter";
+import MinimumFilter from "@/components/Table/MinimumFilter";
+
+interface ArbitrageTableControlsProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  exchanges: string[];
+  selectedExchanges: string[];
+  onToggleExchange: (exchange: string) => void;
+  filterOpen: boolean;
+  onFilterOpenChange: (open: boolean) => void;
+  minOI: number | "";
+  onMinOIChange: (value: number | "") => void;
+  minVolume: number | "";
+  onMinVolumeChange: (value: number | "") => void;
+  filtersOpen: boolean;
+  onFiltersOpenChange: (open: boolean) => void;
+}
+
+/**
+ * Search and filter controls for Arbitrage Table
+ * Includes search input, exchange filter, and min OI/Volume filter
+ */
+export default function ArbitrageTableControls({
+  search,
+  onSearchChange,
+  exchanges,
+  selectedExchanges,
+  onToggleExchange,
+  filterOpen,
+  onFilterOpenChange,
+  minOI,
+  onMinOIChange,
+  minVolume,
+  onMinVolumeChange,
+  filtersOpen,
+  onFiltersOpenChange,
+}: ArbitrageTableControlsProps) {
+  return (
+    <div className="flex flex-wrap gap-3 mb-4 items-center">
+      <input
+        className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
+        placeholder="Search token"
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
+
+      <ExchangeFilter
+        exchanges={exchanges}
+        selectedExchanges={selectedExchanges}
+        onToggleExchange={onToggleExchange}
+        open={filterOpen}
+        onOpenChange={onFilterOpenChange}
+      />
+
+      <MinimumFilter
+        minOI={minOI}
+        minVolume={minVolume}
+        onMinOIChange={onMinOIChange}
+        onMinVolumeChange={onMinVolumeChange}
+        open={filtersOpen}
+        onOpenChange={onFiltersOpenChange}
+      />
+    </div>
+  );
+}

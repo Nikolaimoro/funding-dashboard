@@ -13,6 +13,14 @@ const compactUSDFormatter = new Intl.NumberFormat("en", {
   maximumFractionDigits: 1,
 });
 
+/**
+ * Formats a number as compact USD notation (e.g., 1.5M, 2.3K)
+ * @param v - Number to format, or null/NaN to show "–"
+ * @returns Formatted string like "$1.5M" or "–"
+ * @example
+ * formatCompactUSD(1500000) // "$1.5M"
+ * formatCompactUSD(null)    // "–"
+ */
 export function formatCompactUSD(v: number | null): string {
   if (v == null || Number.isNaN(v)) {
     return "–";
@@ -20,6 +28,14 @@ export function formatCompactUSD(v: number | null): string {
   return `$${compactUSDFormatter.format(v)}`;
 }
 
+/**
+ * Formats a number as full USD (e.g., $1,234,567)
+ * @param v - Number to format, or null/NaN to show "–"
+ * @returns Formatted string like "$1,234,567" or "–"
+ * @example
+ * formatUSD(1234567) // "$1,234,567"
+ * formatUSD(null)    // "–"
+ */
 export function formatUSD(v: number | null): string {
   if (v == null || Number.isNaN(v)) {
     return "–";
@@ -27,6 +43,14 @@ export function formatUSD(v: number | null): string {
   return `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
+/**
+ * Formats a number as APR percentage with 2 decimal places
+ * @param v - Number to format (as percentage), or null/NaN to show "–"
+ * @returns Formatted string like "5.25%" or "–"
+ * @example
+ * formatAPR(5.2567) // "5.26%"
+ * formatAPR(null)   // "–"
+ */
 export function formatAPR(v: number | null): string {
   if (v == null || Number.isNaN(v)) {
     return "–";
@@ -34,6 +58,15 @@ export function formatAPR(v: number | null): string {
   return `${v.toFixed(2)}%`;
 }
 
+/**
+ * Formats a number as percentage with configurable decimal places
+ * @param v - Number to format (as percentage), or null/NaN to show "–"
+ * @param decimals - Number of decimal places (default: 2)
+ * @returns Formatted string like "5.3%" or "–"
+ * @example
+ * formatPercent(5.2567)    // "5.26%"
+ * formatPercent(5.2567, 1) // "5.3%"
+ */
 export function formatPercent(v: number | null, decimals = 2): string {
   if (v == null || Number.isNaN(v)) {
     return "–";
@@ -43,10 +76,36 @@ export function formatPercent(v: number | null, decimals = 2): string {
 
 /* ================= TEXT FORMATTERS ================= */
 
+/**
+ * Formats exchange name using the EXCHANGE_LABEL mapping
+ * Falls back to the original string if not found in mapping
+ * @param ex - Exchange identifier (e.g., "binance", "bybit")
+ * @returns Formatted exchange name (e.g., "Binance", "ByBit")
+ * @example
+ * formatExchange("binance") // "Binance"
+ * formatExchange("unknown") // "unknown"
+ */
 export function formatExchange(ex: string): string {
   return EXCHANGE_LABEL[ex] ?? ex;
 }
 
+/**
+ * Normalizes token symbol by removing multiplier prefixes/suffixes
+ * Useful for fuzzy matching and searching (PEPE1000 → PEPE, 1000SHIB → SHIB)
+ * 
+ * Process:
+ * 1. Convert to uppercase
+ * 2. Remove MULTIPLIERS prefixes (1000, 10, etc.) until none remain
+ * 3. Remove MULTIPLIERS suffixes (1000, 10, etc.) until none remain
+ * 
+ * @param s - Token symbol to normalize (e.g., "1000pepe", "shib1000")
+ * @returns Normalized uppercase symbol (e.g., "PEPE", "SHIB")
+ * @example
+ * normalizeToken("1000PEPE")    // "PEPE"
+ * normalizeToken("pepe1000")    // "PEPE"
+ * normalizeToken("SHIB")        // "SHIB"
+ * normalizeToken("1000shib1000") // "SHIB"
+ */
 export function normalizeToken(s: string): string {
   let x = (s ?? "").toUpperCase().trim();
 
@@ -63,6 +122,10 @@ export function normalizeToken(s: string): string {
   return x;
 }
 
+/**
+ * Alias for normalizeToken - same functionality
+ * @see normalizeToken
+ */
 export function normalizeSymbol(s: string): string {
   return normalizeToken(s);
 }

@@ -8,13 +8,53 @@ interface BacktesterClientProps {
   exchanges: { exchange: string; quotes: { asset: string; marketId: number; refUrl: string | null }[] }[];
 }
 
+/**
+ * Parse exchange+quote format from URL parameter
+ * Examples: "binanceusdt" → ["binance", "usdt"], "bybitusdc" → ["bybit", "usdc"]
+ * Tries all known quote assets to find the split point
+ */
+function parseExchangeQuote(
+  param: string,
+  exchanges: BacktesterClientProps["exchanges"]
+): { exchange: string; quote: string } | null {
+  if (!param) return null;
+
+  const lowerParam = param.toLowerCase();
+  const allQuotes = new Set<string>();
+  exchanges.forEach(ex =>
+    ex.quotes.forEach(q => allQuotes.add(q.asset.toLowerCase()))
+  );
+
+  // Try to find quote asset at the end of param
+  for (const quote of allQuotes) {
+    if (lowerParam.endsWith(quote)) {
+      const exchange = lowerParam.slice(0, -quote.length);
+      // Validate exchange exists
+      if (exchanges.some(ex => ex.exchange.toLowerCase() === exchange)) {
+        return { exchange, quote: quote.toUpperCase() };
+      }
+    }
+  }
+
+  return null;
+}
+
 export default function BacktesterClient({ tokens, exchanges }: BacktesterClientProps) {
   const searchParams = useSearchParams();
 
   // Initialize from URL params or empty
   const initialToken = searchParams.get("token") || "";
-  const initialLongEx = searchParams.get("exchange1") || "";
-  const initialShortEx = searchParams.get("exchange2") || "";
+  const exchange1Param = searchParams.get("exchange1") || "";
+  const exchange2Param = searchParams.get("exchange2") || "";
+
+  // Parse exchange+quote format from URL
+  const exchange1Parsed = parseExchangeQuote(exchange1Param, exchanges);
+  const exchange2Parsed = parseExchangeQuote(exchange2Param, exchanges);
+
+  const initialLongEx = exchange1Parsed?.exchange || "";
+  const initialShortEx = exchange2Parsed?.exchange || "";
+  const initialLongQuote = exchange1Parsed?.quote || "";
+  const initialShortQuote = exchange2Parsed?.quote || "";
 
   return (
     <BacktesterForm
@@ -23,6 +63,8 @@ export default function BacktesterClient({ tokens, exchanges }: BacktesterClient
       initialToken={initialToken}
       initialLongEx={initialLongEx}
       initialShortEx={initialShortEx}
+      initialLongQuote={initialLongQuote}
+      initialShortQuote={initialShortQuote}
     />
   );
 }

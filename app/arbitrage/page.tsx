@@ -1,9 +1,17 @@
+import { Metadata } from "next";
 import ArbitrageTable from "@/components/ArbitrageTable";
 
 export const revalidate = 0;
 
-export const metadata = {
-  title: "Arbitrage | Funding Dashboard",
+export const metadata: Metadata = {
+  title: "Arbitrage Opportunities | Funding Dashboard",
+  description: "Top cryptocurrency arbitrage opportunities identified over the last 15 days",
+  keywords: ["arbitrage", "crypto", "opportunities", "funding rates", "trading"],
+  openGraph: {
+    title: "Arbitrage Opportunities | Funding Dashboard",
+    description: "Top cryptocurrency arbitrage opportunities identified over the last 15 days",
+    type: "website",
+  },
 };
 
 export default function ArbitragePage() {

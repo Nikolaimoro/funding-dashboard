@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, lazy, Suspense } from "react";
+import { useState, useMemo, useRef, useEffect, Suspense } from "react";
 import { ArrowRightLeft } from "lucide-react";
 import { normalizeToken } from "@/lib/formatters";
 import { EXCHANGE_LABEL } from "@/lib/constants";
 import { TAILWIND } from "@/lib/theme";
 import dynamic from "next/dynamic";
+import type { BacktesterChartData } from "@/lib/types/backtester";
 
 const BacktesterChart = dynamic(() => import("@/components/BacktesterChart"), { ssr: false });
 
@@ -15,18 +16,20 @@ interface BacktesterFormProps {
   initialToken?: string;
   initialLongEx?: string;
   initialShortEx?: string;
+  initialLongQuote?: string;
+  initialShortQuote?: string;
 }
 
 type ComboboxType = "token" | "long-ex" | "short-ex";
 
-export default function BacktesterForm({ tokens, exchanges, initialToken = "", initialLongEx = "", initialShortEx = "" }: BacktesterFormProps) {
+export default function BacktesterForm({ tokens, exchanges, initialToken = "", initialLongEx = "", initialShortEx = "", initialLongQuote = "", initialShortQuote = "" }: BacktesterFormProps) {
   const [selectedToken, setSelectedToken] = useState<string>(initialToken);
   const [selectedLongEx, setSelectedLongEx] = useState<string>(initialLongEx);
-  const [selectedLongQuote, setSelectedLongQuote] = useState<string>("");
+  const [selectedLongQuote, setSelectedLongQuote] = useState<string>(initialLongQuote);
   const [selectedLongMarketId, setSelectedLongMarketId] = useState<number | null>(null);
   const [selectedLongRefUrl, setSelectedLongRefUrl] = useState<string | null>(null);
   const [selectedShortEx, setSelectedShortEx] = useState<string>(initialShortEx);
-  const [selectedShortQuote, setSelectedShortQuote] = useState<string>("");
+  const [selectedShortQuote, setSelectedShortQuote] = useState<string>(initialShortQuote);
   const [selectedShortMarketId, setSelectedShortMarketId] = useState<number | null>(null);
   const [selectedShortRefUrl, setSelectedShortRefUrl] = useState<string | null>(null);
 
@@ -36,7 +39,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
 
   const [openCombo, setOpenCombo] = useState<ComboboxType | null>(null);
   const [loading, setLoading] = useState(false);
-  const [chartData, setChartData] = useState<any>(initialToken && initialLongEx && initialShortEx ? { token: initialToken, longEx: initialLongEx, shortEx: initialShortEx } : null);
+  const [chartData, setChartData] = useState<BacktesterChartData | null>(initialToken && initialLongEx && initialShortEx ? { token: initialToken, longEx: initialLongEx, shortEx: initialShortEx, longQuote: "", shortQuote: "", longMarketId: 0, shortMarketId: 0, longRefUrl: null, shortRefUrl: null } : null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -124,11 +127,13 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
 
     setLoading(true);
     try {
-      // Update URL parameters
+      // Update URL parameters with exchange+quote format (e.g., binanceusdt, bybitusdc)
+      const exchange1 = `${selectedLongEx}${selectedLongQuote.toLowerCase()}`;
+      const exchange2 = `${selectedShortEx}${selectedShortQuote.toLowerCase()}`;
       const params = new URLSearchParams({
         token: selectedToken,
-        exchange1: selectedLongEx,
-        exchange2: selectedShortEx,
+        exchange1,
+        exchange2,
       });
       window.history.replaceState({}, "", `?${params.toString()}`);
 

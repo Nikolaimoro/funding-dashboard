@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { ExternalLink } from "lucide-react";
 import dynamic from "next/dynamic";
-import { EXCHANGE_LABEL, MULTIPLIERS } from "@/lib/constants";
-import { formatCompactUSD, formatAPR, formatExchange, normalizeSymbol } from "@/lib/formatters";
-import { TAILWIND } from "@/lib/theme";
+import { normalizeSymbol, formatExchange } from "@/lib/formatters";
 import { FundingRow } from "@/lib/types";
+import Pagination from "@/components/Table/Pagination";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import FundingTableHeader from "@/components/FundingTable/Header";
+import FundingTableControls from "@/components/FundingTable/Controls";
+import FundingTableBody from "@/components/FundingTable/Body";
 
 /* chart — client only */
 const FundingChart = dynamic(() => import("@/components/FundingChart"), {
@@ -28,48 +30,6 @@ type SortKey =
   | "30d"
 
 type SortDir = "asc" | "desc";
-
-/* ================= UI ================= */
-
-function SortableHeader({
-  label,
-  active,
-  dir,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  dir: SortDir;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group inline-flex items-center gap-1 text-left select-none"
-    >
-      <span
-        className={`transition-colors ${
-          active ? "text-gray-200" : "text-gray-400 group-hover:text-gray-200"
-        }`}
-      >
-        {label}
-      </span>
-
-      {!active && (
-        <span className="text-xs opacity-0 group-hover:opacity-60 transition-opacity text-gray-500">
-          ↑↓
-        </span>
-      )}
-
-      {active && (
-        <span className="text-[13px] text-blue-400">
-          {dir === "asc" ? "↑" : "↓"}
-        </span>
-      )}
-    </button>
-  );
-}
 
 /* ================= COMPONENT ================= */
 
@@ -117,35 +77,6 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
     );
   };
 
-  /* ---------- helpers ---------- */
-
-const formatCompactUSDNode = (v: number | null) => {
-  const text = formatCompactUSD(v);
-  return (
-    <span className="text-gray-300 font-mono tabular-nums">
-      {text}
-    </span>
-  );
-};
-
-const formatAPRNode = (v: number | null) => {
-  const text = formatAPR(v);
-  return (
-    <span className="text-gray-300 font-mono tabular-nums">
-      {text}
-    </span>
-  );
-};
-
-const formatUSD = (v: number | null) =>
-  v == null || Number.isNaN(v) ? (
-    <span className={TAILWIND.text.muted}>–</span>
-  ) : (
-    <span className="text-gray-300 font-mono tabular-nums">
-      ${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-    </span>
-  );
-
   const onSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir(d => (d === "asc" ? "desc" : "asc"));
@@ -155,7 +86,18 @@ const formatUSD = (v: number | null) =>
     }
   };
 
-  /* ---------- filtering + sorting (ALL rows) ---------- */
+  /**
+   * Memoized complex sorting, filtering, and ordering of all rows
+   * 
+   * Process:
+   * 1. Text filter: Normalize user search input and match against normalized market names (fuzzy matching)
+   * 2. Exchange filter: Include only rows from selected exchanges
+   * 3. OI filter: Exclude rows with open_interest below minimum threshold
+   * 4. Volume filter: Exclude rows with volume_24h below minimum threshold
+   * 5. Sort: Apply multi-key sorting (special handling for exchange names via formatExchange)
+   * 
+   * Dependencies: [rows, search, selectedExchanges, sortKey, sortDir, minOI, minVolume]
+   */
   const sortedAll = useMemo(() => {
     let data = rows;
 
@@ -211,17 +153,29 @@ const formatUSD = (v: number | null) =>
     });
   }, [rows, search, selectedExchanges, sortKey, sortDir, minOI, minVolume]);
 
-  /* ---------- pagination ---------- */
+  /**
+   * Pagination: Calculate total pages and slice visible rows
+   * - If limit === -1: Show all rows (single page)
+   * - Otherwise: Calculate pages based on limit per page
+   */
   const totalPages =
     limit === -1 ? 1 : Math.max(1, Math.ceil(sortedAll.length / limit));
 
+  /**
+   * Memoized slice of sorted rows for current page
+   * Returns rows for current page offset based on limit
+   * Dependencies: [sortedAll, limit, page]
+   */
   const visible = useMemo(() => {
     if (limit === -1) return sortedAll;
     const start = page * limit;
     return sortedAll.slice(start, start + limit);
   }, [sortedAll, limit, page]);
 
-  /* ---------- chart loading + cache ---------- */
+  /**
+   * Reset page to 0 when filters/search/limit changes
+   * Prevents showing empty page after filter narrows results
+   */
   useEffect(() => {
     setPage(0);
   }, [search, selectedExchanges, limit]);
@@ -229,284 +183,53 @@ const formatUSD = (v: number | null) =>
   /* ================= RENDER ================= */
 
   return (
-    <main className="min-h-screen bg-gray-900 p-6 text-gray-200">
-      <h1 className="text-2xl font-semibold mb-4">
-        Funding Rates Dashboard
-      </h1>
+    <ErrorBoundary>
+      <main className="min-h-screen bg-gray-900 p-6 text-gray-200">
+        <FundingTableHeader title="Funding Rates Dashboard" />
 
-      {/* ---------- Controls ---------- */}
-      <div className="flex flex-wrap gap-3 mb-4 items-center">
-        <input
-          className={TAILWIND.input.default}
-          placeholder="Search market"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+        <FundingTableControls
+          search={search}
+          onSearchChange={setSearch}
+          exchanges={exchanges}
+          selectedExchanges={selectedExchanges}
+          onToggleExchange={toggleExchange}
+          filterOpen={filterOpen}
+          onFilterOpenChange={setFilterOpen}
+          minOI={minOI}
+          onMinOIChange={setMinOI}
+          minVolume={minVolume}
+          onMinVolumeChange={setMinVolume}
+          filtersOpen={filtersOpen}
+          onFiltersOpenChange={setFiltersOpen}
         />
 
-        <div className="relative">
-          <button
-            onClick={() => setFilterOpen(v => !v)}
-            className={`${TAILWIND.input.default} hover:border-gray-600 transition`}
-          >
-            Exchanges
-            {selectedExchanges.length > 0 && (
-              <span className="text-blue-400 ml-1">
-                ({selectedExchanges.length})
-              </span>
-            )}
-          </button>
+        <ErrorBoundary>
+          <FundingTableBody
+            rows={visible}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={onSort}
+            onRowClick={openChart}
+          />
+        </ErrorBoundary>
 
-          {filterOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setFilterOpen(false)}
-              />
-              <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-2 shadow-lg">
-                {exchanges.map(ex => (
-                  <label
-                    key={ex}
-                    className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded items-center"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedExchanges.includes(ex)}
-                      onChange={() => toggleExchange(ex)}
-                    />
-                    {formatExchange(ex)}
-                  </label>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          showPagination={limit !== -1 && totalPages > 1}
+        />
 
-        <div className="relative">
-          <button
-            onClick={() => setFiltersOpen(v => !v)}
-            className={`${TAILWIND.input.default} hover:border-gray-600 transition`}
-          >
-            Filters
-            {(typeof minOI === "number" && minOI > 0) || (typeof minVolume === "number" && minVolume > 0) ? (
-              <span className="text-blue-400 ml-1">
-                ({(typeof minOI === "number" && minOI > 0 ? 1 : 0) + (typeof minVolume === "number" && minVolume > 0 ? 1 : 0)})
-              </span>
-            ) : null}
-          </button>
-
-          {filtersOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setFiltersOpen(false)}
-              />
-              <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-3 shadow-lg space-y-3">
-                <div>
-                  <label className="block text-sm text-gray-300 mb-1">Min Open Interest</label>
-                  <input
-                    type="number"
-                    value={minOI}
-                    onChange={(e) => setMinOI(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="0"
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-300 mb-1">Min Volume</label>
-                  <input
-                    type="number"
-                    value={minVolume}
-                    onChange={(e) => setMinVolume(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="0"
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
-                  />
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ---------- Table ---------- */}
-      <div className={`overflow-auto rounded ${TAILWIND.border.default} ${TAILWIND.bg.surface}`}>
-        <table className="w-full text-sm">
-          <thead className={`${TAILWIND.bg.dark} sticky top-0`}>
-            <tr className="border-b border-gray-700">
-              <th className={TAILWIND.table.header}>
-                <SortableHeader
-                  label="Exchange"
-                  active={sortKey === "exchange"}
-                  dir={sortDir}
-                  onClick={() => onSort("exchange")}
-                />
-              </th>
-              <th className={TAILWIND.table.header}>
-                <SortableHeader
-                  label="Market"
-                  active={sortKey === "market"}
-                  dir={sortDir}
-                  onClick={() => onSort("market")}
-                />
-              </th>
-              
-<th className="px-4 py-3 text-right">
-  <SortableHeader
-    label="Open Interest"
-    active={sortKey === "open_interest"}
-    dir={sortDir}
-    onClick={() => onSort("open_interest")}
-  />
-</th>
-
-<th className="px-4 py-3 text-right">
-  <SortableHeader
-    label="Volume 24h"
-    active={sortKey === "volume_24h"}
-    dir={sortDir}
-    onClick={() => onSort("volume_24h")}
-  />
-</th>
-
-<th className="px-4 py-3 text-right">
-  <SortableHeader
-    label="Now"
-    active={sortKey === "funding_rate_now"}
-    dir={sortDir}
-    onClick={() => onSort("funding_rate_now")}
-  />
-</th>
-
-              {(["1d","3d","7d","15d","30d"] as SortKey[]).map(h => (
-                <th key={h} className="px-4 py-3 text-right">
-                  <SortableHeader
-                    label={h}
-                    active={sortKey === h}
-                    dir={sortDir}
-                    onClick={() => onSort(h)}
-                  />
-                </th>
-              ))}
-              <th className="px-4 py-3 w-8"></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {visible.map(r => (
-              <tr
-                key={`${r.exchange}:${r.market}`}
-                onClick={() => openChart(r)}
-                className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} cursor-pointer`}
-              >
-                <td className={TAILWIND.table.cell}>{formatExchange(r.exchange)}</td>
-                <td className="px-4 py-2 font-mono font-semibold">
-                  {r.ref_url ? (
-                    <a
-                      href={r.ref_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-blue-300 hover:underline"
-                    >
-                      {r.market}
-                    </a>
-                  ) : (
-                    r.market
-                  )}
-                </td>
-
-<td className="px-4 py-2 text-right">
-  {formatCompactUSDNode(r.open_interest)}
-</td>
-
-<td className="px-4 py-2 text-right">
-  {formatCompactUSDNode(r.volume_24h)}
-</td>
-
-<td className="px-4 py-2 text-right">
-  {formatAPRNode(r.funding_rate_now)}
-</td>
-
-                <td className="px-4 py-2 text-right">{formatAPRNode(r["1d"])}</td>
-                <td className="px-4 py-2 text-right">{formatAPRNode(r["3d"])}</td>
-                <td className="px-4 py-2 text-right">{formatAPRNode(r["7d"])}</td>
-                <td className="px-4 py-2 text-right">{formatAPRNode(r["15d"])}</td>
-                <td className="px-4 py-2 text-right">{formatAPRNode(r["30d"])}</td>
-                <td className="px-4 py-2 text-center">
-                  {r.market_id && (
-                    <ExternalLink size={16} className="text-gray-500" />
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ---------- Pagination ---------- */}
-      <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
-        <div>
-          Rows:
-          <select
-            className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
-            value={limit}
-            onChange={e => setLimit(Number(e.target.value))}
-          >
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-            <option value={-1}>All</option>
-          </select>
-        </div>
-
-        {limit !== -1 && totalPages > 1 && (
-          <div className="flex gap-2 items-center">
-            <button
-              onClick={() => setPage(0)}
-              disabled={page === 0}
-              className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
-            >
-              First
-            </button>
-
-            <button
-              onClick={() => setPage(p => Math.max(0, p - 1))}
-              disabled={page === 0}
-              className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
-            >
-              Prev
-            </button>
-
-            <span className="px-2 min-w-[64px] text-center tabular-nums text-gray-300">
-              {page + 1} / {totalPages}
-            </span>
-
-            <button
-              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-              disabled={page + 1 >= totalPages}
-              className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
-            >
-              Next
-            </button>
-
-            <button
-              onClick={() => setPage(totalPages - 1)}
-              disabled={page + 1 >= totalPages}
-              className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
-            >
-              Last
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* ---------- Chart Modal ---------- */}
-      <FundingChart
-        open={chartOpen}
-        onClose={() => setChartOpen(false)}
-        marketId={selectedRow?.market_id ?? 0}
-        symbol={selectedRow?.market ?? ""}
-        exchange={selectedRow ? formatExchange(selectedRow.exchange) : ""}
-      />
-    </main>
+        <FundingChart
+          open={chartOpen}
+          onClose={() => setChartOpen(false)}
+          marketId={selectedRow?.market_id ?? 0}
+          symbol={selectedRow?.market ?? ""}
+          exchange={selectedRow ? formatExchange(selectedRow.exchange) : ""}
+        />
+      </main>
+    </ErrorBoundary>
   );
 }

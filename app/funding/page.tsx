@@ -1,8 +1,19 @@
+import { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import FundingTable from "@/components/FundingTable";
 
-
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: "Funding Rates Dashboard",
+  description: "Real-time cryptocurrency funding rates and opportunities across major exchanges",
+  keywords: ["funding rates", "crypto", "arbitrage", "trading"],
+  openGraph: {
+    title: "Funding Rates Dashboard",
+    description: "Real-time cryptocurrency funding rates and opportunities across major exchanges",
+    type: "website",
+  },
+};
 
 const PAGE_SIZE = 1000;
 

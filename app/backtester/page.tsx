@@ -1,11 +1,38 @@
+import { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import BacktesterClient from "@/app/backtester/client";
 import { Suspense } from "react";
 
 export const revalidate = 3600; // revalidate every hour
 
+export const metadata: Metadata = {
+  title: "Funding Arbitrage Backtester | Funding Dashboard",
+  description: "Backtest cryptocurrency arbitrage strategies with historical funding rate data",
+  keywords: ["backtester", "arbitrage", "crypto", "funding rates", "strategy testing"],
+  openGraph: {
+    title: "Funding Arbitrage Backtester | Funding Dashboard",
+    description: "Backtest cryptocurrency arbitrage strategies with historical funding rate data",
+    type: "website",
+  },
+};
+
 const PAGE_SIZE = 1000;
 
+/**
+ * Fetches all unique tokens from the funding_dashboard_mv table
+ * Uses pagination to handle large datasets (>1000 rows)
+ * 
+ * Process:
+ * 1. Query base_asset column in 1000-row chunks
+ * 2. Collect all base_asset values
+ * 3. Remove duplicates using Set
+ * 4. Sort alphabetically
+ * 
+ * @returns {Promise<string[]>} Sorted array of unique token symbols
+ * @example
+ * const tokens = await getAllTokens();
+ * // ["AAVE", "ADA", "BTC", "ETH", ...]
+ */
 async function getAllTokens(): Promise<string[]> {
   let allTokens: string[] = [];
   let from = 0;
@@ -35,6 +62,24 @@ async function getAllTokens(): Promise<string[]> {
   return Array.from(new Set(allTokens)).sort();
 }
 
+/**
+ * Fetches all exchanges with their available quote assets and market information
+ * Uses pagination to handle large datasets
+ * 
+ * Process:
+ * 1. Query exchange, quote_asset, market_id, ref_url in 1000-row chunks
+ * 2. Group rows by exchange and quote_asset
+ * 3. For each quote_asset, store first market_id and ref_url (avoid duplicates)
+ * 4. Return sorted nested structure: [ { exchange, quotes: [ { asset, marketId, refUrl } ] } ]
+ * 
+ * @returns {Promise<Array>} Nested array of exchanges with their quote assets
+ * @example
+ * const exchanges = await getAllExchanges();
+ * // [
+ * //   { exchange: "binance", quotes: [ { asset: "USDT", marketId: 123, refUrl: "..." } ] },
+ * //   { exchange: "bybit", quotes: [ { asset: "USDT", marketId: 456, refUrl: "..." } ] }
+ * // ]
+ */
 async function getAllExchanges(): Promise<{ exchange: string; quotes: { asset: string; marketId: number; refUrl: string | null }[] }[]> {
   let allRows: any[] = [];
   let from = 0;
