@@ -12,6 +12,7 @@ export const EXCHANGE_LABEL: Record<string, string> = {
   hyperliquid: "Hyperliquid",
   gate: "Gate.io",
   okx: "OKX",
+  aster: "Aster",
 };
 
 /**
