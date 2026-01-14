@@ -110,6 +110,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>("");
   const [forceRefresh, setForceRefresh] = useState(false);
+  const [chartKey, setChartKey] = useState(0);
 
   const isLoaded = !!chartData?.longMarketId && !!chartData?.shortMarketId;
 
@@ -119,7 +120,8 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
     let cancelled = false;
     setLoading(true);
     setErr("");
-    setRows([]);
+    setRows([]); // Clear rows immediately
+    setChartKey((prev) => prev + 1); // Force chart re-render
 
     fetchBacktestData({
       longMarketId: chartData.longMarketId,
@@ -347,7 +349,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
           {!loading && !err && rows.length > 0 && (
             <div className="border border-gray-700 rounded p-4 bg-gray-900 h-96">
               <Chart
-                key={`${chartData.longMarketId}-${chartData.shortMarketId}`}
+                key={`chart-${chartData.longMarketId}-${chartData.shortMarketId}-${chartKey}`}
                 type="bar"
                 data={chartDataObj as any}
                 options={options}
