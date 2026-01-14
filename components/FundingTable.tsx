@@ -302,7 +302,7 @@ const formatUSD = (v: number | null) =>
               />
               <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-3 shadow-lg space-y-3">
                 <div>
-                  <label className="block text-sm text-gray-300 mb-1">Min OI</label>
+                  <label className="block text-sm text-gray-300 mb-1">Min Open Interest</label>
                   <input
                     type="number"
                     value={minOI}

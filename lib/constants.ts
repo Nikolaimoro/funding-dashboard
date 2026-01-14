@@ -11,6 +11,7 @@ export const EXCHANGE_LABEL: Record<string, string> = {
   binance: "Binance",
   hyperliquid: "Hyperliquid",
   gate: "Gate.io",
+  okx: "OKX",
 };
 
 export const MULTIPLIERS = ["1000000", "100000", "10000", "1000", "100", "10"] as const;
