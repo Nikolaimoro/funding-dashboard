@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, lazy, Suspense } from "react";
 import { ArrowRightLeft } from "lucide-react";
 import { normalizeToken } from "@/lib/formatters";
 import { EXCHANGE_LABEL } from "@/lib/constants";
 import { TAILWIND } from "@/lib/theme";
-import BacktesterChart from "@/components/BacktesterChart";
+import dynamic from "next/dynamic";
+
+const BacktesterChart = dynamic(() => import("@/components/BacktesterChart"), { ssr: false });
 
 interface BacktesterFormProps {
   tokens: string[];
@@ -332,7 +334,9 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       </div>
 
       {/* Chart Card */}
-      <BacktesterChart chartData={chartData} selectedLongEx={selectedLongEx} selectedShortEx={selectedShortEx} />
+      <Suspense fallback={<div className="bg-gray-800 border border-gray-700 rounded-xl p-6 h-96 flex items-center justify-center text-gray-400">Loading chart...</div>}>
+        <BacktesterChart chartData={chartData} selectedLongEx={selectedLongEx} selectedShortEx={selectedShortEx} />
+      </Suspense>
     </div>
   );
 }
