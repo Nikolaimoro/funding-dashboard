@@ -154,6 +154,30 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     }
   }, [selectedShortEx]);
 
+  // Initialize marketIds when initializing from URL parameters
+  useEffect(() => {
+    if (initialToken && initialLongEx && initialLongQuote && !selectedLongMarketId) {
+      const ex = exchanges.find(e => e.exchange === initialLongEx);
+      const normalizedToken = normalizeToken(initialToken);
+      const baseAsset = ex?.baseAssets.find(ba => normalizeToken(ba.asset) === normalizedToken);
+      const quote = baseAsset?.quotes.find(q => q.asset === initialLongQuote);
+      if (quote) {
+        setSelectedLongMarketId(quote.marketId);
+        setSelectedLongRefUrl(quote.refUrl);
+      }
+    }
+    if (initialToken && initialShortEx && initialShortQuote && !selectedShortMarketId) {
+      const ex = exchanges.find(e => e.exchange === initialShortEx);
+      const normalizedToken = normalizeToken(initialToken);
+      const baseAsset = ex?.baseAssets.find(ba => normalizeToken(ba.asset) === normalizedToken);
+      const quote = baseAsset?.quotes.find(q => q.asset === initialShortQuote);
+      if (quote) {
+        setSelectedShortMarketId(quote.marketId);
+        setSelectedShortRefUrl(quote.refUrl);
+      }
+    }
+  }, [initialToken, initialLongEx, initialLongQuote, initialShortEx, initialShortQuote, exchanges]);
+
   const handleSwapExchanges = () => {
     const tempEx = selectedLongEx;
     const tempQuote = selectedLongQuote;

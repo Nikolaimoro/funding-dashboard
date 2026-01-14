@@ -112,7 +112,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
   }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId]);
 
   const chartDataObj = useMemo(() => {
-    const points = rows
+    const allPoints = rows
       .filter((r) => r.h)
       .map((r) => ({
         x: new Date(r.h).getTime(),
@@ -121,15 +121,29 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
         spread: r.spread_apr,
       }));
 
+    // Create a unified grid of all X coordinates (timestamps) from all datasets
+    // This ensures all datasets align on the same time axis
+    const allXValues = new Set<number>();
+    allPoints.forEach(p => allXValues.add(p.x));
+    const unifiedXs = Array.from(allXValues).sort((a, b) => a - b);
+
+    // Create a map for quick lookup
+    const pointMap = new Map<number, typeof allPoints[0]>();
+    allPoints.forEach(p => pointMap.set(p.x, p));
+
+    // For each X value, create data points with null values where data doesn't exist
+    const unifiedPoints = unifiedXs.map(x => pointMap.get(x) || { x, long: null, short: null, spread: null });
+
     return {
       datasets: [
         // spread bars (secondary axis right)
         {
           type: "bar" as const,
           label: "Spread (APR %)",
-          data: points
-            .filter((p) => Number.isFinite(p.spread))
-            .map((p) => ({ x: p.x, y: p.spread as number })),
+          data: unifiedPoints.map((p) => ({ 
+            x: p.x, 
+            y: Number.isFinite(p.spread) ? p.spread : null
+          })),
           yAxisID: "y2",
           backgroundColor: "rgba(148, 163, 184, 0.18)",
           borderWidth: 0,
@@ -155,9 +169,10 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
         {
           type: "line" as const,
           label: `Long: ${formatExchange(selectedLongEx || "")}`,
-          data: points
-            .filter((p) => Number.isFinite(p.long))
-            .map((p) => ({ x: p.x, y: p.long as number })),
+          data: unifiedPoints.map((p) => ({ 
+            x: p.x, 
+            y: Number.isFinite(p.long) ? p.long : null
+          })),
           borderColor: COLORS.chart.success,
           borderWidth: 2,
           pointRadius: 0,
@@ -169,9 +184,10 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
         {
           type: "line" as const,
           label: `Short: ${formatExchange(selectedShortEx || "")}`,
-          data: points
-            .filter((p) => Number.isFinite(p.short))
-            .map((p) => ({ x: p.x, y: p.short as number })),
+          data: unifiedPoints.map((p) => ({ 
+            x: p.x, 
+            y: Number.isFinite(p.short) ? p.short : null
+          })),
           borderColor: COLORS.chart.danger,
           borderWidth: 2,
           pointRadius: 0,
@@ -237,29 +253,12 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
         legend: { display: true, labels: { color: COLORS.text.primary } },
         tooltip: {
           callbacks: {
-            // Get the X coordinate (time) from the first active dataset
-            beforeLabel: (ctx) => "",
             label: (ctx) => {
-              const chartX = ctx.parsed?.x;
-              if (chartX == null) return "";
-
-              // Find all datasets and get values at this X coordinate
-              const chart = ctx.chart;
-              const labels: string[] = [];
-
-              chart.data.datasets.forEach((dataset, datasetIndex) => {
-                // Find the data point with the closest X value in this dataset
-                const data = dataset.data as any[];
-                const matchingPoint = data.find((point) => point?.x === chartX);
-
-                if (matchingPoint && Number.isFinite(matchingPoint.y)) {
-                  const label = dataset.label ?? "";
-                  const value = Number(matchingPoint.y).toFixed(2);
-                  labels.push(`${label}: ${value}%`);
-                }
-              });
-
-              return labels[ctx.datasetIndex] ?? "";
+              const v = ctx.parsed.y;
+              // Show only if value exists (not null/NaN)
+              if (v == null || !Number.isFinite(v)) return "";
+              const name = ctx.dataset.label ?? "";
+              return `${name}: ${Number(v).toFixed(2)}%`;
             },
           },
         },
