@@ -9,7 +9,7 @@ import BacktesterChart from "@/components/BacktesterChart";
 
 interface BacktesterFormProps {
   tokens: string[];
-  exchanges: { exchange: string; quotes: string[] }[];
+  exchanges: { exchange: string; quotes: { asset: string; marketId: number }[] }[];
   initialToken?: string;
   initialLongEx?: string;
   initialShortEx?: string;
@@ -21,8 +21,10 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
   const [selectedToken, setSelectedToken] = useState<string>(initialToken);
   const [selectedLongEx, setSelectedLongEx] = useState<string>(initialLongEx);
   const [selectedLongQuote, setSelectedLongQuote] = useState<string>("");
+  const [selectedLongMarketId, setSelectedLongMarketId] = useState<number | null>(null);
   const [selectedShortEx, setSelectedShortEx] = useState<string>(initialShortEx);
   const [selectedShortQuote, setSelectedShortQuote] = useState<string>("");
+  const [selectedShortMarketId, setSelectedShortMarketId] = useState<number | null>(null);
 
   const [tokenSearch, setTokenSearch] = useState("");
   const [longExSearch, setLongExSearch] = useState("");
@@ -77,7 +79,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     if (selectedLongEx && !selectedLongQuote) {
       const ex = exchanges.find(e => e.exchange === selectedLongEx);
       if (ex?.quotes[0]) {
-        setSelectedLongQuote(ex.quotes[0]);
+        setSelectedLongQuote(ex.quotes[0].asset);
+        setSelectedLongMarketId(ex.quotes[0].marketId);
       }
     }
   }, [selectedLongEx]);
@@ -86,7 +89,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     if (selectedShortEx && !selectedShortQuote) {
       const ex = exchanges.find(e => e.exchange === selectedShortEx);
       if (ex?.quotes[0]) {
-        setSelectedShortQuote(ex.quotes[0]);
+        setSelectedShortQuote(ex.quotes[0].asset);
+        setSelectedShortMarketId(ex.quotes[0].marketId);
       }
     }
   }, [selectedShortEx]);
@@ -94,14 +98,17 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
   const handleSwapExchanges = () => {
     const tempEx = selectedLongEx;
     const tempQuote = selectedLongQuote;
+    const tempMarketId = selectedLongMarketId;
     setSelectedLongEx(selectedShortEx);
     setSelectedLongQuote(selectedShortQuote);
+    setSelectedLongMarketId(selectedShortMarketId);
     setSelectedShortEx(tempEx);
     setSelectedShortQuote(tempQuote);
+    setSelectedShortMarketId(tempMarketId);
   };
 
   const handleRun = async () => {
-    if (!selectedToken || !selectedLongEx || !selectedLongQuote || !selectedShortEx || !selectedShortQuote) {
+    if (!selectedToken || !selectedLongEx || !selectedLongQuote || !selectedShortEx || !selectedShortQuote || !selectedLongMarketId || !selectedShortMarketId) {
       alert("Please fill in all fields");
       return;
     }
@@ -116,13 +123,15 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       });
       window.history.replaceState({}, "", `?${params.toString()}`);
 
-      // Set chart data
+      // Set chart data with market IDs
       setChartData({
         token: selectedToken,
         longEx: selectedLongEx,
         shortEx: selectedShortEx,
         longQuote: selectedLongQuote,
         shortQuote: selectedShortQuote,
+        longMarketId: selectedLongMarketId,
+        shortMarketId: selectedShortMarketId,
       });
     } catch (error) {
       console.error("Backtest failed:", error);
@@ -221,16 +230,17 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                         <div key={ex.exchange} className="border-b border-gray-700 last:border-b-0">
                           {ex.quotes.map(quote => (
                             <button
-                              key={`${ex.exchange}-${quote}`}
+                              key={`${ex.exchange}-${quote.asset}`}
                               onClick={() => {
                                 setSelectedLongEx(ex.exchange);
-                                setSelectedLongQuote(quote);
+                                setSelectedLongQuote(quote.asset);
+                                setSelectedLongMarketId(quote.marketId);
                                 setLongExSearch("");
                                 setOpenCombo(null);
                               }}
                               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
                             >
-                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{ex.quotes.length > 1 ? ` (${quote})` : ""}
+                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{ex.quotes.length > 1 ? ` (${quote.asset})` : ""}
                             </button>
                           ))}
                         </div>
@@ -285,16 +295,17 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                         <div key={ex.exchange} className="border-b border-gray-700 last:border-b-0">
                           {ex.quotes.map(quote => (
                             <button
-                              key={`${ex.exchange}-${quote}`}
+                              key={`${ex.exchange}-${quote.asset}`}
                               onClick={() => {
                                 setSelectedShortEx(ex.exchange);
-                                setSelectedShortQuote(quote);
+                                setSelectedShortQuote(quote.asset);
+                                setSelectedShortMarketId(quote.marketId);
                                 setShortExSearch("");
                                 setOpenCombo(null);
                               }}
                               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
                             >
-                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{ex.quotes.length > 1 ? ` (${quote})` : ""}
+                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{ex.quotes.length > 1 ? ` (${quote.asset})` : ""}
                             </button>
                           ))}
                         </div>

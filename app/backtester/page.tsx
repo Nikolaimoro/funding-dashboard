@@ -35,14 +35,14 @@ async function getAllTokens(): Promise<string[]> {
   return Array.from(new Set(allTokens)).sort();
 }
 
-async function getAllExchanges(): Promise<{ exchange: string; quotes: string[] }[]> {
+async function getAllExchanges(): Promise<{ exchange: string; quotes: { asset: string; marketId: number }[] }[]> {
   let allRows: any[] = [];
   let from = 0;
 
   while (true) {
     const { data, error } = await supabase
       .from("funding_dashboard_mv")
-      .select("exchange, quote_asset")
+      .select("exchange, quote_asset, market_id")
       .range(from, from + PAGE_SIZE - 1);
 
     if (error) {
@@ -59,22 +59,28 @@ async function getAllExchanges(): Promise<{ exchange: string; quotes: string[] }
     from += PAGE_SIZE;
   }
 
-  // Group by exchange and get unique quote assets
-  const exchangeMap = new Map<string, Set<string>>();
+  // Group by exchange and get unique quote assets with market_id
+  const exchangeMap = new Map<string, Map<string, number>>();
 
   allRows.forEach(row => {
     if (!exchangeMap.has(row.exchange)) {
-      exchangeMap.set(row.exchange, new Set());
+      exchangeMap.set(row.exchange, new Map());
     }
-    if (row.quote_asset) {
-      exchangeMap.get(row.exchange)?.add(row.quote_asset);
+    if (row.quote_asset && row.market_id) {
+      // Store the first market_id for each quote_asset to avoid duplicates
+      const quoteMap = exchangeMap.get(row.exchange)!;
+      if (!quoteMap.has(row.quote_asset)) {
+        quoteMap.set(row.quote_asset, row.market_id);
+      }
     }
   });
 
   return Array.from(exchangeMap.entries())
-    .map(([exchange, quotes]) => ({
+    .map(([exchange, quoteMap]) => ({
       exchange,
-      quotes: Array.from(quotes).sort(),
+      quotes: Array.from(quoteMap.entries())
+        .map(([asset, marketId]) => ({ asset, marketId }))
+        .sort((a, b) => a.asset.localeCompare(b.asset)),
     }))
     .sort((a, b) => a.exchange.localeCompare(b.exchange));
 }
