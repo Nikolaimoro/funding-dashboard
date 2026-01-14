@@ -4,49 +4,70 @@ import { Suspense } from "react";
 
 export const revalidate = 3600; // revalidate every hour
 
-async function getAllTokens(): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("funding_dashboard_mv")
-    .select("market")
-    .order("market", { ascending: true });
+const PAGE_SIZE = 1000;
 
-  if (error) {
-    console.error("Failed to fetch tokens:", error);
-    return [];
+async function getAllTokens(): Promise<string[]> {
+  let allTokens: string[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("funding_dashboard_mv")
+      .select("base_asset")
+      .order("base_asset", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) {
+      console.error("Failed to fetch tokens:", error);
+      break;
+    }
+
+    if (!data || data.length === 0) break;
+
+    allTokens.push(...data.map(d => d.base_asset));
+
+    if (data.length < PAGE_SIZE) break;
+
+    from += PAGE_SIZE;
   }
 
-  // Get unique tokens and remove duplicates
-  const unique = Array.from(new Set((data ?? []).map(d => d.market)));
-  return unique;
+  // Get unique tokens
+  return Array.from(new Set(allTokens)).sort();
 }
 
 async function getAllExchanges(): Promise<{ exchange: string; quotes: string[] }[]> {
-  const { data, error } = await supabase
-    .from("arb_opportunities_enriched")
-    .select("long_exchange, long_quote, short_exchange, short_quote");
+  let allRows: any[] = [];
+  let from = 0;
 
-  if (error) {
-    console.error("Failed to fetch exchanges:", error);
-    return [];
+  while (true) {
+    const { data, error } = await supabase
+      .from("funding_dashboard_mv")
+      .select("exchange, quote_asset")
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) {
+      console.error("Failed to fetch exchanges:", error);
+      break;
+    }
+
+    if (!data || data.length === 0) break;
+
+    allRows.push(...data);
+
+    if (data.length < PAGE_SIZE) break;
+
+    from += PAGE_SIZE;
   }
 
+  // Group by exchange and get unique quote assets
   const exchangeMap = new Map<string, Set<string>>();
 
-  (data ?? []).forEach(row => {
-    // Add long exchange
-    if (!exchangeMap.has(row.long_exchange)) {
-      exchangeMap.set(row.long_exchange, new Set());
+  allRows.forEach(row => {
+    if (!exchangeMap.has(row.exchange)) {
+      exchangeMap.set(row.exchange, new Set());
     }
-    if (row.long_quote) {
-      exchangeMap.get(row.long_exchange)?.add(row.long_quote);
-    }
-
-    // Add short exchange
-    if (!exchangeMap.has(row.short_exchange)) {
-      exchangeMap.set(row.short_exchange, new Set());
-    }
-    if (row.short_quote) {
-      exchangeMap.get(row.short_exchange)?.add(row.short_quote);
+    if (row.quote_asset) {
+      exchangeMap.get(row.exchange)?.add(row.quote_asset);
     }
   });
 

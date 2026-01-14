@@ -201,7 +201,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                     : "border-gray-600 bg-gray-700 hover:border-gray-500"
                 }`}
               >
-                {selectedLongEx ? `${EXCHANGE_LABEL[selectedLongEx] || selectedLongEx}${selectedLongQuote ? ` (${selectedLongQuote})` : ""}` : "Select..."}
+                {selectedLongEx ? `${EXCHANGE_LABEL[selectedLongEx] || selectedLongEx}${selectedLongQuote && exchanges.find(ex => ex.exchange === selectedLongEx)?.quotes.length! > 1 ? ` (${selectedLongQuote})` : ""}` : "Select..."}
               </button>
 
               {openCombo === "long-ex" && (
@@ -230,7 +230,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                               }}
                               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
                             >
-                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange} ({quote})
+                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{ex.quotes.length > 1 ? ` (${quote})` : ""}
                             </button>
                           ))}
                         </div>
@@ -265,7 +265,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                     : "border-gray-600 bg-gray-700 hover:border-gray-500"
                 }`}
               >
-                {selectedShortEx ? `${EXCHANGE_LABEL[selectedShortEx] || selectedShortEx}${selectedShortQuote ? ` (${selectedShortQuote})` : ""}` : "Select..."}
+                {selectedShortEx ? `${EXCHANGE_LABEL[selectedShortEx] || selectedShortEx}${selectedShortQuote && exchanges.find(ex => ex.exchange === selectedShortEx)?.quotes.length! > 1 ? ` (${selectedShortQuote})` : ""}` : "Select..."}
               </button>
 
               {openCombo === "short-ex" && (
@@ -294,7 +294,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                               }}
                               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
                             >
-                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange} ({quote})
+                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{ex.quotes.length > 1 ? ` (${quote})` : ""}
                             </button>
                           ))}
                         </div>
