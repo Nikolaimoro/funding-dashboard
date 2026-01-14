@@ -142,6 +142,19 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
           categoryPercentage: 0.8,
           borderRadius: 4,
           borderSkipped: false,
+
+          transitions: {
+            hide: {
+              animation: {
+                duration: 0,
+              },
+            },
+            show: {
+              animation: {
+                duration: 0,
+              },
+            },
+          },
         },
 
         // long line
