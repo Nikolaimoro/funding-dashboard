@@ -90,19 +90,38 @@ export function formatExchange(ex: string): string {
 }
 
 /**
- * Normalizes token symbol by converting to uppercase
- * Note: The database (funding_dashboard_mv.base_asset) already has multipliers removed,
- * so this function only handles case normalization for search matching
+ * Normalizes token symbol for search/comparison
+ * Removes numeric multiplier prefixes/suffixes but preserves letter multipliers
+ * (to allow searching for MAKER, BLUR, KAVA without them being stripped)
  * 
- * @param s - Token symbol to normalize (e.g., "pepe", "BABYDOGE", "btc")
- * @returns Normalized uppercase symbol (e.g., "PEPE", "BABYDOGE", "BTC")
+ * @param s - Token symbol to normalize (e.g., "1000PEPE", "PEPE1000", "1MBABYDOGE")
+ * @returns Normalized uppercase symbol without numeric multipliers
  * @example
- * normalizeToken("pepe")    // "PEPE"
- * normalizeToken("BABYDOGE") // "BABYDOGE"
- * normalizeToken("BtC")      // "BTC"
+ * normalizeToken("1000PEPE")   // "PEPE"
+ * normalizeToken("PEPE1000")   // "PEPE"
+ * normalizeToken("1MBABYDOGE") // "BABYDOGE"
+ * normalizeToken("MAKER")      // "MAKER" (letter M is preserved)
  */
 export function normalizeToken(s: string): string {
-  return (s ?? "").toUpperCase().trim();
+  let token = (s ?? "").toUpperCase().trim();
+
+  // Remove numeric multiplier prefixes (1000000, 100000, ..., 10)
+  for (const mult of MULTIPLIERS) {
+    if (token.startsWith(mult)) {
+      token = token.slice(mult.length);
+      break;
+    }
+  }
+
+  // Remove numeric multiplier suffixes (1000000, 100000, ..., 10)
+  for (const mult of MULTIPLIERS) {
+    if (token.endsWith(mult)) {
+      token = token.slice(0, -mult.length);
+      break;
+    }
+  }
+
+  return token;
 }
 
 /**

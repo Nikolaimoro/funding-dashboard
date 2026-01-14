@@ -91,6 +91,34 @@ describe("number formatters", () => {
 
 describe("text formatters", () => {
   describe("normalizeToken", () => {
+    it("should remove numeric multiplier prefixes", () => {
+      expect(normalizeToken("1000PEPE")).toBe("PEPE");
+      expect(normalizeToken("100ETH")).toBe("ETH");
+      expect(normalizeToken("1000000SHIB")).toBe("SHIB");
+      expect(normalizeToken("10BTC")).toBe("BTC");
+    });
+
+    it("should remove numeric multiplier suffixes", () => {
+      expect(normalizeToken("PEPE1000")).toBe("PEPE");
+      expect(normalizeToken("ETH100")).toBe("ETH");
+      expect(normalizeToken("SHIB1000000")).toBe("SHIB");
+      expect(normalizeToken("BTC10")).toBe("BTC");
+    });
+
+    it("should handle BABYDOGE variants correctly", () => {
+      // 1M prefix is numeric (1000000), so it gets stripped
+      expect(normalizeToken("1MBABYDOGE")).toBe("BABYDOGE");
+      // M is a letter, so it's NOT stripped (kept as part of token name)
+      expect(normalizeToken("MBABYDOGE")).toBe("MBABYDOGE");
+    });
+
+    it("should preserve letter multipliers in token names", () => {
+      // MAKER, BLUR, KAVA should not be modified
+      expect(normalizeToken("MAKER")).toBe("MAKER");
+      expect(normalizeToken("BLUR")).toBe("BLUR");
+      expect(normalizeToken("KAVA")).toBe("KAVA");
+    });
+
     it("should convert to uppercase", () => {
       expect(normalizeToken("pepe")).toBe("PEPE");
       expect(normalizeToken("eth")).toBe("ETH");
@@ -99,19 +127,12 @@ describe("text formatters", () => {
 
     it("should handle whitespace", () => {
       expect(normalizeToken(" PEPE ")).toBe("PEPE");
-      expect(normalizeToken(" pepe ")).toBe("PEPE");
+      expect(normalizeToken(" 1000pepe ")).toBe("PEPE");
     });
 
     it("should handle empty/null", () => {
       expect(normalizeToken("")).toBe("");
       expect(normalizeToken(null as any)).toBe("");
-    });
-
-    it("should work with all base_asset values from database", () => {
-      // base_asset in DB already has multipliers removed
-      expect(normalizeToken("PEPE")).toBe("PEPE");
-      expect(normalizeToken("BABYDOGE")).toBe("BABYDOGE");
-      expect(normalizeToken("shib")).toBe("SHIB");
     });
   });
 
@@ -119,6 +140,7 @@ describe("text formatters", () => {
     it("should be an alias for normalizeToken", () => {
       expect(normalizeSymbol("1000PEPE")).toBe(normalizeToken("1000PEPE"));
       expect(normalizeSymbol("eth10")).toBe(normalizeToken("eth10"));
+      expect(normalizeSymbol("MAKER")).toBe(normalizeToken("MAKER"));
     });
   });
 });

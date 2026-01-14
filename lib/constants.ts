@@ -15,11 +15,15 @@ export const EXCHANGE_LABEL: Record<string, string> = {
 };
 
 /**
- * Note: Multipliers are no longer needed since base_asset in funding_dashboard_mv
- * already has multipliers removed (1000000BABYDOGE → BABYDOGE, MBABYDOGE → BABYDOGE)
- * Keeping for backward compatibility if needed elsewhere
+ * Numeric multiplier prefixes/suffixes that are removed during token normalization
+ * Used for search matching to handle cases like "1000PEPE", "PEPE1000", etc.
+ * 
+ * Note: Letter multipliers (M, B, K) are NOT included because they can be
+ * actual token names (MAKER, BLUR, KAVA). Users searching for these will
+ * find them correctly. BABYDOGE variants (1MBABYDOGE, MBABYDOGE) require
+ * searching by "BABYDOGE" to find both variants.
  */
-export const MULTIPLIERS = [] as const;
+export const MULTIPLIERS = ["1000000", "100000", "10000", "1000", "100", "10"] as const;
 
 export const RPC_FUNCTIONS = {
   FUNDING_CHART: "get_funding_chart",
