@@ -40,43 +40,18 @@ ChartJS.register(
   zoomPlugin
 );
 
-/**
- * Chart caching strategy:
- * - When false: No caching, fetch fresh data every time (best for production)
- * - When true: Cache chart results by market ID pair, include "Force Refresh" button
- * 
- * Set to false for now since there are no users and queries are fast.
- * Enable when needed for scaling.
- */
-const USE_CHART_CACHE = false;
-
 interface BacktesterChartProps {
   chartData: BacktesterChartData | null;
   selectedLongEx?: string;
   selectedShortEx?: string;
 }
 
-// In-memory cache: Map<"longMarketId-shortMarketId", { data: ArbChartRow[], timestamp: number }>
-const chartCache = new Map<string, { data: ArbChartRow[]; timestamp: number }>();
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
-
 async function fetchBacktestData(params: {
   longMarketId: number;
   shortMarketId: number;
   days?: number;
-  forceRefresh?: boolean;
 }): Promise<ArbChartRow[]> {
-  const { longMarketId, shortMarketId, days = 30, forceRefresh = false } = params;
-
-  // Check cache first if enabled
-  if (USE_CHART_CACHE && !forceRefresh) {
-    const cacheKey = `${longMarketId}-${shortMarketId}`;
-    const cached = chartCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      console.log(`[Chart Cache] Hit for ${cacheKey}`);
-      return cached.data;
-    }
-  }
+  const { longMarketId, shortMarketId, days = 30 } = params;
 
   // Add 10 second timeout to prevent infinite loading
   const timeoutPromise = new Promise((_, reject) =>
@@ -93,23 +68,13 @@ async function fetchBacktestData(params: {
 
   if (error) throw error;
 
-  const result = (data ?? []) as ArbChartRow[];
-
-  // Store in cache if enabled
-  if (USE_CHART_CACHE) {
-    const cacheKey = `${longMarketId}-${shortMarketId}`;
-    chartCache.set(cacheKey, { data: result, timestamp: Date.now() });
-    console.log(`[Chart Cache] Stored for ${cacheKey}`);
-  }
-
-  return result;
+  return (data ?? []) as ArbChartRow[];
 }
 
 export default function BacktesterChart({ chartData, selectedLongEx, selectedShortEx }: BacktesterChartProps) {
   const [rows, setRows] = useState<ArbChartRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>("");
-  const [forceRefresh, setForceRefresh] = useState(false);
   const [chartKey, setChartKey] = useState(0);
 
   const isLoaded = !!chartData?.longMarketId && !!chartData?.shortMarketId;
@@ -120,19 +85,17 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
     let cancelled = false;
     setLoading(true);
     setErr("");
-    setRows([]); // Clear rows immediately
-    setChartKey((prev) => prev + 1); // Force chart re-render
+    setRows([]);
+    setChartKey((prev) => prev + 1);
 
     fetchBacktestData({
       longMarketId: chartData.longMarketId,
       shortMarketId: chartData.shortMarketId,
       days: 30,
-      forceRefresh,
     })
       .then((d) => {
         if (cancelled) return;
         setRows(d);
-        setForceRefresh(false); // Reset force refresh flag after fetch
       })
       .catch((e: any) => {
         if (cancelled) return;
@@ -146,7 +109,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId, forceRefresh]);
+  }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId]);
 
   const chartDataObj = useMemo(() => {
     const points = rows
@@ -384,16 +347,6 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
                   <span className="font-semibold">{formatExchange(selectedShortEx || "")}</span>
                   <ExternalLink size={16} />
                 </a>
-              )}
-
-              {USE_CHART_CACHE && (
-                <button
-                  onClick={() => setForceRefresh(true)}
-                  disabled={loading}
-                  className="px-4 py-2 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 disabled:opacity-50 transition"
-                >
-                  {loading ? "Refreshing..." : "Force Refresh"}
-                </button>
               )}
             </div>
           )}
