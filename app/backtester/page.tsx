@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import BacktesterClient from "@/app/backtester/client";
+import { Suspense } from "react";
 
 export const revalidate = 3600; // revalidate every hour
 
@@ -64,7 +65,9 @@ export default async function BacktesterPage() {
   return (
     <main className="min-h-screen bg-gray-900 p-6 text-gray-200">
       <h1 className="text-2xl font-semibold mb-6">Funding Arbitrage Backtester</h1>
-      <BacktesterClient tokens={tokens} exchanges={exchanges} />
+      <Suspense fallback={<div className="text-gray-400">Loading...</div>}>
+        <BacktesterClient tokens={tokens} exchanges={exchanges} />
+      </Suspense>
     </main>
   );
 }
