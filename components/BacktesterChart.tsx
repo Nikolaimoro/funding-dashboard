@@ -5,11 +5,24 @@ import { ExternalLink } from "lucide-react";
 import { COLORS, TAILWIND } from "@/lib/theme";
 import { formatExchange } from "@/lib/formatters";
 import dynamic from "next/dynamic";
+import { Chart as ChartJS, LineController, BarController, LineElement, PointElement, BarElement, LinearScale, TimeScale, Tooltip, Legend, Filler } from "chart.js";
+import "chartjs-adapter-date-fns";
+import { Chart } from "react-chartjs-2";
+import zoomPlugin from "chartjs-plugin-zoom";
 
-const ArbitrageChart = dynamic(() => import("@/components/ArbitrageChart"), {
-  ssr: false,
-  loading: () => <div className="h-96 flex items-center justify-center text-gray-500">Loading chart...</div>,
-});
+ChartJS.register(
+  LineController,
+  BarController,
+  LineElement,
+  PointElement,
+  BarElement,
+  LinearScale,
+  TimeScale,
+  Tooltip,
+  Legend,
+  Filler,
+  zoomPlugin
+);
 
 interface BacktesterChartProps {
   chartData: any;
@@ -41,16 +54,8 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
       ) : (
         <div className="space-y-4">
           {/* Chart Container */}
-          <div className="border border-gray-700 rounded p-4 bg-gray-900">
-            <ArbitrageChart
-              open={true}
-              onClose={() => {}}
-              baseAsset={chartData.token}
-              longMarketId={1}
-              shortMarketId={2}
-              longLabel={chartData.longEx}
-              shortLabel={chartData.shortEx}
-            />
+          <div className="border border-gray-700 rounded p-4 bg-gray-900 h-96">
+            <p className="text-gray-500 text-center">Chart placeholder - would show funding rates</p>
           </div>
 
           {/* Exchange Buttons */}

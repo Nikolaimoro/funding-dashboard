@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { ArrowRightLeft } from "lucide-react";
 import { normalizeToken } from "@/lib/formatters";
+import { EXCHANGE_LABEL } from "@/lib/constants";
 import { TAILWIND } from "@/lib/theme";
 import BacktesterChart from "@/components/BacktesterChart";
 
@@ -14,10 +16,17 @@ interface BacktesterFormProps {
 type ComboboxType = "token" | "long-ex" | "short-ex";
 
 export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProps) {
-  const [selectedToken, setSelectedToken] = useState<string>("");
-  const [selectedLongEx, setSelectedLongEx] = useState<string>("");
+  const searchParams = useSearchParams();
+
+  // Initialize from URL params or empty
+  const initialToken = searchParams.get("token") || "";
+  const initialLongEx = searchParams.get("exchange1") || "";
+  const initialShortEx = searchParams.get("exchange2") || "";
+
+  const [selectedToken, setSelectedToken] = useState<string>(initialToken);
+  const [selectedLongEx, setSelectedLongEx] = useState<string>(initialLongEx);
   const [selectedLongQuote, setSelectedLongQuote] = useState<string>("");
-  const [selectedShortEx, setSelectedShortEx] = useState<string>("");
+  const [selectedShortEx, setSelectedShortEx] = useState<string>(initialShortEx);
   const [selectedShortQuote, setSelectedShortQuote] = useState<string>("");
 
   const [tokenSearch, setTokenSearch] = useState("");
@@ -26,11 +35,11 @@ export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProp
 
   const [openCombo, setOpenCombo] = useState<ComboboxType | null>(null);
   const [loading, setLoading] = useState(false);
-  const [chartData, setChartData] = useState<any>(null);
+  const [chartData, setChartData] = useState<any>(initialToken && initialLongEx && initialShortEx ? { token: initialToken, longEx: initialLongEx, shortEx: initialShortEx } : null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Filtered tokens
+  // Filtered tokens - normalized
   const filteredTokens = useMemo(() => {
     if (!tokenSearch) return tokens;
     const q = normalizeToken(tokenSearch);
@@ -41,14 +50,20 @@ export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProp
   const filteredLongEx = useMemo(() => {
     if (!longExSearch) return exchanges;
     const q = longExSearch.toLowerCase();
-    return exchanges.filter(ex => ex.exchange.toLowerCase().startsWith(q));
+    return exchanges.filter(ex => {
+      const label = EXCHANGE_LABEL[ex.exchange] || ex.exchange;
+      return label.toLowerCase().startsWith(q) || ex.exchange.toLowerCase().startsWith(q);
+    });
   }, [exchanges, longExSearch]);
 
   // Filtered short exchanges
   const filteredShortEx = useMemo(() => {
     if (!shortExSearch) return exchanges;
     const q = shortExSearch.toLowerCase();
-    return exchanges.filter(ex => ex.exchange.toLowerCase().startsWith(q));
+    return exchanges.filter(ex => {
+      const label = EXCHANGE_LABEL[ex.exchange] || ex.exchange;
+      return label.toLowerCase().startsWith(q) || ex.exchange.toLowerCase().startsWith(q);
+    });
   }, [exchanges, shortExSearch]);
 
   // Close combobox when clicking outside
@@ -61,6 +76,25 @@ export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProp
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Auto-fill quote when exchange is selected (pick first available)
+  useEffect(() => {
+    if (selectedLongEx && !selectedLongQuote) {
+      const ex = exchanges.find(e => e.exchange === selectedLongEx);
+      if (ex?.quotes[0]) {
+        setSelectedLongQuote(ex.quotes[0]);
+      }
+    }
+  }, [selectedLongEx]);
+
+  useEffect(() => {
+    if (selectedShortEx && !selectedShortQuote) {
+      const ex = exchanges.find(e => e.exchange === selectedShortEx);
+      if (ex?.quotes[0]) {
+        setSelectedShortQuote(ex.quotes[0]);
+      }
+    }
+  }, [selectedShortEx]);
 
   const handleSwapExchanges = () => {
     const tempEx = selectedLongEx;
@@ -79,13 +113,20 @@ export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProp
 
     setLoading(true);
     try {
-      // For now, just set dummy data to show the chart
-      // In a real implementation, this would call a backend API
+      // Update URL parameters
+      const params = new URLSearchParams({
+        token: selectedToken,
+        exchange1: selectedLongEx,
+        exchange2: selectedShortEx,
+      });
+      window.history.replaceState({}, "", `?${params.toString()}`);
+
+      // Set chart data
       setChartData({
         token: selectedToken,
         longEx: selectedLongEx,
-        longQuote: selectedLongQuote,
         shortEx: selectedShortEx,
+        longQuote: selectedLongQuote,
         shortQuote: selectedShortQuote,
       });
     } catch (error) {
@@ -165,7 +206,7 @@ export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProp
                     : "border-gray-600 bg-gray-700 hover:border-gray-500"
                 }`}
               >
-                {selectedLongEx ? `${selectedLongEx}${selectedLongQuote ? ` (${selectedLongQuote})` : ""}` : "Select..."}
+                {selectedLongEx ? `${EXCHANGE_LABEL[selectedLongEx] || selectedLongEx}${selectedLongQuote ? ` (${selectedLongQuote})` : ""}` : "Select..."}
               </button>
 
               {openCombo === "long-ex" && (
@@ -194,7 +235,7 @@ export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProp
                               }}
                               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
                             >
-                              {ex.exchange} ({quote})
+                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange} ({quote})
                             </button>
                           ))}
                         </div>
@@ -229,7 +270,7 @@ export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProp
                     : "border-gray-600 bg-gray-700 hover:border-gray-500"
                 }`}
               >
-                {selectedShortEx ? `${selectedShortEx}${selectedShortQuote ? ` (${selectedShortQuote})` : ""}` : "Select..."}
+                {selectedShortEx ? `${EXCHANGE_LABEL[selectedShortEx] || selectedShortEx}${selectedShortQuote ? ` (${selectedShortQuote})` : ""}` : "Select..."}
               </button>
 
               {openCombo === "short-ex" && (
@@ -258,7 +299,7 @@ export default function BacktesterForm({ tokens, exchanges }: BacktesterFormProp
                               }}
                               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition"
                             >
-                              {ex.exchange} ({quote})
+                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange} ({quote})
                             </button>
                           ))}
                         </div>

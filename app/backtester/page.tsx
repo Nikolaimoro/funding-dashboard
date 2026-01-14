@@ -5,9 +5,9 @@ export const revalidate = 3600; // revalidate every hour
 
 async function getAllTokens(): Promise<string[]> {
   const { data, error } = await supabase
-    .from("arb_opportunities_enriched")
-    .select("base_asset")
-    .order("base_asset", { ascending: true });
+    .from("funding_dashboard_mv")
+    .select("symbol")
+    .order("symbol", { ascending: true });
 
   if (error) {
     console.error("Failed to fetch tokens:", error);
@@ -15,7 +15,7 @@ async function getAllTokens(): Promise<string[]> {
   }
 
   // Get unique tokens and remove duplicates
-  const unique = Array.from(new Set((data ?? []).map(d => d.base_asset)));
+  const unique = Array.from(new Set((data ?? []).map(d => d.symbol)));
   return unique;
 }
 
