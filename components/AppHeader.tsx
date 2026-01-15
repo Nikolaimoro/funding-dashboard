@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function AppHeader() {
@@ -8,7 +9,7 @@ export default function AppHeader() {
   const link = (href: string, label: string) => {
     const active = path.startsWith(href);
     return (
-      <a
+      <Link
         href={href}
         className={`text-lg ${
           active
@@ -17,7 +18,7 @@ export default function AppHeader() {
         }`}
       >
         {label}
-      </a>
+      </Link>
     );
   };
 

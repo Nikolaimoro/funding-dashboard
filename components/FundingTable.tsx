@@ -9,6 +9,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import FundingTableHeader from "@/components/FundingTable/Header";
 import FundingTableControls from "@/components/FundingTable/Controls";
 import FundingTableBody from "@/components/FundingTable/Body";
+import SkeletonLoader from "@/components/ui/SkeletonLoader";
 
 /* chart — client only */
 const FundingChart = dynamic(() => import("@/components/FundingChart"), {
@@ -33,7 +34,15 @@ type SortDir = "asc" | "desc";
 
 /* ================= COMPONENT ================= */
 
-export default function FundingTable({ rows }: { rows: FundingRow[] }) {
+export default function FundingTable({
+  rows,
+  loading = false,
+  error = null,
+}: {
+  rows: FundingRow[];
+  loading?: boolean;
+  error?: string | null;
+}) {
   /* ---------- state ---------- */
   const [search, setSearch] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
@@ -203,15 +212,36 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
           onFiltersOpenChange={setFiltersOpen}
         />
 
-        <ErrorBoundary>
-          <FundingTableBody
-            rows={visible}
-            sortKey={sortKey}
-            sortDir={sortDir}
-            onSort={onSort}
-            onRowClick={openChart}
-          />
-        </ErrorBoundary>
+        {error && (
+          <div className="text-red-400 text-sm mb-3">{error}</div>
+        )}
+
+        {loading && (
+          <div className="flex items-center gap-2 text-gray-400 text-sm mb-3">
+            <span className="h-4 w-4 rounded-full border-2 border-gray-600 border-t-blue-400 animate-spin" />
+            Loading funding rates…
+          </div>
+        )}
+
+        {!loading && visible.length === 0 && (
+          <div className="text-gray-500 text-sm mb-3">
+            No results for the current filters.
+          </div>
+        )}
+
+        {loading ? (
+          <SkeletonLoader rows={8} columns={8} />
+        ) : (
+          <ErrorBoundary>
+            <FundingTableBody
+              rows={visible}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSort={onSort}
+              onRowClick={openChart}
+            />
+          </ErrorBoundary>
+        )}
 
         <Pagination
           currentPage={page}
