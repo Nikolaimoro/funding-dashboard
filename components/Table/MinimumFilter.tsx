@@ -14,6 +14,59 @@ interface MinimumFilterProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const SLIDER_STEPS = 1000;
+const MIDPOINT_VALUE = 1_000_000;
+const compactNumberFormatter = new Intl.NumberFormat("en", {
+  notation: "compact",
+  maximumFractionDigits: 2,
+});
+
+function formatCompactNumber(value: number) {
+  return compactNumberFormatter.format(value);
+}
+
+function clampValue(value: number, maxValue: number) {
+  if (Number.isNaN(value)) return 0;
+  return Math.min(Math.max(value, 0), Math.max(maxValue, 0));
+}
+
+function valueFromSlider(t: number, maxValue: number) {
+  if (maxValue <= 0) return 0;
+  if (maxValue <= MIDPOINT_VALUE) {
+    return maxValue * t;
+  }
+
+  if (t <= 0.5) {
+    const scaledT = t / 0.5;
+    return Math.expm1(Math.log1p(MIDPOINT_VALUE) * scaledT);
+  }
+
+  const scaledT = (t - 0.5) / 0.5;
+  const upperRange = maxValue - MIDPOINT_VALUE;
+  return MIDPOINT_VALUE + Math.expm1(Math.log1p(upperRange) * scaledT);
+}
+
+function sliderFromValue(value: number, maxValue: number) {
+  if (maxValue <= 0) return 0;
+  if (maxValue <= MIDPOINT_VALUE) {
+    return value / maxValue;
+  }
+
+  if (value <= MIDPOINT_VALUE) {
+    return (
+      0.5 * (Math.log1p(Math.max(value, 0)) / Math.log1p(MIDPOINT_VALUE))
+    );
+  }
+
+  const upperRange = maxValue - MIDPOINT_VALUE;
+  return (
+    0.5 +
+    0.5 *
+      (Math.log1p(Math.max(value - MIDPOINT_VALUE, 0)) /
+        Math.log1p(upperRange))
+  );
+}
+
 export default function MinimumFilter({
   minOI,
   minVolume,
@@ -27,6 +80,17 @@ export default function MinimumFilter({
   const activeFilters =
     (typeof minOI === "number" && minOI > 0 ? 1 : 0) +
     (typeof minVolume === "number" && minVolume > 0 ? 1 : 0);
+
+  const clampedMinOI =
+    typeof minOI === "number" ? clampValue(minOI, maxOI) : 0;
+  const clampedMinVolume =
+    typeof minVolume === "number" ? clampValue(minVolume, maxVolume) : 0;
+  const oiSliderValue = Math.round(
+    sliderFromValue(clampedMinOI, maxOI) * SLIDER_STEPS
+  );
+  const volumeSliderValue = Math.round(
+    sliderFromValue(clampedMinVolume, maxVolume) * SLIDER_STEPS
+  );
 
   return (
     <div className="relative">
@@ -56,9 +120,13 @@ export default function MinimumFilter({
                 <input
                   type="range"
                   min={0}
-                  max={maxOI}
-                  value={typeof minOI === "number" ? minOI : 0}
-                  onChange={(e) => onMinOIChange(Number(e.target.value))}
+                  max={SLIDER_STEPS}
+                  value={oiSliderValue}
+                  onChange={(e) => {
+                    const sliderValue = Number(e.target.value) / SLIDER_STEPS;
+                    const rawValue = valueFromSlider(sliderValue, maxOI);
+                    onMinOIChange(Math.round(rawValue));
+                  }}
                   disabled={maxOI <= 0}
                   className="w-full accent-emerald-400"
                 />
@@ -70,14 +138,16 @@ export default function MinimumFilter({
                     value={minOI}
                     onChange={(e) =>
                       onMinOIChange(
-                        e.target.value === "" ? "" : Number(e.target.value)
+                        e.target.value === ""
+                          ? ""
+                          : clampValue(Number(e.target.value), maxOI)
                       )
                     }
                     placeholder="0"
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                    className="w-32 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
                   />
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
-                    max {maxOI.toLocaleString()}
+                  <span className="text-xs text-gray-400 whitespace-nowrap">
+                    ≈ {formatCompactNumber(clampedMinOI)}
                   </span>
                 </div>
               </div>
@@ -90,9 +160,13 @@ export default function MinimumFilter({
                 <input
                   type="range"
                   min={0}
-                  max={maxVolume}
-                  value={typeof minVolume === "number" ? minVolume : 0}
-                  onChange={(e) => onMinVolumeChange(Number(e.target.value))}
+                  max={SLIDER_STEPS}
+                  value={volumeSliderValue}
+                  onChange={(e) => {
+                    const sliderValue = Number(e.target.value) / SLIDER_STEPS;
+                    const rawValue = valueFromSlider(sliderValue, maxVolume);
+                    onMinVolumeChange(Math.round(rawValue));
+                  }}
                   disabled={maxVolume <= 0}
                   className="w-full accent-emerald-400"
                 />
@@ -104,14 +178,16 @@ export default function MinimumFilter({
                     value={minVolume}
                     onChange={(e) =>
                       onMinVolumeChange(
-                        e.target.value === "" ? "" : Number(e.target.value)
+                        e.target.value === ""
+                          ? ""
+                          : clampValue(Number(e.target.value), maxVolume)
                       )
                     }
                     placeholder="0"
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                    className="w-32 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
                   />
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
-                    max {maxVolume.toLocaleString()}
+                  <span className="text-xs text-gray-400 whitespace-nowrap">
+                    ≈ {formatCompactNumber(clampedMinVolume)}
                   </span>
                 </div>
               </div>
