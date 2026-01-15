@@ -8,6 +8,8 @@ interface MinimumFilterProps {
   minVolume: number | "";
   onMinOIChange: (value: number | "") => void;
   onMinVolumeChange: (value: number | "") => void;
+  maxOI: number;
+  maxVolume: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -17,6 +19,8 @@ export default function MinimumFilter({
   minVolume,
   onMinOIChange,
   onMinVolumeChange,
+  maxOI,
+  maxVolume,
   open,
   onOpenChange,
 }: MinimumFilterProps) {
@@ -48,29 +52,69 @@ export default function MinimumFilter({
               <label className="block text-sm text-gray-300 mb-1">
                 Min Open Interest
               </label>
-              <input
-                type="number"
-                value={minOI}
-                onChange={(e) =>
-                  onMinOIChange(e.target.value === "" ? "" : Number(e.target.value))
-                }
-                placeholder="0"
-                className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
-              />
+              <div className="space-y-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={maxOI}
+                  value={typeof minOI === "number" ? minOI : 0}
+                  onChange={(e) => onMinOIChange(Number(e.target.value))}
+                  disabled={maxOI <= 0}
+                  className="w-full accent-emerald-400"
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={maxOI || undefined}
+                    value={minOI}
+                    onChange={(e) =>
+                      onMinOIChange(
+                        e.target.value === "" ? "" : Number(e.target.value)
+                      )
+                    }
+                    placeholder="0"
+                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                  />
+                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                    max {maxOI.toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-sm text-gray-300 mb-1">
                 Min Volume
               </label>
-              <input
-                type="number"
-                value={minVolume}
-                onChange={(e) =>
-                  onMinVolumeChange(e.target.value === "" ? "" : Number(e.target.value))
-                }
-                placeholder="0"
-                className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
-              />
+              <div className="space-y-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={maxVolume}
+                  value={typeof minVolume === "number" ? minVolume : 0}
+                  onChange={(e) => onMinVolumeChange(Number(e.target.value))}
+                  disabled={maxVolume <= 0}
+                  className="w-full accent-emerald-400"
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={maxVolume || undefined}
+                    value={minVolume}
+                    onChange={(e) =>
+                      onMinVolumeChange(
+                        e.target.value === "" ? "" : Number(e.target.value)
+                      )
+                    }
+                    placeholder="0"
+                    className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                  />
+                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                    max {maxVolume.toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </>
