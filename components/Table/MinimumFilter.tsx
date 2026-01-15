@@ -16,13 +16,14 @@ interface MinimumFilterProps {
 
 const SLIDER_STEPS = 1000;
 const MIDPOINT_VALUE = 1_000_000;
-const compactNumberFormatter = new Intl.NumberFormat("en", {
-  notation: "compact",
-  maximumFractionDigits: 2,
-});
+function formatNumberWithSpaces(value: number) {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
 
-function formatCompactNumber(value: number) {
-  return compactNumberFormatter.format(value);
+function parseNumberInput(rawValue: string) {
+  const digitsOnly = rawValue.replace(/\s+/g, "").replace(/[^\d]/g, "");
+  if (!digitsOnly) return "";
+  return Number(digitsOnly);
 }
 
 function clampValue(value: number, maxValue: number) {
@@ -85,6 +86,10 @@ export default function MinimumFilter({
     typeof minOI === "number" ? clampValue(minOI, maxOI) : 0;
   const clampedMinVolume =
     typeof minVolume === "number" ? clampValue(minVolume, maxVolume) : 0;
+  const oiDisplayValue =
+    typeof minOI === "number" ? formatNumberWithSpaces(minOI) : "";
+  const volumeDisplayValue =
+    typeof minVolume === "number" ? formatNumberWithSpaces(minVolume) : "";
   const oiSliderValue = Math.round(
     sliderFromValue(clampedMinOI, maxOI) * SLIDER_STEPS
   );
@@ -132,23 +137,33 @@ export default function MinimumFilter({
                 />
                 <div className="flex items-center gap-2">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     min={0}
                     max={maxOI || undefined}
-                    value={minOI}
-                    onChange={(e) =>
+                    value={oiDisplayValue}
+                    onChange={(e) => {
+                      const parsed = parseNumberInput(e.target.value);
                       onMinOIChange(
-                        e.target.value === ""
+                        parsed === ""
                           ? ""
-                          : clampValue(Number(e.target.value), maxOI)
-                      )
-                    }
+                          : clampValue(Math.round(parsed), maxOI)
+                      );
+                    }}
                     placeholder="0"
-                    className="w-32 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                    className="w-36 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
                   />
-                  <span className="text-xs text-gray-400 whitespace-nowrap">
-                    ≈ {formatCompactNumber(clampedMinOI)}
-                  </span>
+                  {typeof minOI === "number" && minOI > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onMinOIChange(0)}
+                      className="h-6 w-6 rounded-full border border-gray-500 text-gray-300 text-xs leading-none hover:border-gray-300 hover:text-white transition"
+                      aria-label="Clear minimum open interest"
+                      title="Clear"
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -172,23 +187,33 @@ export default function MinimumFilter({
                 />
                 <div className="flex items-center gap-2">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     min={0}
                     max={maxVolume || undefined}
-                    value={minVolume}
-                    onChange={(e) =>
+                    value={volumeDisplayValue}
+                    onChange={(e) => {
+                      const parsed = parseNumberInput(e.target.value);
                       onMinVolumeChange(
-                        e.target.value === ""
+                        parsed === ""
                           ? ""
-                          : clampValue(Number(e.target.value), maxVolume)
-                      )
-                    }
+                          : clampValue(Math.round(parsed), maxVolume)
+                      );
+                    }}
                     placeholder="0"
-                    className="w-32 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                    className="w-36 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
                   />
-                  <span className="text-xs text-gray-400 whitespace-nowrap">
-                    ≈ {formatCompactNumber(clampedMinVolume)}
-                  </span>
+                  {typeof minVolume === "number" && minVolume > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onMinVolumeChange(0)}
+                      className="h-6 w-6 rounded-full border border-gray-500 text-gray-300 text-xs leading-none hover:border-gray-300 hover:text-white transition"
+                      aria-label="Clear minimum volume"
+                      title="Clear"
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
