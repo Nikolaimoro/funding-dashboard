@@ -6,9 +6,11 @@ import { normalizeSymbol, formatExchange } from "@/lib/formatters";
 import { FundingRow } from "@/lib/types";
 import Pagination from "@/components/Table/Pagination";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import FundingTableHeader from "@/components/FundingTable/Header";
-import FundingTableControls from "@/components/FundingTable/Controls";
+import TableControls from "@/components/Table/TableControls";
 import FundingTableBody from "@/components/FundingTable/Body";
+import SkeletonLoader from "@/components/ui/SkeletonLoader";
+import { TableEmptyState, TableLoadingState } from "@/components/ui/TableStates";
+import { TAILWIND } from "@/lib/theme";
 
 /* chart — client only */
 const FundingChart = dynamic(() => import("@/components/FundingChart"), {
@@ -33,7 +35,15 @@ type SortDir = "asc" | "desc";
 
 /* ================= COMPONENT ================= */
 
-export default function FundingTable({ rows }: { rows: FundingRow[] }) {
+export default function FundingTable({
+  rows,
+  loading = false,
+  error = null,
+}: {
+  rows: FundingRow[];
+  loading?: boolean;
+  error?: string | null;
+}) {
   /* ---------- state ---------- */
   const [search, setSearch] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
@@ -68,6 +78,14 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
   /* ---------- exchanges ---------- */
   const exchanges = useMemo(
     () => Array.from(new Set(rows.map(r => r.exchange))).sort(),
+    [rows]
+  );
+  const maxOI = useMemo(
+    () => rows.reduce((max, row) => Math.max(max, row.open_interest ?? 0), 0),
+    [rows]
+  );
+  const maxVolume = useMemo(
+    () => rows.reduce((max, row) => Math.max(max, row.volume_24h ?? 0), 0),
     [rows]
   );
 
@@ -184,10 +202,8 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
 
   return (
     <ErrorBoundary>
-      <main className="min-h-screen bg-gray-900 p-6 text-gray-200">
-        <FundingTableHeader title="Funding Rates Dashboard" />
-
-        <FundingTableControls
+      <div>
+        <TableControls
           search={search}
           onSearchChange={setSearch}
           exchanges={exchanges}
@@ -199,19 +215,39 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
           onMinOIChange={setMinOI}
           minVolume={minVolume}
           onMinVolumeChange={setMinVolume}
+          maxOI={maxOI}
+          maxVolume={maxVolume}
           filtersOpen={filtersOpen}
           onFiltersOpenChange={setFiltersOpen}
+          searchPlaceholder="Search market"
+          inputClassName={TAILWIND.input.default}
         />
 
-        <ErrorBoundary>
-          <FundingTableBody
-            rows={visible}
-            sortKey={sortKey}
-            sortDir={sortDir}
-            onSort={onSort}
-            onRowClick={openChart}
-          />
-        </ErrorBoundary>
+        {error && (
+          <div className="text-red-400 text-sm mb-3">{error}</div>
+        )}
+
+        {loading && (
+          <TableLoadingState message="Loading funding rates…" />
+        )}
+
+        {!loading && visible.length === 0 && (
+          <TableEmptyState message="No results for the current filters." />
+        )}
+
+        {loading ? (
+          <SkeletonLoader rows={8} columns={8} />
+        ) : (
+          <ErrorBoundary>
+            <FundingTableBody
+              rows={visible}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSort={onSort}
+              onRowClick={openChart}
+            />
+          </ErrorBoundary>
+        )}
 
         <Pagination
           currentPage={page}
@@ -229,7 +265,7 @@ export default function FundingTable({ rows }: { rows: FundingRow[] }) {
           symbol={selectedRow?.market ?? ""}
           exchange={selectedRow ? formatExchange(selectedRow.exchange) : ""}
         />
-      </main>
+      </div>
     </ErrorBoundary>
   );
 }
