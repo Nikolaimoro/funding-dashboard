@@ -8,10 +8,10 @@ import { SUPABASE_TABLES } from "@/lib/constants";
 import { ArbRow } from "@/lib/types";
 import Pagination from "@/components/Table/Pagination";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import ArbitrageTableHeader from "@/components/ArbitrageTable/Header";
-import ArbitrageTableControls from "@/components/ArbitrageTable/Controls";
+import TableControls from "@/components/Table/TableControls";
 import ArbitrageTableBody from "@/components/ArbitrageTable/Body";
 import SkeletonLoader from "@/components/ui/SkeletonLoader";
+import { TableEmptyState, TableLoadingState } from "@/components/ui/TableStates";
 
 /* ================= TYPES ================= */
 
@@ -185,10 +185,8 @@ export default function ArbitrageTable() {
 
   return (
     <ErrorBoundary>
-      <main className="min-h-screen bg-gray-900 p-6 text-gray-200">
-        <ArbitrageTableHeader title="Arbitrage Opportunities Dashboard" />
-
-        <ArbitrageTableControls
+      <div>
+        <TableControls
           search={search}
           onSearchChange={setSearch}
           exchanges={exchanges}
@@ -202,20 +200,17 @@ export default function ArbitrageTable() {
           onMinVolumeChange={setMinVolume}
           filtersOpen={filtersOpen}
           onFiltersOpenChange={setFiltersOpen}
+          searchPlaceholder="Search token"
+          inputClassName="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
         />
 
         {/* ---------- Loading / Empty ---------- */}
         {loading && (
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-3">
-            <span className="h-4 w-4 rounded-full border-2 border-gray-600 border-t-blue-400 animate-spin" />
-            Loading arbitrage opportunities…
-          </div>
+          <TableLoadingState message="Loading arbitrage opportunities…" />
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="text-gray-500 text-sm mb-3">
-            No opportunities for this filter.
-          </div>
+          <TableEmptyState message="No opportunities for this filter." />
         )}
 
         {/* ---------- Table ---------- */}
@@ -261,7 +256,7 @@ export default function ArbitrageTable() {
               : ""
           }
         />
-      </main>
+      </div>
     </ErrorBoundary>
   );
 }
