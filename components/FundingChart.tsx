@@ -48,24 +48,46 @@ export type FundingChartProps = {
 async function fetchFundingChartData(params: {
   marketId: number;
   days?: number;
+  signal?: AbortSignal;
 }): Promise<FundingChartPoint[]> {
-  const { marketId, days = 30 } = params;
+  const { marketId, days = 30, signal } = params;
+  const timeoutMs = 5000;
+  const timeoutMessage = "Unable to load history. Please try again.";
+  const controller = new AbortController();
+  let timedOut = false;
 
-  // Add 10 second timeout to prevent infinite loading
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("Request timeout. Please try again.")), 10000)
-  );
+  if (signal) {
+    if (signal.aborted) {
+      controller.abort();
+    } else {
+      signal.addEventListener("abort", () => controller.abort(), { once: true });
+    }
+  }
 
-  const fetchPromise = supabase.rpc(RPC_FUNCTIONS.FUNDING_CHART, {
-    p_market_id: marketId,
-    p_days: days,
-  });
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
 
-  const { data, error } = await Promise.race([fetchPromise, timeoutPromise as any]);
+  try {
+    const request = supabase.rpc(RPC_FUNCTIONS.FUNDING_CHART, {
+      p_market_id: marketId,
+      p_days: days,
+    });
+    request.abortSignal(controller.signal);
+    const { data, error } = await request;
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return (data ?? []) as FundingChartPoint[];
+    return (data ?? []) as FundingChartPoint[];
+  } catch (err) {
+    if (timedOut) {
+      throw new Error(timeoutMessage);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /* ================= COMPONENT ================= */
@@ -76,11 +98,13 @@ export default function FundingChart(props: FundingChartProps) {
   const [rows, setRows] = useState<FundingChartPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>("");
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     if (!open) return;
 
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setErr("");
     setRows([]);
@@ -88,6 +112,7 @@ export default function FundingChart(props: FundingChartProps) {
     fetchFundingChartData({
       marketId,
       days: 30,
+      signal: controller.signal,
     })
       .then((d) => {
         if (cancelled) return;
@@ -95,7 +120,7 @@ export default function FundingChart(props: FundingChartProps) {
       })
       .catch((e: any) => {
         if (cancelled) return;
-        setErr(e?.message ?? "Failed to load chart. Please try again.");
+        setErr(e?.message ?? "Unable to load history. Please try again.");
       })
       .finally(() => {
         if (cancelled) return;
@@ -104,8 +129,9 @@ export default function FundingChart(props: FundingChartProps) {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [open, marketId]);
+  }, [open, marketId, retryKey]);
 
   /* ---------- unified data processing ---------- */
   const { chartPoints, minX, maxX } = useMemo(() => {
@@ -276,6 +302,7 @@ export default function FundingChart(props: FundingChartProps) {
       title={title}
       loading={loading}
       error={err}
+      onRetry={() => setRetryKey((value) => value + 1)}
       height={CHART_CONFIG.MODAL_HEIGHT}
     >
       {rows.length > 0 && (
