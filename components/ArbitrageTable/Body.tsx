@@ -124,12 +124,12 @@ export default function ArbitrageTableBody({
                 onClick={() => onRowClick?.(r)}
                 className="border-b border-gray-800 hover:bg-gray-700/40 cursor-pointer"
               >
-                <td className="px-4 py-2 font-mono font-semibold">
+                <td className="px-4 py-2 font-mono font-semibold text-white">
                   {r.base_asset}
                 </td>
 
-                <td className="px-4 py-2 text-right text-blue-300">
-                  <span className="text-gray-300 font-mono tabular-nums">
+                <td className="px-4 py-2 text-right">
+                  <span className="text-white font-mono tabular-nums">
                     {formatAPR(r.opportunity_apr)}
                   </span>
                 </td>
@@ -146,26 +146,31 @@ export default function ArbitrageTableBody({
                 </td>
 
                 <td className="px-4 py-2 text-right">
-                  <span className="text-gray-300 font-mono tabular-nums">
+                  <span className="text-white font-mono tabular-nums">
                     {formatCompactUSD(r.long_open_interest)}
                   </span>
                   <span className="text-gray-500"> / </span>
-                  <span className="text-gray-300 font-mono tabular-nums">
+                  <span className="text-white font-mono tabular-nums">
                     {formatCompactUSD(r.short_open_interest)}
                   </span>
                 </td>
 
                 <td className="px-4 py-2 text-right">
-                  <span className="text-gray-300 font-mono tabular-nums">
+                  <span className="text-white font-mono tabular-nums">
                     {formatCompactUSD(r.long_volume_24h)}
                   </span>
                   <span className="text-gray-500"> / </span>
-                  <span className="text-gray-300 font-mono tabular-nums">
+                  <span className="text-white font-mono tabular-nums">
                     {formatCompactUSD(r.short_volume_24h)}
                   </span>
                 </td>
 
-                <td className="px-4 py-2 text-right font-mono text-emerald-400">
+                <td className={`px-4 py-2 text-right font-mono ${
+                  r.stability == null ? "text-gray-500" :
+                  r.stability >= 0.8 ? "text-emerald-400" :
+                  r.stability >= 0.5 ? "text-orange-400" :
+                  "text-red-400"
+                }`}>
                   {r.stability?.toFixed(2)}
                 </td>
 

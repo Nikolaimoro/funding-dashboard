@@ -23,7 +23,7 @@ export default function AppHeader() {
     return (
       <Link
         href={href}
-        className={`text-lg text-white font-outfit font-normal ${
+        className={`text-base text-white font-outfit font-normal ${
           active ? "opacity-100" : "opacity-80 hover:opacity-100"
         }`}
       >
@@ -33,7 +33,7 @@ export default function AppHeader() {
   };
 
   return (
-    <div className="flex items-center gap-6 mb-6 border-b border-gray-800 pb-3">
+    <div className="flex items-center gap-6 mb-6 border-b border-gray-800 pb-3 items-end">
       <Link
         href="/funding"
         className="flex items-center"

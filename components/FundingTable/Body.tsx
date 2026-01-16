@@ -127,8 +127,8 @@ export default function FundingTableBody({
               onClick={() => onRowClick(r)}
               className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} cursor-pointer`}
             >
-              <td className={TAILWIND.table.cell}>{formatExchange(r.exchange)}</td>
-              <td className="px-4 py-2 font-mono font-semibold">
+              <td className="px-4 py-2 text-white font-mono">{formatExchange(r.exchange)}</td>
+              <td className="px-4 py-2 font-mono font-semibold text-white">
                 {r.ref_url ? (
                   <a
                     href={r.ref_url}
@@ -144,23 +144,23 @@ export default function FundingTableBody({
                 )}
               </td>
 
-              <td className="px-4 py-2 text-right">
+              <td className="px-4 py-2 text-right text-white font-mono">
                 {formatCompactUSDNode(r.open_interest)}
               </td>
 
-              <td className="px-4 py-2 text-right">
+              <td className="px-4 py-2 text-right text-white font-mono">
                 {formatCompactUSDNode(r.volume_24h)}
               </td>
 
-              <td className="px-4 py-2 text-right">
+              <td className="px-4 py-2 text-right text-white font-mono">
                 {formatAPRNode(r.funding_rate_now)}
               </td>
 
-              <td className="px-4 py-2 text-right">{formatAPRNode(r["1d"])}</td>
-              <td className="px-4 py-2 text-right">{formatAPRNode(r["3d"])}</td>
-              <td className="px-4 py-2 text-right">{formatAPRNode(r["7d"])}</td>
-              <td className="px-4 py-2 text-right">{formatAPRNode(r["15d"])}</td>
-              <td className="px-4 py-2 text-right">{formatAPRNode(r["30d"])}</td>
+              <td className="px-4 py-2 text-right text-white font-mono">{formatAPRNode(r["1d"])}</td>
+              <td className="px-4 py-2 text-right text-white font-mono">{formatAPRNode(r["3d"])}</td>
+              <td className="px-4 py-2 text-right text-white font-mono">{formatAPRNode(r["7d"])}</td>
+              <td className="px-4 py-2 text-right text-white font-mono">{formatAPRNode(r["15d"])}</td>
+              <td className="px-4 py-2 text-right text-white font-mono">{formatAPRNode(r["30d"])}</td>
               <td className="px-4 py-2 text-center">
                 {r.market_id && (
                   <ExternalLink size={16} className="text-gray-500" />
