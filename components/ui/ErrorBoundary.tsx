@@ -46,7 +46,9 @@ export default class ErrorBoundary extends React.Component<
 
       return (
         <div className="p-6 bg-red-950/20 border border-red-800 rounded-lg">
-          <h2 className="text-red-400 font-semibold mb-2">Something went wrong</h2>
+          <h2 className="text-red-400 font-outfit font-normal mb-2">
+            Something went wrong
+          </h2>
           <p className="text-red-300 text-sm mb-4">{this.state.error.message}</p>
           <button
             onClick={this.reset}

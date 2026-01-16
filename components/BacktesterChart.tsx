@@ -299,7 +299,9 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
 
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-      <h2 className="text-lg font-semibold mb-4 text-gray-200">Funding Rates</h2>
+      <h2 className="text-lg font-outfit font-normal mb-4 text-gray-200">
+        Funding Rates
+      </h2>
 
       {!isLoaded ? (
         <div className="h-96 flex items-center justify-center text-gray-500 rounded border border-gray-700">
