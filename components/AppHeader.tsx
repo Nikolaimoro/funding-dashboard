@@ -33,7 +33,7 @@ export default function AppHeader() {
   };
 
   return (
-    <div className="flex items-center gap-6 mb-6 border-b border-gray-800 pb-3 items-end">
+    <div className="flex gap-6 mb-6 border-b border-gray-800 pb-3 items-end">
       <Link
         href="/funding"
         className="flex items-center"

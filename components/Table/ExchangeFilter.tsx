@@ -63,15 +63,15 @@ export default function ExchangeFilter({
             {exchanges.map((ex) => (
               <label
                 key={ex}
-                className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded items-center"
+                className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded items-center justify-between"
               >
+                {formatExchange(ex)}
                 <input
                   type="checkbox"
                   checked={selectedExchanges.includes(ex)}
                   onChange={() => onToggleExchange(ex)}
                   className="cursor-pointer h-5 w-5 accent-blue-500"
                 />
-                {formatExchange(ex)}
               </label>
             ))}
             {exchanges.length === 0 && (

@@ -60,7 +60,7 @@ export default function FundingTableBody({
   return (
     <div className={`overflow-auto rounded ${TAILWIND.border.default} ${TAILWIND.bg.surface}`}>
       <table className="w-full text-base">
-        <thead className={`${TAILWIND.bg.dark} sticky top-0`}>
+        <thead className={`${TAILWIND.bg.dark} sticky top-0 text-[13px]`}>
           <tr className="border-b border-gray-700">
             <th className={TAILWIND.table.header}>
               <SortableHeader
