@@ -1,5 +1,6 @@
 "use client";
 
+import type { ChangeEvent } from "react";
 import ExchangeFilter from "@/components/Table/ExchangeFilter";
 import MinimumFilter from "@/components/Table/MinimumFilter";
 
@@ -11,7 +12,11 @@ type TableControlsProps = {
   onToggleExchange: (exchange: string) => void;
   onResetExchanges: () => void;
 };
-        onResetExchanges={onResetExchanges}
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onSearchChange(event.target.value);
+  };
+
+        onChange={handleSearchChange}
   onResetExchanges: () => void;
   filterOpen: boolean;
   onFilterOpenChange: (open: boolean) => void;
