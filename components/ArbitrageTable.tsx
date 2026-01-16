@@ -124,6 +124,10 @@ export default function ArbitrageTable() {
     );
   };
 
+  const resetExchanges = () => {
+    setSelectedExchanges([]);
+  };
+
   /**
    * Clean up selected exchanges if they're no longer available after data refresh
    * Prevents invalid filter selections when dataset changes
@@ -214,6 +218,7 @@ export default function ArbitrageTable() {
           exchanges={exchanges}
           selectedExchanges={selectedExchanges}
           onToggleExchange={toggleExchange}
+          onResetExchanges={resetExchanges}
           filterOpen={filterOpen}
           onFilterOpenChange={setFilterOpen}
           minOI={minOI}

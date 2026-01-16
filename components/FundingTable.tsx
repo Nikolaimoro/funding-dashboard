@@ -95,6 +95,10 @@ export default function FundingTable({
     );
   };
 
+  const resetExchanges = () => {
+    setSelectedExchanges([]);
+  };
+
   const onSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir(d => (d === "asc" ? "desc" : "asc"));
@@ -209,6 +213,7 @@ export default function FundingTable({
           exchanges={exchanges}
           selectedExchanges={selectedExchanges}
           onToggleExchange={toggleExchange}
+          onResetExchanges={resetExchanges}
           filterOpen={filterOpen}
           onFilterOpenChange={setFilterOpen}
           minOI={minOI}
