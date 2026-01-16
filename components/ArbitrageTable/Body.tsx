@@ -85,7 +85,7 @@ export default function ArbitrageTableBody({
 }: ArbitrageTableBodyProps) {
   return (
     <div className="overflow-auto rounded border border-gray-800 bg-gray-800">
-      <table className="w-full text-sm">
+      <table className="w-full text-base">
         <thead className="bg-gray-900 sticky top-0">
           <tr className="border-b border-gray-700">
             <th className="px-4 py-3 text-left text-gray-400 font-medium">Token</th>
