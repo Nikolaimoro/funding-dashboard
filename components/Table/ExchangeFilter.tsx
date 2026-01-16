@@ -14,7 +14,10 @@ interface ExchangeFilterProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export default function ExchangeFilter({
+          <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-[15.25rem] p-2 shadow-lg">
+            <div className="px-2 py-1 text-xs font-semibold text-gray-300">
+              Select Exchanges
+            </div>
   exchanges,
   selectedExchanges,
   onToggleExchange,
