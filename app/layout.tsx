@@ -39,7 +39,7 @@ export default function RootLayout({
         `}
       >
         {/* ====== page container ====== */}
-        <div className="max-w-[1400px] mx-auto px-6 py-4">
+        <div className="max-w-[1600px] mx-auto px-6 py-4">
           <AppHeader />
 
           <main className="mt-6">
