@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Roboto } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import AppHeader from "@/components/AppHeader";
@@ -10,9 +10,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const outfit = Outfit({
+const roboto = Roboto({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-roboto",
   weight: ["400", "500"],
   display: "swap",
 });
@@ -33,7 +33,7 @@ export default function RootLayout({
       <body
         className={`
           ${inter.variable} 
-          ${outfit.variable}
+          ${roboto.variable}
           antialiased
           bg-gray-900
           text-gray-200

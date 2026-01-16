@@ -235,7 +235,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     <div ref={containerRef} className="space-y-6">
       {/* Inputs Card */}
       <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-        <h2 className="text-lg font-outfit font-normal mb-4 text-gray-200">
+        <h2 className="text-lg font-roboto font-normal mb-4 text-gray-200">
           Inputs
         </h2>
 

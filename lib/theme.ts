@@ -66,7 +66,7 @@ export const TAILWIND = {
     container: "absolute left-1/2 top-1/2 w-[min(1100px,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-gray-800 bg-gray-900 shadow-2xl",
     header: "flex items-center justify-between gap-3 border-b border-gray-800 px-4 py-3",
     body: "px-4 py-4",
-    title: "text-lg font-outfit font-normal text-gray-100 truncate",
+    title: "text-lg font-roboto font-normal text-gray-100 truncate",
   },
   button: {
     secondary: "border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40",

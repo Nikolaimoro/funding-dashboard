@@ -1,5 +1,6 @@
 "use client";
 
+import { Search } from "lucide-react";
 import ExchangeFilter from "@/components/Table/ExchangeFilter";
 import MinimumFilter from "@/components/Table/MinimumFilter";
 
@@ -46,12 +47,15 @@ export default function TableControls({
 }: TableControlsProps) {
   return (
     <div className="flex flex-wrap gap-3 mb-4 items-center">
-      <input
-        className={inputClassName}
-        placeholder={searchPlaceholder}
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-      />
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-4 h-4" />
+        <input
+          className={`${inputClassName} pl-10`}
+          placeholder={searchPlaceholder}
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
+      </div>
 
       <ExchangeFilter
         exchanges={exchanges}

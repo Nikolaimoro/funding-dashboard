@@ -88,7 +88,7 @@ export default function ArbitrageTableBody({
       <table className="w-full text-base">
         <thead className="bg-gray-900 sticky top-0 text-[13px]">
           <tr className="border-b border-gray-700">
-            <th className="px-4 py-3 text-left text-gray-400 font-medium">Token</th>
+            <th className="px-4 py-3 text-left text-gray-400 font-normal">Token</th>
 
             <th className="px-4 py-3 text-right">
               <SortableHeader
@@ -99,9 +99,9 @@ export default function ArbitrageTableBody({
               />
             </th>
 
-            <th className="px-4 py-3 text-left text-gray-400 font-medium">Long / Short</th>
-            <th className="px-4 py-3 text-left text-gray-400 font-medium">Open Interest</th>
-            <th className="px-4 py-3 text-left text-gray-400 font-medium">Volume 24h</th>
+            <th className="px-4 py-3 text-left text-gray-400 font-normal">Long / Short</th>
+            <th className="px-4 py-3 text-left text-gray-400 font-normal">Open Interest</th>
+            <th className="px-4 py-3 text-left text-gray-400 font-normal">Volume 24h</th>
 
             <th className="px-4 py-3 text-right">
               <SortableHeader

@@ -10,7 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-inter);
-  --font-heading: var(--font-outfit);
+  --font-heading: var(--font-roboto);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,19 +28,9 @@ body {
   min-height: 100%;
 }
 
-/* Outfit font - for headings and navigation */
-.font-outfit {
-  font-family: var(--font-outfit), system-ui, -apple-system, sans-serif;
-}
-
-.font-outfit-medium {
-  font-family: var(--font-outfit), system-ui, -apple-system, sans-serif;
-  font-weight: 500;
-}
-
-.font-outfit-regular {
-  font-family: var(--font-outfit), system-ui, -apple-system, sans-serif;
-  font-weight: 400;
+/* Roboto font - for headings and navigation */
+.font-roboto {
+  font-family: var(--font-roboto), system-ui, -apple-system, sans-serif;
 }
 
 /* Inter font - for body text (default) */

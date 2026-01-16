@@ -42,7 +42,7 @@ export default function FundingTableBody({
   const formatCompactUSDNode = (v: number | null) => {
     const text = formatCompactUSD(v);
     return (
-      <span className="text-gray-300 font-mono tabular-nums">
+      <span className="text-white font-mono tabular-nums">
         {text}
       </span>
     );
@@ -51,7 +51,7 @@ export default function FundingTableBody({
   const formatAPRNode = (v: number | null) => {
     const text = formatAPR(v);
     return (
-      <span className="text-gray-300 font-mono tabular-nums">
+      <span className="text-white font-mono tabular-nums">
         {text}
       </span>
     );
