@@ -14,8 +14,8 @@ export default function BrandLogo({ color = "white", className }: BrandLogoProps
   const classes = [
     "inline-block",
     "bg-current",
-    "h-8",
-    "w-[200px]",
+    "h-5",
+    "w-[120px]",
     LOGO_COLOR_CLASSES[color],
     className,
   ]
