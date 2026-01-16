@@ -23,7 +23,7 @@ export default function AppHeader() {
     return (
       <Link
         href={href}
-        className={`text-lg text-white ${
+        className={`text-lg text-white font-outfit font-normal ${
           active ? "opacity-100" : "opacity-80 hover:opacity-100"
         }`}
       >
