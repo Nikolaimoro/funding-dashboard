@@ -1,5 +1,5 @@
 {
-  "name": "nextjs",
+  "name": "funding-dashboard",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",
+    "@vercel/analytics": "^1.6.1",
     "chart.js": "^4.5.1",
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-zoom": "^2.2.0",

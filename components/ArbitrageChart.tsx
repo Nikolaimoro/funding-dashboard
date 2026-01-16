@@ -55,25 +55,49 @@ async function fetchArbChartData(params: {
   longMarketId: number;
   shortMarketId: number;
   days?: number;
+  signal?: AbortSignal;
 }): Promise<ArbChartRow[]> {
-  const { longMarketId, shortMarketId, days = 30 } = params;
+  const { longMarketId, shortMarketId, days = 30, signal } = params;
+  const timeoutMs = 5000;
+  const timeoutMessage = "Unable to load history. Please try again.";
+  const controller = new AbortController();
+  let timedOut = false;
 
-  // Add 10 second timeout to prevent infinite loading
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("Request timeout. Please try again.")), 10000)
-  );
+  if (signal) {
+    if (signal.aborted) {
+      controller.abort();
+    } else {
+      signal.addEventListener("abort", () => controller.abort(), { once: true });
+    }
+  }
 
-  const fetchPromise = supabase.rpc(RPC_FUNCTIONS.ARB_CHART, {
-    p_long_market_id: longMarketId,
-    p_short_market_id: shortMarketId,
-    p_days: days,
-  });
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
 
-  const { data, error } = await Promise.race([fetchPromise, timeoutPromise as any]);
+  try {
+    const { data, error } = await supabase.rpc(
+      RPC_FUNCTIONS.ARB_CHART,
+      {
+        p_long_market_id: longMarketId,
+        p_short_market_id: shortMarketId,
+        p_days: days,
+      },
+      { signal: controller.signal }
+    );
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return (data ?? []) as ArbChartRow[];
+    return (data ?? []) as ArbChartRow[];
+  } catch (err) {
+    if (timedOut) {
+      throw new Error(timeoutMessage);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /* ================= COMPONENT ================= */
@@ -84,11 +108,13 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
   const [rows, setRows] = useState<ArbChartRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>("");
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     if (!open) return;
 
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setErr("");
     setRows([]);
@@ -97,6 +123,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
       longMarketId,
       shortMarketId,
       days: 30,
+      signal: controller.signal,
     })
       .then((d) => {
         if (cancelled) return;
@@ -104,7 +131,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
       })
       .catch((e: any) => {
         if (cancelled) return;
-        setErr(e?.message ?? "Failed to load chart. Please try again.");
+        setErr(e?.message ?? "Unable to load history. Please try again.");
       })
       .finally(() => {
         if (cancelled) return;
@@ -113,8 +140,9 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [open, longMarketId, shortMarketId]);
+  }, [open, longMarketId, shortMarketId, retryKey]);
 
   const chartData = useMemo(() => {
     const allPoints = rows
@@ -322,6 +350,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
       title={title}
       loading={loading}
       error={err}
+      onRetry={() => setRetryKey((value) => value + 1)}
       height={CHART_CONFIG.MODAL_HEIGHT}
     >
       {rows.length > 0 && (

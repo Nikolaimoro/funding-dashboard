@@ -9,6 +9,7 @@ export interface ModalProps {
   title?: string;
   loading?: boolean;
   error?: string | null;
+  onRetry?: () => void;
   children: React.ReactNode;
   height?: string;
 }
@@ -19,6 +20,7 @@ export function Modal({
   title,
   loading = false,
   error,
+  onRetry,
   children,
   height = "520px",
 }: ModalProps) {
@@ -51,7 +53,18 @@ export function Modal({
             </div>
           ) : error ? (
             <div style={{ height }} className="w-full flex items-center justify-center">
-              <div className="text-red-400 text-sm max-w-md">{error}</div>
+              <div className="flex flex-col items-center gap-3 text-center">
+                <div className="text-red-400 text-sm max-w-md">{error}</div>
+                {onRetry && (
+                  <button
+                    type="button"
+                    onClick={onRetry}
+                    className="px-3 py-1.5 rounded border border-gray-600 text-sm text-gray-200 hover:border-gray-400 transition"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div style={{ height }}>
