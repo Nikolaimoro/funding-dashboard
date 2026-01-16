@@ -9,6 +9,7 @@ interface ExchangeFilterProps {
   exchanges: string[];
   selectedExchanges: string[];
   onToggleExchange: (exchange: string) => void;
+  onResetExchanges: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -17,9 +18,12 @@ export default function ExchangeFilter({
   exchanges,
   selectedExchanges,
   onToggleExchange,
+  onResetExchanges,
   open,
   onOpenChange,
 }: ExchangeFilterProps) {
+  const hasSelection = selectedExchanges.length > 0;
+
   return (
     <div className="relative">
       <button
@@ -40,6 +44,22 @@ export default function ExchangeFilter({
             onClick={() => onOpenChange(false)}
           />
           <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-2 shadow-lg">
+            <div className="flex items-center justify-between px-2 pb-2 text-xs">
+              <span className="font-light text-gray-300">Select Exchanges</span>
+              <button
+                type="button"
+                onClick={onResetExchanges}
+                disabled={!hasSelection}
+                className={[
+                  "font-light transition",
+                  hasSelection
+                    ? "text-gray-200 underline underline-offset-2"
+                    : "text-gray-400/50",
+                ].join(" ")}
+              >
+                Reset
+              </button>
+            </div>
             {exchanges.map((ex) => (
               <label
                 key={ex}
@@ -49,7 +69,7 @@ export default function ExchangeFilter({
                   type="checkbox"
                   checked={selectedExchanges.includes(ex)}
                   onChange={() => onToggleExchange(ex)}
-                  className="cursor-pointer"
+                  className="cursor-pointer h-5 w-5 accent-blue-500"
                 />
                 {formatExchange(ex)}
               </label>

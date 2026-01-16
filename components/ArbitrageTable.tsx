@@ -123,6 +123,9 @@ export default function ArbitrageTable() {
       prev.includes(ex) ? prev.filter((e) => e !== ex) : [...prev, ex]
     );
   };
+  const resetExchanges = () => {
+    setSelectedExchanges([]);
+  };
 
   /**
    * Clean up selected exchanges if they're no longer available after data refresh
@@ -214,6 +217,7 @@ export default function ArbitrageTable() {
           exchanges={exchanges}
           selectedExchanges={selectedExchanges}
           onToggleExchange={toggleExchange}
+          onResetExchanges={resetExchanges}
           filterOpen={filterOpen}
           onFilterOpenChange={setFilterOpen}
           minOI={minOI}
