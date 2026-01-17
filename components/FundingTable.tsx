@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { normalizeSymbol, formatExchange } from "@/lib/formatters";
 import { FundingRow } from "@/lib/types";
@@ -70,10 +70,22 @@ export default function FundingTable({
     }
   }
 
-  /* ---------- reset page ---------- */
-  useEffect(() => {
-    setPage(0);
-  }, [search, selectedExchanges, limit, sortKey, sortDir, minOI, minVolume]);
+  const resetPage = () => setPage(0);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    resetPage();
+  };
+
+  const handleMinOIChange = (value: number | "") => {
+    setMinOI(value);
+    resetPage();
+  };
+
+  const handleMinVolumeChange = (value: number | "") => {
+    setMinVolume(value);
+    resetPage();
+  };
 
   /* ---------- exchanges ---------- */
   const exchanges = useMemo(
@@ -93,9 +105,11 @@ export default function FundingTable({
     setSelectedExchanges(prev =>
       prev.includes(ex) ? prev.filter(e => e !== ex) : [...prev, ex]
     );
+    resetPage();
   };
   const resetExchanges = () => {
     setSelectedExchanges([]);
+    resetPage();
   };
 
   const onSort = (key: SortKey) => {
@@ -105,6 +119,7 @@ export default function FundingTable({
       setSortKey(key);
       setSortDir("desc");
     }
+    resetPage();
   };
 
   /**
@@ -193,13 +208,10 @@ export default function FundingTable({
     return sortedAll.slice(start, start + limit);
   }, [sortedAll, limit, page]);
 
-  /**
-   * Reset page to 0 when filters/search/limit changes
-   * Prevents showing empty page after filter narrows results
-   */
-  useEffect(() => {
-    setPage(0);
-  }, [search, selectedExchanges, limit]);
+  const handleLimitChange = (value: number) => {
+    setLimit(value);
+    resetPage();
+  };
 
   /* ================= RENDER ================= */
 
@@ -208,7 +220,7 @@ export default function FundingTable({
       <div>
         <TableControls
           search={search}
-          onSearchChange={setSearch}
+          onSearchChange={handleSearchChange}
           exchanges={exchanges}
           selectedExchanges={selectedExchanges}
           onToggleExchange={toggleExchange}
@@ -216,9 +228,9 @@ export default function FundingTable({
           filterOpen={filterOpen}
           onFilterOpenChange={setFilterOpen}
           minOI={minOI}
-          onMinOIChange={setMinOI}
+          onMinOIChange={handleMinOIChange}
           minVolume={minVolume}
-          onMinVolumeChange={setMinVolume}
+          onMinVolumeChange={handleMinVolumeChange}
           maxOI={maxOI}
           maxVolume={maxVolume}
           filtersOpen={filtersOpen}
@@ -258,7 +270,7 @@ export default function FundingTable({
           totalPages={totalPages}
           limit={limit}
           onPageChange={setPage}
-          onLimitChange={setLimit}
+          onLimitChange={handleLimitChange}
           showPagination={limit !== -1 && totalPages > 1}
         />
 

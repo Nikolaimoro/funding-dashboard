@@ -12,6 +12,7 @@ import TableControls from "@/components/Table/TableControls";
 import ArbitrageTableBody from "@/components/ArbitrageTable/Body";
 import SkeletonLoader from "@/components/ui/SkeletonLoader";
 import { TableEmptyState, TableLoadingState } from "@/components/ui/TableStates";
+import { TAILWIND } from "@/lib/theme";
 
 /* ================= TYPES ================= */
 
@@ -42,6 +43,28 @@ export default function ArbitrageTable() {
   const [chartOpen, setChartOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<ArbRow | null>(null);
 
+  const resetPage = () => setPage(0);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    resetPage();
+  };
+
+  const handleMinOIChange = (value: number | "") => {
+    setMinOI(value);
+    resetPage();
+  };
+
+  const handleMinVolumeChange = (value: number | "") => {
+    setMinVolume(value);
+    resetPage();
+  };
+
+  const handleLimitChange = (value: number) => {
+    setLimit(value);
+    resetPage();
+  };
+
   function openChart(r: ArbRow) {
     setSelectedRow(r);
     setChartOpen(true);
@@ -54,13 +77,9 @@ export default function ArbitrageTable() {
     setSortKey(key);
     setSortDir("desc");
   }
+  resetPage();
 }
 
-
-  /* ---------- reset page on filters ---------- */
-  useEffect(() => {
-    setPage(0);
-  }, [search, selectedExchanges, limit]);
 
   /* ---------- load data (per window) ---------- */
   useEffect(() => {
@@ -122,9 +141,11 @@ export default function ArbitrageTable() {
     setSelectedExchanges((prev) =>
       prev.includes(ex) ? prev.filter((e) => e !== ex) : [...prev, ex]
     );
+    resetPage();
   };
   const resetExchanges = () => {
     setSelectedExchanges([]);
+    resetPage();
   };
 
   /**
@@ -213,7 +234,7 @@ export default function ArbitrageTable() {
       <div>
         <TableControls
           search={search}
-          onSearchChange={setSearch}
+          onSearchChange={handleSearchChange}
           exchanges={exchanges}
           selectedExchanges={selectedExchanges}
           onToggleExchange={toggleExchange}
@@ -221,15 +242,15 @@ export default function ArbitrageTable() {
           filterOpen={filterOpen}
           onFilterOpenChange={setFilterOpen}
           minOI={minOI}
-          onMinOIChange={setMinOI}
+          onMinOIChange={handleMinOIChange}
           minVolume={minVolume}
-          onMinVolumeChange={setMinVolume}
+          onMinVolumeChange={handleMinVolumeChange}
           maxOI={maxOI}
           maxVolume={maxVolume}
           filtersOpen={filtersOpen}
           onFiltersOpenChange={setFiltersOpen}
           searchPlaceholder="Search token"
-          inputClassName="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
+          inputClassName={TAILWIND.input.default}
         />
 
         {/* ---------- Loading / Empty ---------- */}
@@ -263,7 +284,7 @@ export default function ArbitrageTable() {
           totalPages={totalPages}
           limit={limit}
           onPageChange={setPage}
-          onLimitChange={setLimit}
+          onLimitChange={handleLimitChange}
           showPagination={limit !== -1 && totalPages > 1}
         />
 
