@@ -21,6 +21,9 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: "Funding Dashboard",
   description: "Find funding arbitrage opportunities",
+  icons: {
+    icon: "/favicon.ico?v=2",
+  },
 };
 
 export default function RootLayout({
