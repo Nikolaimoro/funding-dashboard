@@ -90,7 +90,7 @@ export default function ArbitrageTableBody({
           <tr className="border-b border-gray-700">
             <th className="px-4 py-3 text-left text-gray-400 font-normal">Token</th>
 
-            <th className="px-4 py-3 text-right">
+            <th className="px-4 py-3 text-right font-normal">
               <SortableHeader
                 label="APR"
                 active={sortKey === "opportunity_apr"}
@@ -103,7 +103,7 @@ export default function ArbitrageTableBody({
             <th className="px-4 py-3 text-left text-gray-400 font-normal">Open Interest</th>
             <th className="px-4 py-3 text-left text-gray-400 font-normal">Volume 24h</th>
 
-            <th className="px-4 py-3 text-right">
+            <th className="px-4 py-3 text-right font-normal">
               <SortableHeader
                 label="Stability"
                 active={sortKey === "stability"}
@@ -112,7 +112,7 @@ export default function ArbitrageTableBody({
               />
             </th>
 
-            <th className="px-4 py-3 text-right"></th>
+            <th className="px-4 py-3 text-right font-normal"></th>
           </tr>
         </thead>
 

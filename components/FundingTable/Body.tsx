@@ -79,7 +79,7 @@ export default function FundingTableBody({
               />
             </th>
 
-            <th className="px-4 py-3 text-right">
+            <th className="px-4 py-3 text-right font-normal">
               <SortableHeader
                 label="Open Interest"
                 active={sortKey === "open_interest"}
@@ -88,7 +88,7 @@ export default function FundingTableBody({
               />
             </th>
 
-            <th className="px-4 py-3 text-right">
+            <th className="px-4 py-3 text-right font-normal">
               <SortableHeader
                 label="Volume 24h"
                 active={sortKey === "volume_24h"}
@@ -97,7 +97,7 @@ export default function FundingTableBody({
               />
             </th>
 
-            <th className="px-4 py-3 text-right">
+            <th className="px-4 py-3 text-right font-normal">
               <SortableHeader
                 label="Now"
                 active={sortKey === "funding_rate_now"}
@@ -107,7 +107,7 @@ export default function FundingTableBody({
             </th>
 
             {(["1d", "3d", "7d", "15d", "30d"] as SortKey[]).map(h => (
-              <th key={h} className="px-4 py-3 text-right">
+              <th key={h} className="px-4 py-3 text-right font-normal">
                 <SortableHeader
                   label={h}
                   active={sortKey === h}
@@ -116,7 +116,7 @@ export default function FundingTableBody({
                 />
               </th>
             ))}
-            <th className="px-4 py-3 w-8"></th>
+            <th className="px-4 py-3 w-8 font-normal"></th>
           </tr>
         </thead>
 
