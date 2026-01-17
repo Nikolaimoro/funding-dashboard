@@ -2,8 +2,6 @@ import { Metadata } from "next";
 import ArbitrageTable from "@/components/ArbitrageTable";
 import PageHeader from "@/components/ui/PageHeader";
 
-export const revalidate = 100;
-
 export const metadata: Metadata = {
   title: "Crypto Funding Arbitrage Opportunities | bendbasis",
   description: "Top cryptocurrency arbitrage opportunities identified over the last 15 days",
