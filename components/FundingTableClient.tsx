@@ -7,7 +7,7 @@ import { FundingRow } from "@/lib/types";
 import { withTimeout } from "@/lib/async";
 
 const PAGE_SIZE = 1000;
-const TIMEOUT_MS = 3000;
+const TIMEOUT_MS = 8000;
 const MAX_ATTEMPTS = 2;
 
 const fetchFundingRows = async (): Promise<FundingRow[]> => {
@@ -41,6 +41,7 @@ export default function FundingTableClient() {
   const [rows, setRows] = useState<FundingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,7 +92,18 @@ export default function FundingTableClient() {
       cancelled = true;
       attemptId += 1;
     };
-  }, []);
+  }, [retryToken]);
 
-  return <FundingTable rows={rows} loading={loading} error={error} />;
+  const handleRetry = () => {
+    setRetryToken((t) => t + 1);
+  };
+
+  return (
+    <FundingTable
+      rows={rows}
+      loading={loading}
+      error={error}
+      onRetry={handleRetry}
+    />
+  );
 }

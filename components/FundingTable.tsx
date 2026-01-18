@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
 import { normalizeSymbol, formatExchange } from "@/lib/formatters";
 import { FundingRow, SortDir } from "@/lib/types";
@@ -37,10 +38,12 @@ export default function FundingTable({
   rows,
   loading = false,
   error = null,
+  onRetry,
 }: {
   rows: FundingRow[];
   loading?: boolean;
   error?: string | null;
+  onRetry?: () => void;
 }) {
   /* ---------- state ---------- */
   const [search, setSearch] = useState("");
@@ -242,7 +245,20 @@ export default function FundingTable({
         </div>
 
         {error && (
-          <div className="text-red-400 text-sm mb-3">{error}</div>
+          <div className="text-red-400 text-sm mb-3 flex items-center gap-2">
+            <span>{error}</span>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="inline-flex items-center gap-1 text-gray-300 hover:text-white transition-colors"
+                aria-label="Retry loading"
+              >
+                <RefreshCw size={14} />
+                Retry
+              </button>
+            )}
+          </div>
         )}
 
         {loading && (

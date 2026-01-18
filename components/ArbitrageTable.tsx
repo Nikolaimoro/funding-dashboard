@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import ArbitrageChart from "@/components/ArbitrageChart";
 import { formatExchange, normalizeToken } from "@/lib/formatters";
@@ -18,7 +19,7 @@ import { withTimeout } from "@/lib/async";
 /* ================= TYPES ================= */
 
 type SortKey = "opportunity_apr" | "stability";
-const TIMEOUT_MS = 3000;
+const TIMEOUT_MS = 8000;
 const MAX_ATTEMPTS = 2;
 
 /* ================= COMPONENT ================= */
@@ -27,6 +28,8 @@ export default function ArbitrageTable() {
   /* ---------- state ---------- */
   const [rows, setRows] = useState<ArbRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
   const [search, setSearch] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
@@ -104,6 +107,7 @@ export default function ArbitrageTable() {
 
     const load = async () => {
       setLoading(true);
+      setError(null);
 
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
         const currentAttempt = ++attemptId;
@@ -124,11 +128,12 @@ export default function ArbitrageTable() {
             if (attempt < MAX_ATTEMPTS - 1) {
               continue;
             }
+            setError("Error loading data: Request timed out");
           } else {
             console.error("arb fetch error:", err);
+            const message = err instanceof Error ? err.message : "Unknown error";
+            setError(`Error loading data: ${message}`);
           }
-
-          setRows([]);
           setLoading(false);
           return;
         }
@@ -141,7 +146,11 @@ export default function ArbitrageTable() {
       cancelled = true;
       attemptId += 1;
     };
-  }, []);
+  }, [retryToken]);
+
+  const handleRetry = () => {
+    setRetryToken((t) => t + 1);
+  };
 
   /**
    * Extract unique exchanges from all rows (both long and short)
@@ -298,6 +307,21 @@ export default function ArbitrageTable() {
             className="ml-auto"
           />
         </div>
+
+        {error && (
+          <div className="text-red-400 text-sm mb-3 px-4 flex items-center gap-2">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="inline-flex items-center gap-1 text-gray-300 hover:text-white transition-colors"
+              aria-label="Retry loading"
+            >
+              <RefreshCw size={14} />
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* ---------- Loading / Empty ---------- */}
         {loading && (
