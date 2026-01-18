@@ -260,7 +260,7 @@ export default function ArbitrageTableBody({
                     onSort("stability");
                   }
                 }}
-                className="inline-flex items-center justify-center gap-1 w-full select-none cursor-pointer py-0.5"
+                className="inline-flex items-center justify-center gap-1 w-full select-none cursor-pointer"
               >
                 <span className="text-gray-400">Stability</span>
                 <StabilityInfo />
