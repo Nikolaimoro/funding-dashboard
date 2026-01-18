@@ -81,3 +81,26 @@ export type ModalProps = {
   children: React.ReactNode;
   height?: string;
 };
+
+/* ================= FUNDING SCREENER TYPES ================= */
+
+export type ExchangeColumn = {
+  id: number;
+  column_key: string;
+  display_name: string;
+  sort_order: number;
+};
+
+export type FundingMatrixMarket = {
+  market_id: number;
+  quote: string;
+  rate: number | null;
+  ref_url: string | null;
+};
+
+export type FundingMatrixRow = {
+  token: string;
+  markets: Record<string, FundingMatrixMarket[]>; // exchange_key -> markets
+};
+
+export type TimeWindow = "now" | "1d" | "3d" | "7d" | "15d" | "30d";

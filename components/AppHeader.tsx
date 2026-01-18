@@ -36,6 +36,7 @@ export default function AppHeader() {
   }, [lastScrollY]);
 
   const logoToneByPath: Record<string, "light" | "dark"> = {
+    "/markets": "light",
     "/funding": "light",
     "/arbitrage": "light",
     "/backtester": "light",
@@ -90,7 +91,7 @@ export default function AppHeader() {
         ].join(" ")}
       >
         <Link
-          href="/funding"
+          href="/markets"
           className="flex items-center pl-4"
           aria-label="Funding Dashboard Home"
         >
@@ -101,6 +102,7 @@ export default function AppHeader() {
           />
         </Link>
         {link("/funding", "Funding", true)}
+        {link("/markets", "Markets")}
         {link("/arbitrage", "Arbitrage")}
         {link("/backtester", "Backtester")}
       </div>

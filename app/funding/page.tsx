@@ -1,29 +1,29 @@
 import { Metadata } from "next";
-import FundingTableClient from "@/components/FundingTableClient";
+import FundingScreener from "@/components/FundingScreener";
 import PageHeader from "@/components/ui/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "Crypto Funding Rates Arbitrage Dashboard | bendbasis",
-  description: "Real-time cryptocurrency funding rates and opportunities across major exchanges",
-  keywords: ["funding rates", "crypto", "arbitrage", "trading"],
+  title: "Funding Rate Arbitrage Screener | bendbasis",
+  description: "Screen funding rate arbitrage opportunities across major crypto exchanges",
+  keywords: ["funding rates", "crypto", "arbitrage", "screener", "trading"],
   openGraph: {
-    title: "Crypto Funding Rates Arbitrage Dashboard | bendbasis",
-    description: "Real-time cryptocurrency funding rates and opportunities across major exchanges",
+    title: "Funding Rate Arbitrage Screener | bendbasis",
+    description: "Screen funding rate arbitrage opportunities across major crypto exchanges",
     type: "website",
   },
 };
 
-export default function HomePage() {
+export default function FundingPage() {
   return (
     <main className="min-h-screen text-gray-200">
       <PageHeader
-        title="Funding rates"
-        description="Average rates across exchanges, annualized and aggregated"
+        title="Funding Rate Screener"
+        description="Compare funding rates across exchanges to find arbitrage opportunities"
       />
-      <FundingTableClient />
+      <FundingScreener />
     </main>
   );
 }

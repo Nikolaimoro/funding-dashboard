@@ -41,3 +41,14 @@ export const TIME_WINDOWS = {
   "15d": "15d",
   "30d": "30d",
 } as const;
+
+export const SCREENER_TIME_WINDOWS = ["now", "1d", "3d", "7d", "15d", "30d"] as const;
+
+export const SCREENER_TIME_LABELS: Record<string, string> = {
+  now: "Now",
+  "1d": "1d",
+  "3d": "3d",
+  "7d": "7d",
+  "15d": "15d",
+  "30d": "30d",
+};
