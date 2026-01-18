@@ -2,9 +2,42 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function AppHeader() {
   const path = usePathname();
+  const [isVisible, setIsVisible] = useState(true);
+  const [isSticky, setIsSticky] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // After 50px, header becomes sticky
+      if (currentScrollY > 50) {
+        setIsSticky(true);
+        
+        // Scrolling down - hide header
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+          setIsVisible(false);
+        }
+        // Scrolling up - show header
+        else if (currentScrollY < lastScrollY) {
+          setIsVisible(true);
+        }
+      } else {
+        setIsSticky(false);
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
   const logoToneByPath: Record<string, "light" | "dark"> = {
     "/funding": "light",
     "/arbitrage": "light",
@@ -18,44 +51,59 @@ export default function AppHeader() {
       ? "h-[18px] w-auto invert"
       : "h-[18px] w-auto invert-0";
 
-  const link = (href: string, label: string) => {
+  const link = (href: string, label: string, isFirst = false) => {
     const active = path.startsWith(href);
     return (
       <Link
         href={href}
         className={[
           "group relative text-base text-white font-roboto font-normal",
-          "px-2 py-2.5 rounded-md transition-colors duration-200",
+          "px-2 py-2 rounded-md transition-colors duration-200",
           "hover:bg-[#383d50]",
-          "after:content-[''] after:absolute after:left-0 after:right-0 after:h-[2px]",
-          "after:bg-gradient-to-r after:from-[#9E5DEE] after:to-[#FA814D]",
-          "after:-bottom-[8px]",
-          active
-            ? "after:scale-x-100"
-            : "after:scale-x-0 after:origin-left after:transition-transform after:duration-300 after:ease-out group-hover:after:scale-x-100",
+          isFirst ? "ml-4" : "",
         ].join(" ")}
       >
         {label}
+        <span
+          className={[
+            "absolute left-0 right-0 h-[2px] bottom-[-9px]",
+            "bg-gradient-to-r from-[#9E5DEE] to-[#FA814D]",
+            "transition-transform duration-300 ease-out origin-left",
+            active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
+          ].join(" ")}
+        />
       </Link>
     );
   };
 
   return (
-    <div className="flex gap-4 mb-4 border-b border-[#343a4e] pb-1 items-center pl-4">
-      <Link
-        href="/funding"
-        className="flex items-center"
-        aria-label="Funding Dashboard Home"
+    <>
+      {/* Spacer for when header is fixed */}
+      {isSticky && <div className="h-[52px]" />}
+      
+      <div
+        className={[
+          "flex gap-2 border-b border-[#343a4e] py-2 items-center pl-4 bg-[#1c202f] z-50",
+          isSticky ? "fixed top-0 left-0 right-0 max-w-[1600px] mx-auto px-6" : "",
+          "transition-transform duration-300",
+          isSticky && !isVisible ? "-translate-y-full" : "translate-y-0",
+        ].join(" ")}
       >
-        <img
-          src="/brand/logo.svg"
-          alt="Funding Dashboard"
-          className={logoClassName}
-        />
-      </Link>
-      {link("/funding", "Funding")}
-      {link("/arbitrage", "Arbitrage")}
-      {link("/backtester", "Backtester")}
-    </div>
+        <Link
+          href="/funding"
+          className="flex items-center"
+          aria-label="Funding Dashboard Home"
+        >
+          <img
+            src="/brand/logo.svg"
+            alt="Funding Dashboard"
+            className={logoClassName}
+          />
+        </Link>
+        {link("/funding", "Funding", true)}
+        {link("/arbitrage", "Arbitrage")}
+        {link("/backtester", "Backtester")}
+      </div>
+    </>
   );
 }
