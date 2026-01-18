@@ -10,6 +10,8 @@ import type { BacktesterChartData } from "@/lib/types/backtester";
 
 const BacktesterChart = dynamic(() => import("@/components/BacktesterChart"), { ssr: false });
 
+type Quote = { asset: string; marketId: number; refUrl: string | null };
+
 interface BacktesterFormProps {
   tokens: string[];
   exchanges: { exchange: string; baseAssets: { asset: string; quotes: { asset: string; marketId: number; refUrl: string | null }[] }[] }[];
@@ -317,7 +319,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                         
                         return (
                           <div key={ex.exchange} className="border-b border-[#343a4e] last:border-b-0">
-                            {baseAsset.quotes.map((quote: any) => (
+                            {baseAsset.quotes.map((quote: Quote) => (
                               <button
                                 key={`${ex.exchange}-${quote.asset}`}
                                 onClick={() => {
@@ -385,7 +387,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                         
                         return (
                           <div key={ex.exchange} className="border-b border-[#343a4e] last:border-b-0">
-                            {baseAsset.quotes.map((quote: any) => (
+                            {baseAsset.quotes.map((quote: Quote) => (
                               <button
                                 key={`${ex.exchange}-${quote.asset}`}
                                 onClick={() => {

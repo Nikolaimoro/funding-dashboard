@@ -47,7 +47,7 @@ while (true) {
 - **Critical**: Reset page to 0 when search/filters change
 
 ### Token Normalization
-`normalizeToken()` in [lib/formatters.ts](lib/formatters.ts) strips numeric prefixes/suffixes:
+`normalizeToken()` in `lib/formatters.ts` strips numeric prefixes/suffixes:
 ```tsx
 // "1000PEPE" → "pepe", "BTC1000" → "btc", "BTC" → "btc"
 // Used for fuzzy matching in search and combobox filtering
@@ -55,7 +55,7 @@ while (true) {
 Used in: search filter, backtester token combobox, any user-input token matching.
 
 ### Safe URL Handling
-[lib/validation.ts](lib/validation.ts) provides `isValidUrl()`:
+`lib/validation.ts` provides `isValidUrl()`:
 ```tsx
 // Must pass before rendering <a href={url}> or creating external links
 // Rejects javascript: and data: protocols, validates http/https only
@@ -75,19 +75,19 @@ if (isValidUrl(refUrl)) return <a href={refUrl} target="_blank">{label}</a>;
 - Data format: array of `{ x: timestamp, y: value }` (Chart.js time series)
 
 **Types**: Each major component exports its row type:
-- [lib/types.ts](lib/types.ts) defines `FundingRow`, `ArbRow`
-- [lib/types/backtester.ts](lib/types/backtester.ts) defines backtester structs
+- `lib/types.ts` defines `FundingRow`, `ArbRow`
+- `lib/types/backtester.ts` defines backtester structs
 
 ## Formatting & Theming
 
-**Number formatting** ([lib/formatters.ts](lib/formatters.ts)):
+**Number formatting** (`lib/formatters.ts`):
 - `formatCompactUSD(1500000)` → `"$1.5M"` (compact notation for large numbers)
 - `formatUSD(1234567)` → `"$1,234,567"` (full with commas)
 - `formatAPR(5.2567)` → `"5.26%"` (percentage, 2 decimals)
 - All return `"–"` for null/NaN
 
 **Colors** (Tailwind v4, dark theme):
-- Page bg: `bg-[#1c202f]` (from [app/layout.tsx](app/layout.tsx))
+- Page bg: `bg-[#1c202f]` (see `app/layout.tsx`)
 - Table bg: `bg-gray-800`, hover: `bg-gray-700`
 - Text: `text-gray-200` (primary), `text-gray-400` (secondary)
 - Borders: `border-gray-700`
@@ -99,7 +99,7 @@ if (isValidUrl(refUrl)) return <a href={refUrl} target="_blank">{label}</a>;
 
 ## Configuration & Constants
 
-[lib/constants.ts](lib/constants.ts):
+`lib/constants.ts`:
 - `EXCHANGE_LABEL` – human labels for exchange keys ("bybit" → "Bybit")
 - `MULTIPLIERS` – token prefixes/suffixes to strip ("1000000", "1000", etc.)
 - `RPC_FUNCTIONS` – Supabase function names for chart data
@@ -116,7 +116,7 @@ if (isValidUrl(refUrl)) return <a href={refUrl} target="_blank">{label}</a>;
 ## Common Tasks
 
 **Add table column:**
-1. Update type (`FundingRow` or `ArbRow` in [lib/types.ts](lib/types.ts))
+1. Update type (`FundingRow` or `ArbRow` in `lib/types.ts`)
 2. Add `<th>` in component, optionally with `onClick={() => toggleSort(key)}`
 3. Update `SortKey` type union
 4. Add `<td>` in Body component with appropriate formatter
@@ -134,7 +134,7 @@ if (isValidUrl(refUrl)) return <a href={refUrl} target="_blank">{label}</a>;
 - Example: `isValidUrl(row.ref_url) ? <a href={row.ref_url}>{label}</a> : <span>{label}</span>`
 
 **Style new component:**
-- Reference [app/layout.tsx](app/layout.tsx) for base theme
+- Reference `app/layout.tsx` for base theme
 - Follow dark palette: grays 900 (bg), 800 (card), 700 (hover)
 - Use `font-mono` only for numerical data
 - Test contrast for accessibility

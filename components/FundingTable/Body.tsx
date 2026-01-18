@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { formatExchange, formatAPR, formatCompactUSD } from "@/lib/formatters";
 import { TAILWIND } from "@/lib/theme";
 import SortableHeader from "@/components/ui/SortableHeader";
-import { FundingRow } from "@/lib/types";
+import { FundingRow, SortDir } from "@/lib/types";
 
 type SortKey =
   | "exchange"
@@ -17,8 +17,6 @@ type SortKey =
   | "7d"
   | "15d"
   | "30d";
-
-type SortDir = "asc" | "desc";
 
 interface FundingTableBodyProps {
   rows: FundingRow[];

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { normalizeSymbol, formatExchange } from "@/lib/formatters";
-import { FundingRow } from "@/lib/types";
+import { FundingRow, SortDir } from "@/lib/types";
 import Pagination from "@/components/Table/Pagination";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import TableControls from "@/components/Table/TableControls";
@@ -29,9 +29,7 @@ type SortKey =
   | "3d"
   | "7d"
   | "15d"
-  | "30d"
-
-type SortDir = "asc" | "desc";
+  | "30d";
 
 /* ================= COMPONENT ================= */
 

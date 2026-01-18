@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import ArbitrageChart from "@/components/ArbitrageChart";
 import { formatExchange, normalizeToken } from "@/lib/formatters";
 import { SUPABASE_TABLES } from "@/lib/constants";
-import { ArbRow } from "@/lib/types";
+import { ArbRow, SortDir } from "@/lib/types";
 import Pagination from "@/components/Table/Pagination";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import TableControls from "@/components/Table/TableControls";
@@ -18,7 +18,6 @@ import { withTimeout } from "@/lib/async";
 /* ================= TYPES ================= */
 
 type SortKey = "opportunity_apr" | "stability";
-type SortDir = "asc" | "desc";
 const TIMEOUT_MS = 3000;
 const MAX_ATTEMPTS = 2;
 

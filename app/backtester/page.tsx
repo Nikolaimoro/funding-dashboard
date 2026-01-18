@@ -89,7 +89,8 @@ async function getAllTokens(): Promise<string[]> {
  * // ]
  */
 async function getAllExchanges(): Promise<{ exchange: string; baseAssets: { asset: string; quotes: { asset: string; marketId: number; refUrl: string | null }[] }[] }[]> {
-  let allRows: any[] = [];
+  type ExchangeRow = { exchange: string; base_asset: string; quote_asset: string; market_id: number; ref_url: string | null };
+  let allRows: ExchangeRow[] = [];
   let from = 0;
 
   while (true) {
