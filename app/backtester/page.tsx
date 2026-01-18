@@ -152,9 +152,7 @@ export default async function BacktesterPage() {
 
   return (
     <main className="min-h-screen text-gray-200">
-      <div className="pl-4">
-        <PageHeader title="Funding Arbitrage Backtester" />
-      </div>
+      <PageHeader title="Funding Arbitrage Backtester" />
       <Suspense fallback={<div className="text-gray-400">Loading...</div>}>
         <BacktesterClient tokens={tokens} exchanges={exchanges} />
       </Suspense>

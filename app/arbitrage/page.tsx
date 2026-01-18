@@ -19,12 +19,10 @@ export const metadata: Metadata = {
 export default function ArbitragePage() {
   return (
     <main className="min-h-screen text-gray-200">
-      <div className="pl-4">
-        <PageHeader
-          title="Arbitrage Top Opportunities"
-          description="Last 15 days"
-        />
-      </div>
+      <PageHeader
+        title="Arbitrage Top Opportunities"
+        description="Last 15 days"
+      />
       <ArbitrageTable />
     </main>
   );

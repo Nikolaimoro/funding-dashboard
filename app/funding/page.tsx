@@ -19,12 +19,10 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <main className="min-h-screen text-gray-200">
-      <div className="pl-4">
-        <PageHeader
-          title="Funding rates"
-          description="Average rates across exchanges, annualized and aggregated"
-        />
-      </div>
+      <PageHeader
+        title="Funding rates"
+        description="Average rates across exchanges, annualized and aggregated"
+      />
       <FundingTableClient />
     </main>
   );

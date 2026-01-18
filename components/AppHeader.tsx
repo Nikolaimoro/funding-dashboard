@@ -57,7 +57,7 @@ export default function AppHeader() {
           "group relative text-base text-white font-roboto font-normal",
           "px-2 py-2 rounded-md transition-colors duration-200",
           "hover:bg-[#383d50]",
-          isFirst ? "ml-4" : "",
+          isFirst ? "ml-6" : "",
           // For non-active links, change origin on hover for left-to-right disappear
           !active ? "[&:not(:hover)>span]:origin-right [&:hover>span]:origin-left" : "",
         ].join(" ")}
@@ -83,7 +83,7 @@ export default function AppHeader() {
       <div
         className={[
           "fixed top-0 left-0 right-0 z-50",
-          "flex gap-2 border-b border-[#343a4e] py-2 items-center pl-4 bg-[#1c202f]",
+          "flex gap-2 border-b border-[#343a4e] py-2 items-center bg-[#1c202f]",
           "max-w-[1600px] mx-auto px-6",
           "transition-transform duration-300",
           !isVisible ? "-translate-y-full" : "translate-y-0",
