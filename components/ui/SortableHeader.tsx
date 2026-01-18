@@ -24,7 +24,7 @@ export default function SortableHeader({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1 select-none cursor-pointer px-1 py-0.5 ${centered ? "justify-center" : "text-left"}`}
+      className={`inline-flex items-center gap-1 select-none cursor-pointer px-1 py-0.5 ${centered ? "justify-center w-full" : "text-left"}`}
     >
       <span className="text-gray-400">{label}</span>
       <span className="flex flex-col items-center leading-[0.7]">
