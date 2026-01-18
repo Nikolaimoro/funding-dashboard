@@ -69,15 +69,15 @@ export default function FundingTableBody({
       <table className="w-full text-base table-fixed min-w-[980px]">
         <colgroup>
           <col className="w-[12%] min-w-[110px]" />
-          <col className="w-[18%] min-w-[170px]" />
-          <col className="w-[10%] min-w-[120px]" />
-          <col className="w-[10%] min-w-[120px]" />
-          <col className="w-[6%] min-w-[70px]" />
-          <col className="w-[6%] min-w-[70px]" />
-          <col className="w-[6%] min-w-[70px]" />
-          <col className="w-[6%] min-w-[70px]" />
-          <col className="w-[6%] min-w-[70px]" />
-          <col className="w-[6%] min-w-[70px]" />
+          <col className="w-[16%] min-w-[150px]" />
+          <col className="w-[8%] min-w-[105px]" />
+          <col className="w-[8%] min-w-[105px]" />
+          <col className="w-[8%] min-w-[75px]" />
+          <col className="w-[8%] min-w-[75px]" />
+          <col className="w-[8%] min-w-[75px]" />
+          <col className="w-[8%] min-w-[75px]" />
+          <col className="w-[8%] min-w-[75px]" />
+          <col className="w-[8%] min-w-[75px]" />
           <col className="w-[4%] min-w-[48px]" />
         </colgroup>
         <thead className="sticky top-0 text-[13px] bg-[#292e40]">
