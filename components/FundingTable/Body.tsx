@@ -151,8 +151,8 @@ export default function FundingTableBody({
               onClick={() => onRowClick(r)}
               className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} cursor-pointer transition-colors`}
             >
-              <td className="px-4 py-4 text-white font-mono">{formatExchange(r.exchange)}</td>
-              <td className="px-4 py-4 font-mono font-semibold text-white">
+              <td className="px-4 py-4 text-left text-white font-mono">{formatExchange(r.exchange)}</td>
+              <td className="px-4 py-4 text-left font-mono font-semibold text-white">
                 {r.ref_url ? (
                   <a
                     href={r.ref_url}
@@ -187,7 +187,9 @@ export default function FundingTableBody({
               <td className="px-4 py-4 text-center text-white font-mono">{formatAPRNode(r["30d"])}</td>
               <td className="px-4 py-4 text-center">
                 {r.market_id && (
-                  <ExternalLink size={16} className="text-gray-500" />
+                  <span className="inline-flex w-full justify-center">
+                    <ExternalLink size={16} className="text-gray-500" />
+                  </span>
                 )}
               </td>
             </tr>

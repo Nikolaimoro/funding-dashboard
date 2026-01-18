@@ -207,13 +207,13 @@ export default function ArbitrageTableBody({
     <div className="overflow-auto">
       <table className="w-full text-base table-fixed min-w-[900px] whitespace-nowrap">
         <colgroup>
-          <col className="w-[12%] min-w-[110px]" />
-          <col className="w-[10%] min-w-[80px]" />
-          <col className="w-[28%] min-w-[220px]" />
-          <col className="w-[14%] min-w-[120px]" />
-          <col className="w-[14%] min-w-[120px]" />
-          <col className="w-[12%] min-w-[100px]" />
-          <col className="w-[10%] min-w-[60px]" />
+          <col className="w-[10%] min-w-[90px]" />
+          <col className="w-[8%] min-w-[70px]" />
+          <col className="w-[26%] min-w-[200px]" />
+          <col className="w-[14%] min-w-[115px]" />
+          <col className="w-[14%] min-w-[115px]" />
+          <col className="w-[14%] min-w-[115px]" />
+          <col className="w-[6%] min-w-[50px]" />
         </colgroup>
         <thead className="sticky top-0 z-10 text-[13px] bg-[#292e40]">
           <tr className="border-b border-[#343a4e]">
@@ -295,8 +295,10 @@ export default function ArbitrageTableBody({
                   {r.base_asset}
                 </td>
 
-                <td className="px-4 py-4 text-center align-middle">
-                  {formatAPRNode(r.opportunity_apr)}
+                <td className="px-4 py-4 text-center">
+                  <span className="inline-flex w-full justify-center">
+                    {formatAPRNode(r.opportunity_apr)}
+                  </span>
                 </td>
 
                 <td className="px-4 py-4 flex gap-2">
@@ -326,8 +328,10 @@ export default function ArbitrageTableBody({
                   </span>
                 </td>
 
-                <td className="px-4 py-4 text-center align-middle">
-                  <StabilityBar value={r.stability} />
+                <td className="px-4 py-4 text-center">
+                  <span className="inline-flex w-full justify-center">
+                    <StabilityBar value={r.stability} />
+                  </span>
                 </td>
 
                 <td className="px-4 py-4 text-right pr-4 text-gray-500">
