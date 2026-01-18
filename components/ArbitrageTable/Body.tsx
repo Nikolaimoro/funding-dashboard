@@ -125,7 +125,7 @@ function LongButton({ href, label }: LongButtonProps) {
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className="
-        inline-flex items-center px-3 py-1 rounded-md
+        inline-flex items-center px-2 py-0.5 rounded-md text-xs sm:px-3 sm:py-1 sm:text-sm
         bg-green-500/20 text-green-400
         border border-green-500/30
         hover:bg-green-500/30 transition
@@ -152,7 +152,7 @@ function ShortButton({ href, label }: ShortButtonProps) {
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className="
-        inline-flex items-center px-3 py-1 rounded-md
+        inline-flex items-center px-2 py-0.5 rounded-md text-xs sm:px-3 sm:py-1 sm:text-sm
         bg-red-500/20 text-red-400
         border border-red-500/30
         hover:bg-red-500/30 transition
