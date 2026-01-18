@@ -161,7 +161,7 @@ export default function MinimumFilter({
                     <button
                       type="button"
                       onClick={() => onMinOIChange(0)}
-                      className="h-6 w-6 rounded-full border border-transparent text-gray-300 text-xs leading-none hover:border-white hover:text-white transition-colors duration-200"
+                      className="h-5 w-5 rounded-full bg-[#1c202f] border border-[#343a4e] text-gray-300 text-xs leading-none flex items-center justify-center transition-colors duration-200 hover:border-white hover:text-white"
                       aria-label="Clear minimum open interest"
                       title="Clear"
                     >
@@ -211,7 +211,7 @@ export default function MinimumFilter({
                     <button
                       type="button"
                       onClick={() => onMinVolumeChange(0)}
-                      className="h-6 w-6 rounded-full border border-transparent text-gray-300 text-xs leading-none hover:border-white hover:text-white transition-colors duration-200"
+                      className="h-5 w-5 rounded-full bg-[#1c202f] border border-[#343a4e] text-gray-300 text-xs leading-none flex items-center justify-center transition-colors duration-200 hover:border-white hover:text-white"
                       aria-label="Clear minimum volume"
                       title="Clear"
                     >
