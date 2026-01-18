@@ -251,6 +251,7 @@ export default function ArbitrageTable() {
           onFiltersOpenChange={setFiltersOpen}
           searchPlaceholder="Search token"
           inputClassName={TAILWIND.input.default}
+          className="mb-4"
         />
 
         {/* ---------- Loading / Empty ---------- */}

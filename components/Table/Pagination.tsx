@@ -3,6 +3,8 @@
  * Used in FundingTable, ArbitrageTable
  */
 
+import { TAILWIND } from "@/lib/theme";
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -25,7 +27,7 @@ export default function Pagination({
       <div>
         Rows:
         <select
-          className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
+          className="ml-2 bg-[#383d50] border border-transparent rounded px-2 py-1 text-gray-200 focus:outline-none"
           value={limit}
           onChange={(e) => onLimitChange(Number(e.target.value))}
         >
@@ -41,7 +43,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(0)}
             disabled={currentPage === 0}
-            className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
+            className={TAILWIND.button.secondary}
             type="button"
           >
             First
@@ -50,7 +52,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0}
-            className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
+            className={TAILWIND.button.secondary}
             type="button"
           >
             Prev
@@ -63,7 +65,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(Math.min(totalPages - 1, currentPage + 1))}
             disabled={currentPage + 1 >= totalPages}
-            className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
+            className={TAILWIND.button.secondary}
             type="button"
           >
             Next
@@ -72,7 +74,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(totalPages - 1)}
             disabled={currentPage + 1 >= totalPages}
-            className="border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40"
+            className={TAILWIND.button.secondary}
             type="button"
           >
             Last

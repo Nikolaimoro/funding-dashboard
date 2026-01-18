@@ -217,27 +217,31 @@ export default function FundingTable({
 
   return (
     <ErrorBoundary>
-      <div>
-        <TableControls
-          search={search}
-          onSearchChange={handleSearchChange}
-          exchanges={exchanges}
-          selectedExchanges={selectedExchanges}
-          onToggleExchange={toggleExchange}
-          onResetExchanges={resetExchanges}
-          filterOpen={filterOpen}
-          onFilterOpenChange={setFilterOpen}
-          minOI={minOI}
-          onMinOIChange={handleMinOIChange}
-          minVolume={minVolume}
-          onMinVolumeChange={handleMinVolumeChange}
-          maxOI={maxOI}
-          maxVolume={maxVolume}
-          filtersOpen={filtersOpen}
-          onFiltersOpenChange={setFiltersOpen}
-          searchPlaceholder="Search market"
-          inputClassName={TAILWIND.input.default}
-        />
+      <div className="rounded-2xl border border-[#343a4e] bg-[#292e40] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <h2 className="text-base font-roboto text-white">Markets</h2>
+          <TableControls
+            search={search}
+            onSearchChange={handleSearchChange}
+            exchanges={exchanges}
+            selectedExchanges={selectedExchanges}
+            onToggleExchange={toggleExchange}
+            onResetExchanges={resetExchanges}
+            filterOpen={filterOpen}
+            onFilterOpenChange={setFilterOpen}
+            minOI={minOI}
+            onMinOIChange={handleMinOIChange}
+            minVolume={minVolume}
+            onMinVolumeChange={handleMinVolumeChange}
+            maxOI={maxOI}
+            maxVolume={maxVolume}
+            filtersOpen={filtersOpen}
+            onFiltersOpenChange={setFiltersOpen}
+            searchPlaceholder="Search market"
+            inputClassName={TAILWIND.input.default}
+            className="justify-end"
+          />
+        </div>
 
         {error && (
           <div className="text-red-400 text-sm mb-3">{error}</div>

@@ -4,6 +4,7 @@
  */
 
 import { formatExchange } from "@/lib/formatters";
+import { TAILWIND } from "@/lib/theme";
 
 interface ExchangeFilterProps {
   exchanges: string[];
@@ -28,7 +29,7 @@ export default function ExchangeFilter({
     <div className="relative">
       <button
         onClick={() => onOpenChange(!open)}
-        className="bg-gray-800 border border-gray-700 px-3 py-2 rounded text-sm hover:border-gray-600 transition"
+        className={`${TAILWIND.button.secondary} text-sm`}
         type="button"
       >
         Exchanges
@@ -43,7 +44,7 @@ export default function ExchangeFilter({
             className="fixed inset-0 z-10"
             onClick={() => onOpenChange(false)}
           />
-          <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-2 shadow-lg">
+          <div className="absolute z-20 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-56 p-2 shadow-lg">
             <div className="flex items-center justify-between px-2 pb-2 text-xs">
               <span className="font-light text-gray-300">Select Exchanges</span>
               <button
@@ -63,7 +64,7 @@ export default function ExchangeFilter({
             {exchanges.map((ex) => (
               <label
                 key={ex}
-                className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 rounded items-center justify-between"
+                className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-[#353b52] rounded items-center justify-between"
               >
                 {formatExchange(ex)}
                 <input

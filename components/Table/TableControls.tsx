@@ -23,6 +23,7 @@ interface TableControlsProps {
   onFiltersOpenChange: (open: boolean) => void;
   searchPlaceholder: string;
   inputClassName: string;
+  className?: string;
 }
 
 export default function TableControls({
@@ -44,9 +45,10 @@ export default function TableControls({
   onFiltersOpenChange,
   searchPlaceholder,
   inputClassName,
+  className,
 }: TableControlsProps) {
   return (
-    <div className="flex flex-wrap gap-3 mb-4 items-center">
+    <div className={`flex flex-wrap gap-3 items-center ${className ?? ""}`}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-4 h-4" />
         <input

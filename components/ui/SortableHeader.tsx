@@ -20,21 +20,13 @@ export default function SortableHeader({
     <button
       type="button"
       onClick={onClick}
-      className="group inline-flex items-center gap-1 text-left select-none"
+      className="inline-flex items-center gap-1 text-left select-none"
     >
       <span
-        className={`transition-colors ${
-          active ? "text-gray-200" : "text-gray-400 group-hover:text-gray-200"
-        }`}
+        className={active ? "text-gray-200" : "text-gray-400"}
       >
         {label}
       </span>
-
-      {!active && (
-        <span className="text-xs opacity-0 group-hover:opacity-60 transition-opacity text-gray-500">
-          ↑↓
-        </span>
-      )}
 
       {active && (
         <span className="text-[13px] text-blue-400">

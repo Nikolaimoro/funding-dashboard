@@ -3,6 +3,8 @@
  * Used in FundingTable, ArbitrageTable
  */
 
+import { TAILWIND } from "@/lib/theme";
+
 interface MinimumFilterProps {
   minOI: number | "";
   minVolume: number | "";
@@ -101,7 +103,7 @@ export default function MinimumFilter({
     <div className="relative">
       <button
         onClick={() => onOpenChange(!open)}
-        className="bg-gray-800 border border-gray-700 px-3 py-2 rounded text-sm hover:border-gray-600 transition"
+        className={`${TAILWIND.button.secondary} text-sm`}
         type="button"
       >
         Filters
@@ -116,7 +118,7 @@ export default function MinimumFilter({
             className="fixed inset-0 z-10"
             onClick={() => onOpenChange(false)}
           />
-          <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded w-56 p-3 shadow-lg space-y-3">
+          <div className="absolute z-20 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-56 p-3 shadow-lg space-y-3">
             <div>
               <label className="block text-sm text-gray-300 mb-1">
                 Min Open Interest
@@ -151,13 +153,13 @@ export default function MinimumFilter({
                       );
                     }}
                     placeholder="0"
-                    className="w-36 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                    className="w-36 bg-[#383d50] border border-transparent rounded px-2 py-1 text-sm text-gray-200 focus:outline-none"
                   />
                   {typeof minOI === "number" && minOI > 0 && (
                     <button
                       type="button"
                       onClick={() => onMinOIChange(0)}
-                      className="h-6 w-6 rounded-full border border-gray-500 text-gray-300 text-xs leading-none hover:border-gray-300 hover:text-white transition"
+                      className="h-6 w-6 rounded-full border border-transparent text-gray-300 text-xs leading-none hover:border-white hover:text-white transition-colors duration-200"
                       aria-label="Clear minimum open interest"
                       title="Clear"
                     >
@@ -201,13 +203,13 @@ export default function MinimumFilter({
                       );
                     }}
                     placeholder="0"
-                    className="w-36 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
+                    className="w-36 bg-[#383d50] border border-transparent rounded px-2 py-1 text-sm text-gray-200 focus:outline-none"
                   />
                   {typeof minVolume === "number" && minVolume > 0 && (
                     <button
                       type="button"
                       onClick={() => onMinVolumeChange(0)}
-                      className="h-6 w-6 rounded-full border border-gray-500 text-gray-300 text-xs leading-none hover:border-gray-300 hover:text-white transition"
+                      className="h-6 w-6 rounded-full border border-transparent text-gray-300 text-xs leading-none hover:border-white hover:text-white transition-colors duration-200"
                       aria-label="Clear minimum volume"
                       title="Clear"
                     >

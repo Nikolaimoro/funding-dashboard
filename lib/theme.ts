@@ -11,9 +11,9 @@ export const COLORS = {
     disabled: "#4b5563",     // gray-700
   },
   bg: {
-    page: "#111827",         // gray-900
-    surface: "#1f2937",      // gray-800
-    hover: "#374151",        // gray-700
+    page: "#1c202f",
+    surface: "#292e40",
+    hover: "#353b52",
     overlay: "rgba(0,0,0,0.6)",
   },
   chart: {
@@ -24,8 +24,8 @@ export const COLORS = {
     gridZero: "rgba(148, 163, 184, 0.35)",
   },
   borders: {
-    default: "#1e293b",      // gray-800
-    hover: "#475569",        // gray-700
+    default: "#343a4e",
+    hover: "#ffffff",
   },
 } as const;
 
@@ -46,33 +46,33 @@ export const TAILWIND = {
     active: "text-blue-400",
   },
   bg: {
-    page: "bg-gray-900",
-    surface: "bg-gray-800",
-    dark: "bg-gray-900",
-    hover: "hover:bg-gray-700/40",
+    page: "bg-[#1c202f]",
+    surface: "bg-[#292e40]",
+    dark: "bg-[#1c202f]",
+    hover: "hover:bg-[#353b52]",
   },
   border: {
-    default: "border border-gray-800",
-    hover: "hover:border-gray-600",
+    default: "border border-[#343a4e]",
+    hover: "hover:border-white",
   },
   table: {
     header: "px-4 py-3 text-left font-normal",
     cell: "px-4 py-2",
-    row: "border-b border-gray-800",
+    row: "border-b border-[#343a4e]",
   },
   modal: {
     overlay: "fixed inset-0 z-50",
     background: "absolute inset-0 bg-black/60",
-    container: "absolute left-1/2 top-1/2 w-[min(1100px,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-gray-800 bg-gray-900 shadow-2xl",
-    header: "flex items-center justify-between gap-3 border-b border-gray-800 px-4 py-3",
+    container: "absolute left-1/2 top-1/2 w-[min(1100px,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[#343a4e] bg-[#1c202f] shadow-2xl",
+    header: "flex items-center justify-between gap-3 border-b border-[#343a4e] px-4 py-3",
     body: "px-4 py-4",
     title: "text-lg font-roboto font-normal text-gray-100 truncate",
   },
   button: {
-    secondary: "border border-gray-700 px-3 py-1 rounded hover:border-gray-500 hover:text-gray-200 transition disabled:opacity-40",
+    secondary: "bg-[#383d50] border border-transparent px-3 py-2 rounded text-gray-200 transition-colors duration-200 hover:border-white disabled:opacity-40",
   },
   input: {
-    default: "bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm",
+    default: "bg-[#383d50] border border-transparent rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-0 focus:border-transparent",
   },
 } as const;
 

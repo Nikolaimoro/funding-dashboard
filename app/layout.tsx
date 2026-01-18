@@ -3,6 +3,7 @@ import { Inter, Roboto } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import AppHeader from "@/components/AppHeader";
+import AppFooter from "@/components/AppFooter";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,7 +39,7 @@ export default function RootLayout({
           ${inter.variable} 
           ${roboto.variable}
           antialiased
-          bg-gray-900
+          bg-[#1c202f]
           text-gray-200
         `}
       >
@@ -49,6 +50,7 @@ export default function RootLayout({
           <main className="mt-6">
             {children}
           </main>
+          <AppFooter />
         </div>
         <Analytics />
       </body>
