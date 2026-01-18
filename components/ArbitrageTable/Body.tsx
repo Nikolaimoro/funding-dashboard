@@ -234,7 +234,7 @@ export default function ArbitrageTableBody({
               />
             </th>
 
-            <th className={`${TAILWIND.table.header} pl-6`}>
+            <th className={`${TAILWIND.table.header} pl-12`}>
               <span className="inline-flex items-center gap-1 text-left select-none text-gray-400">
                 Long
               </span>
@@ -307,7 +307,7 @@ export default function ArbitrageTableBody({
                   </span>
                 </td>
 
-                <td className="px-4 py-4 pl-6">
+                <td className="px-4 py-4 pl-12">
                   <LongButton
                     href={r.long_url}
                     label={formatExchange(r.long_exchange)}
