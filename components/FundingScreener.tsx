@@ -32,14 +32,17 @@ const MAX_ATTEMPTS = 2;
  * Max rate - Min rate = spread
  */
 function calculateMaxArb(
-  markets: Record<string, FundingMatrixMarket[]>,
+  markets: Record<string, FundingMatrixMarket[]> | null | undefined,
   timeWindow: TimeWindow
 ): number | null {
+  if (!markets) return null;
+
   const rates: number[] = [];
 
   for (const exchangeMarkets of Object.values(markets)) {
+    if (!Array.isArray(exchangeMarkets)) continue;
     for (const market of exchangeMarkets) {
-      if (market.rate !== null) {
+      if (market?.rate !== null && market?.rate !== undefined) {
         rates.push(market.rate);
       }
     }
@@ -189,14 +192,16 @@ export default function FundingScreener() {
     if (search.trim()) {
       const term = normalizeToken(search.trim());
       result = result.filter((row) =>
-        normalizeToken(row.token).includes(term)
+        normalizeToken(row.token ?? "").includes(term)
       );
     }
 
     // Sort
     result.sort((a, b) => {
       if (sortKey === "token") {
-        const cmp = a.token.localeCompare(b.token);
+        const aToken = a.token ?? "";
+        const bToken = b.token ?? "";
+        const cmp = aToken.localeCompare(bToken);
         return sortDir === "asc" ? cmp : -cmp;
       }
 
@@ -357,19 +362,19 @@ export default function FundingScreener() {
                   </td>
                 </tr>
               ) : (
-                paginatedRows.map((row) => {
+                paginatedRows.map((row, idx) => {
                   const maxArb = calculateMaxArb(row.markets, timeWindow);
 
                   return (
                     <tr
-                      key={row.token}
+                      key={row.token ?? `row-${idx}`}
                       className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} transition-colors`}
                     >
                       {/* Asset */}
                       <td
                         className={`${TAILWIND.table.cellFirst} font-medium text-white`}
                       >
-                        {row.token}
+                        {row.token ?? "–"}
                       </td>
 
                       {/* Max Arb */}

@@ -92,14 +92,14 @@ export type ExchangeColumn = {
 
 export type FundingMatrixMarket = {
   market_id: number;
-  quote: string;
+  quote: string | null;
   rate: number | null;
   ref_url: string | null;
 };
 
 export type FundingMatrixRow = {
   token: string;
-  markets: Record<string, FundingMatrixMarket[]>; // exchange_key -> markets
+  markets: Record<string, FundingMatrixMarket[]> | null; // exchange_key -> markets
 };
 
 export type TimeWindow = "now" | "1d" | "3d" | "7d" | "15d" | "30d";
