@@ -13,11 +13,14 @@ import ArbitrageTableBody from "@/components/ArbitrageTable/Body";
 import SkeletonLoader from "@/components/ui/SkeletonLoader";
 import { TableEmptyState, TableLoadingState } from "@/components/ui/TableStates";
 import { TAILWIND } from "@/lib/theme";
+import { withTimeout } from "@/lib/async";
 
 /* ================= TYPES ================= */
 
 type SortKey = "opportunity_apr" | "stability";
 type SortDir = "asc" | "desc";
+const TIMEOUT_MS = 3000;
+const MAX_ATTEMPTS = 2;
 
 /* ================= COMPONENT ================= */
 
@@ -83,23 +86,63 @@ export default function ArbitrageTable() {
 
   /* ---------- load data (per window) ---------- */
   useEffect(() => {
-  setLoading(true);
+    let cancelled = false;
+    let attemptId = 0;
 
-    supabase
-      .from(SUPABASE_TABLES.ARB_OPPORTUNITIES)
-      .select("*")
-      .order("stability", { ascending: false })
-      .order("opportunity_apr", { ascending: false })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("arb fetch error:", error);
+    const fetchRows = async () => {
+      const { data, error } = await supabase
+        .from(SUPABASE_TABLES.ARB_OPPORTUNITIES)
+        .select("*")
+        .order("stability", { ascending: false })
+        .order("opportunity_apr", { ascending: false });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return (data ?? []) as ArbRow[];
+    };
+
+    const load = async () => {
+      setLoading(true);
+
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+        const currentAttempt = ++attemptId;
+
+        try {
+          const data = await withTimeout(fetchRows(), TIMEOUT_MS);
+          if (!cancelled && currentAttempt === attemptId) {
+            setRows(data);
+            setLoading(false);
+          }
+          return;
+        } catch (err) {
+          if (cancelled || currentAttempt !== attemptId) {
+            return;
+          }
+
+          if (err instanceof Error && err.message === "timeout") {
+            if (attempt < MAX_ATTEMPTS - 1) {
+              continue;
+            }
+          } else {
+            console.error("arb fetch error:", err);
+          }
+
           setRows([]);
-        } else {
-          setRows((data ?? []) as ArbRow[]);
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-    });
-}, []);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+      attemptId += 1;
+    };
+  }, []);
 
   /**
    * Extract unique exchanges from all rows (both long and short)

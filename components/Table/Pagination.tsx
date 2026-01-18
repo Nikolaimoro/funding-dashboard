@@ -26,7 +26,7 @@ export default function Pagination({
   return (
     <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
       <div className="flex items-center gap-3">
-        <span className="text-white/50 font-inter font-light">Items per page</span>
+        <span className="text-white/50 font-light">Items per page</span>
         <div className="relative">
           <select
             className="appearance-none bg-transparent border border-[#343a4e] rounded-lg pl-2 pr-6 py-1 text-gray-200 focus:outline-none"
@@ -44,7 +44,7 @@ export default function Pagination({
 
       {showPagination && totalPages > 1 && (
         <div className="flex gap-3 items-center">
-          <span className="px-2 min-w-[64px] text-center tabular-nums text-white/50 font-inter font-light">
+          <span className="px-2 min-w-[64px] text-center tabular-nums text-white/50 font-light">
             {currentPage + 1} of {totalPages}
           </span>
 

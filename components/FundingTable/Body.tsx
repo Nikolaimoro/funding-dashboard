@@ -42,7 +42,7 @@ export default function FundingTableBody({
   const formatCompactUSDNode = (v: number | null) => {
     const text = formatCompactUSD(v);
     return (
-      <span className="text-white font-mono tabular-nums">
+      <span className="text-white font-mono tabular-nums inline-flex w-full justify-center">
         {text}
       </span>
     );
@@ -51,11 +51,15 @@ export default function FundingTableBody({
   const formatAPRNode = (v: number | null) => {
     const text = formatAPR(v);
     if (text === "–") {
-      return <span className="text-white font-mono tabular-nums">–</span>;
+      return (
+        <span className="text-white font-mono tabular-nums inline-flex w-full justify-center">
+          –
+        </span>
+      );
     }
     const numeric = text.slice(0, -1);
     return (
-      <span className="text-white font-mono tabular-nums">
+      <span className="text-white font-mono tabular-nums inline-flex w-full items-baseline justify-center">
         <span>{numeric}</span>
         <span className="opacity-70">%</span>
       </span>

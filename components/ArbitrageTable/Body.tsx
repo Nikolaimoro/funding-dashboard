@@ -87,11 +87,15 @@ export default function ArbitrageTableBody({
   const formatAPRNode = (v: number | null) => {
     const text = formatAPR(v);
     if (text === "–") {
-      return <span className="text-white font-mono tabular-nums">–</span>;
+      return (
+        <span className="text-white font-mono tabular-nums inline-flex w-full justify-center">
+          –
+        </span>
+      );
     }
     const numeric = text.slice(0, -1);
     return (
-      <span className="text-white font-mono tabular-nums">
+      <span className="text-white font-mono tabular-nums inline-flex w-full items-baseline justify-center">
         <span>{numeric}</span>
         <span className="opacity-70">%</span>
       </span>
@@ -175,22 +179,18 @@ export default function ArbitrageTableBody({
                 </td>
 
                 <td className="px-4 py-4 text-center">
-                  <span className="text-white font-mono tabular-nums">
-                    {formatCompactUSD(r.long_open_interest)}
-                  </span>
-                  <span className="text-gray-500"> / </span>
-                  <span className="text-white font-mono tabular-nums">
-                    {formatCompactUSD(r.short_open_interest)}
+                  <span className="inline-flex w-full justify-center font-mono tabular-nums text-white">
+                    <span>{formatCompactUSD(r.long_open_interest)}</span>
+                    <span className="text-gray-500"> / </span>
+                    <span>{formatCompactUSD(r.short_open_interest)}</span>
                   </span>
                 </td>
 
                 <td className="px-4 py-4 text-center">
-                  <span className="text-white font-mono tabular-nums">
-                    {formatCompactUSD(r.long_volume_24h)}
-                  </span>
-                  <span className="text-gray-500"> / </span>
-                  <span className="text-white font-mono tabular-nums">
-                    {formatCompactUSD(r.short_volume_24h)}
+                  <span className="inline-flex w-full justify-center font-mono tabular-nums text-white">
+                    <span>{formatCompactUSD(r.long_volume_24h)}</span>
+                    <span className="text-gray-500"> / </span>
+                    <span>{formatCompactUSD(r.short_volume_24h)}</span>
                   </span>
                 </td>
 
@@ -200,7 +200,9 @@ export default function ArbitrageTableBody({
                   r.stability >= 0.5 ? "text-orange-400" :
                   "text-red-400"
                 }`}>
-                  {r.stability?.toFixed(2)}
+                  <span className="inline-flex w-full justify-center">
+                    {r.stability?.toFixed(2)}
+                  </span>
                 </td>
 
                 <td className="px-4 py-4 text-center text-gray-500">
