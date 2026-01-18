@@ -99,11 +99,11 @@ export default function ArbitrageTableBody({
   };
 
   return (
-    <div className="overflow-auto rounded border border-gray-800 bg-gray-800">
+    <div className="overflow-auto">
       <table className="w-full text-base">
-        <thead className="bg-gray-900 sticky top-0 text-[13px]">
-          <tr className="border-b border-gray-700">
-            <th className={`${TAILWIND.table.header} text-left text-gray-400`}>Token</th>
+        <thead className="sticky top-0 text-[13px] bg-[#292e40]">
+          <tr className="border-b border-[#343a4e]">
+            <th className={TAILWIND.table.header}>Token</th>
 
             <th className={`${TAILWIND.table.header} text-center`}>
               <SortableHeader
@@ -114,9 +114,9 @@ export default function ArbitrageTableBody({
               />
             </th>
 
-            <th className={`${TAILWIND.table.header} text-left text-gray-400`}>Long / Short</th>
-            <th className={`${TAILWIND.table.header} text-center text-gray-400`}>Open Interest</th>
-            <th className={`${TAILWIND.table.header} text-center text-gray-400`}>Volume 24h</th>
+            <th className={TAILWIND.table.header}>Long / Short</th>
+            <th className={`${TAILWIND.table.header} text-center`}>Open Interest</th>
+            <th className={`${TAILWIND.table.header} text-center`}>Volume 24h</th>
 
             <th className={`${TAILWIND.table.header} text-center`}>
               <SortableHeader
@@ -137,7 +137,7 @@ export default function ArbitrageTableBody({
               <tr
                 key={`${r.base_asset}-${r.long_market_id}-${r.short_market_id}`}
                 onClick={() => onRowClick?.(r)}
-                className="border-b border-gray-800 hover:bg-gray-700/40 cursor-pointer"
+                className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} cursor-pointer transition-colors`}
               >
                 <td className="px-4 py-4 font-mono font-semibold text-white">
                   {r.base_asset}

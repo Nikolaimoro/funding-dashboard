@@ -298,20 +298,20 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
   );
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+    <div className="bg-[#292e40] border border-[#343a4e] rounded-xl p-6">
       <h2 className="text-lg font-roboto font-normal mb-4 text-gray-200">
         Funding Rates
       </h2>
 
       {!isLoaded ? (
-        <div className="h-96 flex items-center justify-center text-gray-500 rounded border border-gray-700">
+        <div className="h-96 flex items-center justify-center text-gray-500 rounded border border-[#343a4e]">
           <p>Run a backtest to see funding rates as line charts and spread as bars.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {/* Chart Container */}
           {loading && (
-            <div className="h-96 flex items-center justify-center text-gray-500 rounded border border-gray-700">
+            <div className="h-96 flex items-center justify-center text-gray-500 rounded border border-[#343a4e]">
               <p>Loading chart data...</p>
             </div>
           )}
@@ -323,13 +323,13 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
           )}
 
           {!loading && !err && rows.length === 0 && (
-            <div className="h-96 flex items-center justify-center text-gray-500 rounded border border-gray-700">
+            <div className="h-96 flex items-center justify-center text-gray-500 rounded border border-[#343a4e]">
               <p>No data available for this period.</p>
             </div>
           )}
 
           {!loading && !err && rows.length > 0 && (
-            <div className="border border-gray-700 rounded p-4 bg-gray-900 h-96">
+            <div className="border border-[#343a4e] rounded p-4 bg-[#292e40] h-96">
               <Chart
                 key={`chart-${chartData.longMarketId}-${chartData.shortMarketId}-${chartKey}`}
                 type="bar"

@@ -231,28 +231,31 @@ export default function ArbitrageTable() {
 
   return (
     <ErrorBoundary>
-      <div>
-        <TableControls
-          search={search}
-          onSearchChange={handleSearchChange}
-          exchanges={exchanges}
-          selectedExchanges={selectedExchanges}
-          onToggleExchange={toggleExchange}
-          onResetExchanges={resetExchanges}
-          filterOpen={filterOpen}
-          onFilterOpenChange={setFilterOpen}
-          minOI={minOI}
-          onMinOIChange={handleMinOIChange}
-          minVolume={minVolume}
-          onMinVolumeChange={handleMinVolumeChange}
-          maxOI={maxOI}
-          maxVolume={maxVolume}
-          filtersOpen={filtersOpen}
-          onFiltersOpenChange={setFiltersOpen}
-          searchPlaceholder="Search token"
-          inputClassName={TAILWIND.input.default}
-          className="mb-4"
-        />
+      <div className="rounded-2xl border border-[#343a4e] bg-[#292e40]">
+        <div className="flex flex-wrap items-center gap-4 px-4 py-4">
+          <h2 className="text-base font-roboto text-white">Opportunities</h2>
+          <TableControls
+            search={search}
+            onSearchChange={handleSearchChange}
+            exchanges={exchanges}
+            selectedExchanges={selectedExchanges}
+            onToggleExchange={toggleExchange}
+            onResetExchanges={resetExchanges}
+            filterOpen={filterOpen}
+            onFilterOpenChange={setFilterOpen}
+            minOI={minOI}
+            onMinOIChange={handleMinOIChange}
+            minVolume={minVolume}
+            onMinVolumeChange={handleMinVolumeChange}
+            maxOI={maxOI}
+            maxVolume={maxVolume}
+            filtersOpen={filtersOpen}
+            onFiltersOpenChange={setFiltersOpen}
+            searchPlaceholder="Search token"
+            inputClassName={TAILWIND.input.default}
+            className="ml-auto"
+          />
+        </div>
 
         {/* ---------- Loading / Empty ---------- */}
         {loading && (
@@ -280,14 +283,16 @@ export default function ArbitrageTable() {
         )}
 
         {/* ---------- Pagination ---------- */}
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          limit={limit}
-          onPageChange={setPage}
-          onLimitChange={handleLimitChange}
-          showPagination={limit !== -1 && totalPages > 1}
-        />
+        <div className="px-4 pb-4">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={handleLimitChange}
+            showPagination={limit !== -1 && totalPages > 1}
+          />
+        </div>
 
         <ArbitrageChart
           open={chartOpen}
