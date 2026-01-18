@@ -49,25 +49,6 @@ export default function TableControls({
 }: TableControlsProps) {
   return (
     <div className={`flex flex-wrap gap-3 items-center ${className ?? ""}`}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-4 h-4" />
-        <input
-          className={`${inputClassName} pl-10`}
-          placeholder={searchPlaceholder}
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-      </div>
-
-      <ExchangeFilter
-        exchanges={exchanges}
-        selectedExchanges={selectedExchanges}
-        onToggleExchange={onToggleExchange}
-        onResetExchanges={onResetExchanges}
-        open={filterOpen}
-        onOpenChange={onFilterOpenChange}
-      />
-
       <MinimumFilter
         minOI={minOI}
         minVolume={minVolume}
@@ -78,6 +59,25 @@ export default function TableControls({
         open={filtersOpen}
         onOpenChange={onFiltersOpenChange}
       />
+
+      <ExchangeFilter
+        exchanges={exchanges}
+        selectedExchanges={selectedExchanges}
+        onToggleExchange={onToggleExchange}
+        onResetExchanges={onResetExchanges}
+        open={filterOpen}
+        onOpenChange={onFilterOpenChange}
+      />
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-4 h-4" />
+        <input
+          className={`${inputClassName} pl-10`}
+          placeholder={searchPlaceholder}
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
+      </div>
     </div>
   );
 }

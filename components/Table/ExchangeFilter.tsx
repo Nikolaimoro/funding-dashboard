@@ -3,6 +3,7 @@
  * Used in FundingTable, ArbitrageTable
  */
 
+import { ChevronDown } from "lucide-react";
 import { formatExchange } from "@/lib/formatters";
 import { TAILWIND } from "@/lib/theme";
 
@@ -29,13 +30,14 @@ export default function ExchangeFilter({
     <div className="relative">
       <button
         onClick={() => onOpenChange(!open)}
-        className={`${TAILWIND.button.secondary} text-sm`}
+        className={`${TAILWIND.button.secondary} inline-flex items-center gap-2 text-sm`}
         type="button"
       >
-        Exchanges
+        <span>Exchanges</span>
         {selectedExchanges.length > 0 && (
-          <span className="text-blue-400 ml-1">({selectedExchanges.length})</span>
+          <span className="text-blue-400">({selectedExchanges.length})</span>
         )}
+        <ChevronDown className="h-4 w-4 text-gray-300" />
       </button>
 
       {open && (

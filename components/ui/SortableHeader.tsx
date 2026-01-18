@@ -1,6 +1,6 @@
 /**
  * Sortable table header with visual indicators
- * Shows ↑↓ on hover for inactive columns, ↑ or ↓ in blue for active
+ * Shows ↑↓ for inactive columns and highlights the active direction.
  */
 
 interface SortableHeaderProps {
@@ -16,23 +16,23 @@ export default function SortableHeader({
   dir,
   onClick,
 }: SortableHeaderProps) {
+  const upActive = active && dir === "asc";
+  const downActive = active && dir === "desc";
   return (
     <button
       type="button"
       onClick={onClick}
       className="inline-flex items-center gap-1 text-left select-none"
     >
-      <span
-        className={active ? "text-gray-200" : "text-gray-400"}
-      >
-        {label}
-      </span>
-
-      {active && (
-        <span className="text-[13px] text-blue-400">
-          {dir === "asc" ? "↑" : "↓"}
+      <span className="text-gray-400">{label}</span>
+      <span className="flex flex-col items-center leading-none">
+        <span className={`text-[10px] ${upActive ? "text-gray-200" : "text-gray-500/70"}`}>
+          ▲
         </span>
-      )}
+        <span className={`text-[10px] ${downActive ? "text-gray-200" : "text-gray-500/70"}`}>
+          ▼
+        </span>
+      </span>
     </button>
   );
 }

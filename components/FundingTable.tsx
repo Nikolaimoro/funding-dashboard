@@ -217,8 +217,8 @@ export default function FundingTable({
 
   return (
     <ErrorBoundary>
-      <div className="rounded-2xl border border-[#343a4e] bg-[#292e40] p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div className="rounded-2xl border border-[#343a4e] bg-[#292e40]">
+        <div className="flex flex-wrap items-center gap-4 px-4 py-4">
           <h2 className="text-base font-roboto text-white">Markets</h2>
           <TableControls
             search={search}
@@ -239,7 +239,7 @@ export default function FundingTable({
             onFiltersOpenChange={setFiltersOpen}
             searchPlaceholder="Search market"
             inputClassName={TAILWIND.input.default}
-            className="justify-end"
+            className="ml-auto"
           />
         </div>
 
@@ -269,14 +269,16 @@ export default function FundingTable({
           </ErrorBoundary>
         )}
 
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          limit={limit}
-          onPageChange={setPage}
-          onLimitChange={handleLimitChange}
-          showPagination={limit !== -1 && totalPages > 1}
-        />
+        <div className="px-4 pb-4">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={handleLimitChange}
+            showPagination={limit !== -1 && totalPages > 1}
+          />
+        </div>
 
         <FundingChart
           open={chartOpen}

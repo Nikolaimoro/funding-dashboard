@@ -3,6 +3,7 @@
  * Used in FundingTable, ArbitrageTable
  */
 
+import { ChevronDown } from "lucide-react";
 import { TAILWIND } from "@/lib/theme";
 
 interface MinimumFilterProps {
@@ -103,13 +104,14 @@ export default function MinimumFilter({
     <div className="relative">
       <button
         onClick={() => onOpenChange(!open)}
-        className={`${TAILWIND.button.secondary} text-sm`}
+        className={`${TAILWIND.button.secondary} inline-flex items-center gap-2 text-sm`}
         type="button"
       >
-        Filters
+        <span>Filters</span>
         {activeFilters > 0 && (
-          <span className="text-blue-400 ml-1">({activeFilters})</span>
+          <span className="text-blue-400">({activeFilters})</span>
         )}
+        <ChevronDown className="h-4 w-4 text-gray-300" />
       </button>
 
       {open && (

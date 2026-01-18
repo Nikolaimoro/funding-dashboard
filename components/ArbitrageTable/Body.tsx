@@ -83,6 +83,20 @@ export default function ArbitrageTableBody({
   onRowClick,
   loading = false,
 }: ArbitrageTableBodyProps) {
+  const formatAPRNode = (v: number | null) => {
+    const text = formatAPR(v);
+    if (text === "–") {
+      return <span className="text-white font-mono tabular-nums">–</span>;
+    }
+    const numeric = text.slice(0, -1);
+    return (
+      <span className="text-white font-mono tabular-nums">
+        <span>{numeric}</span>
+        <span className="opacity-70">%</span>
+      </span>
+    );
+  };
+
   return (
     <div className="overflow-auto rounded border border-gray-800 bg-gray-800">
       <table className="w-full text-base">
@@ -129,9 +143,7 @@ export default function ArbitrageTableBody({
                 </td>
 
                 <td className="px-4 py-2 text-right">
-                  <span className="text-white font-mono tabular-nums">
-                    {formatAPR(r.opportunity_apr)}
-                  </span>
+                  {formatAPRNode(r.opportunity_apr)}
                 </td>
 
                 <td className="px-4 py-2 flex gap-2">

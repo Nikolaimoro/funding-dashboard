@@ -35,7 +35,7 @@ export default function AppHeader() {
   };
 
   return (
-    <div className="flex gap-6 mb-6 border-b border-[#343a4e] pb-3 items-baseline pl-6">
+    <div className="flex gap-6 mb-6 border-b border-[#343a4e] pb-3 items-baseline pl-4">
       <Link
         href="/funding"
         className="flex items-center"

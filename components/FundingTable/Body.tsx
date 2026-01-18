@@ -50,15 +50,20 @@ export default function FundingTableBody({
 
   const formatAPRNode = (v: number | null) => {
     const text = formatAPR(v);
+    if (text === "–") {
+      return <span className="text-white font-mono tabular-nums">–</span>;
+    }
+    const numeric = text.slice(0, -1);
     return (
       <span className="text-white font-mono tabular-nums">
-        {text}
+        <span>{numeric}</span>
+        <span className="opacity-70">%</span>
       </span>
     );
   };
 
   return (
-    <div className="overflow-auto rounded-xl">
+    <div className="overflow-auto">
       <table className="w-full text-base">
         <thead className="sticky top-0 text-[13px] bg-[#292e40]">
           <tr className="border-b border-[#343a4e]">
@@ -125,7 +130,7 @@ export default function FundingTableBody({
             <tr
               key={`${r.exchange}:${r.market}`}
               onClick={() => onRowClick(r)}
-              className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} cursor-pointer`}
+              className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} cursor-pointer transition-colors`}
             >
               <td className="px-4 py-2 text-white font-mono">{formatExchange(r.exchange)}</td>
               <td className="px-4 py-2 font-mono font-semibold text-white">
