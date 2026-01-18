@@ -11,7 +11,48 @@ interface MinAPRFilterProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const SLIDER_STEPS = 100;
+const SLIDER_STEPS = 1000;
+const MIDPOINT_VALUE = 100;
+
+function clampValue(value: number, maxValue: number) {
+  if (Number.isNaN(value)) return 0;
+  return Math.min(Math.max(value, 0), Math.max(maxValue, 0));
+}
+
+function valueFromSlider(t: number, maxValue: number) {
+  if (maxValue <= 0) return 0;
+  if (maxValue <= MIDPOINT_VALUE) {
+    return maxValue * t;
+  }
+
+  if (t <= 0.5) {
+    const scaledT = t / 0.5;
+    return Math.expm1(Math.log1p(MIDPOINT_VALUE) * scaledT);
+  }
+
+  const scaledT = (t - 0.5) / 0.5;
+  const upperRange = maxValue - MIDPOINT_VALUE;
+  return MIDPOINT_VALUE + Math.expm1(Math.log1p(upperRange) * scaledT);
+}
+
+function sliderFromValue(value: number, maxValue: number) {
+  if (maxValue <= 0) return 0;
+  if (maxValue <= MIDPOINT_VALUE) {
+    return value / maxValue;
+  }
+
+  if (value <= MIDPOINT_VALUE) {
+    return 0.5 * (Math.log1p(Math.max(value, 0)) / Math.log1p(MIDPOINT_VALUE));
+  }
+
+  const upperRange = maxValue - MIDPOINT_VALUE;
+  return (
+    0.5 +
+    0.5 *
+      (Math.log1p(Math.max(value - MIDPOINT_VALUE, 0)) /
+        Math.log1p(upperRange))
+  );
+}
 
 export default function MinAPRFilter({
   minAPR,
@@ -21,10 +62,11 @@ export default function MinAPRFilter({
   onOpenChange,
 }: MinAPRFilterProps) {
   const hasActiveFilter = typeof minAPR === "number" && minAPR > 0;
-  const sliderValue =
-    typeof minAPR === "number"
-      ? Math.round((minAPR / Math.max(maxAPR, 1)) * SLIDER_STEPS)
-      : 0;
+  const clampedMinAPR =
+    typeof minAPR === "number" ? clampValue(minAPR, maxAPR) : 0;
+  const sliderValue = Math.round(
+    sliderFromValue(clampedMinAPR, maxAPR) * SLIDER_STEPS
+  );
   const displayValue =
     typeof minAPR === "number" && minAPR > 0 ? minAPR.toFixed(1) : "";
 
@@ -36,7 +78,6 @@ export default function MinAPRFilter({
         type="button"
       >
         <span>Filters</span>
-        {hasActiveFilter && <span className="text-blue-400">(1)</span>}
         <ChevronDown className="h-4 w-4 text-gray-300" />
       </button>
 
@@ -55,8 +96,9 @@ export default function MinAPRFilter({
                   max={SLIDER_STEPS}
                   value={sliderValue}
                   onChange={(e) => {
-                    const val = (Number(e.target.value) / SLIDER_STEPS) * maxAPR;
-                    onMinAPRChange(Math.round(val * 10) / 10);
+                    const sliderRatio = Number(e.target.value) / SLIDER_STEPS;
+                    const rawValue = valueFromSlider(sliderRatio, maxAPR);
+                    onMinAPRChange(Math.round(rawValue * 10) / 10);
                   }}
                   disabled={maxAPR <= 0}
                   className="w-full accent-emerald-400"
@@ -70,7 +112,9 @@ export default function MinAPRFilter({
                       const val =
                         e.target.value === "" ? "" : parseFloat(e.target.value);
                       if (val === "" || !isNaN(val)) {
-                        onMinAPRChange(val === "" ? "" : Math.min(val, maxAPR));
+                        onMinAPRChange(
+                          val === "" ? "" : clampValue(val, maxAPR)
+                        );
                       }
                     }}
                     placeholder="0"

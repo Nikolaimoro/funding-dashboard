@@ -220,7 +220,7 @@ export default function ArbitrageTableBody({
           <tr className="border-b border-[#343a4e]">
             <th className={TAILWIND.table.header}>
               <span className="inline-flex items-center gap-1 text-left select-none text-gray-400">
-                Token
+                Asset
               </span>
             </th>
 

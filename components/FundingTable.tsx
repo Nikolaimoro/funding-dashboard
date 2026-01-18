@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
 import { normalizeSymbol, formatExchange } from "@/lib/formatters";
@@ -109,9 +109,19 @@ export default function FundingTable({
     resetPage();
   };
   const resetExchanges = () => {
-    setSelectedExchanges([]);
+    setSelectedExchanges(exchanges);
     resetPage();
   };
+
+  useEffect(() => {
+    if (!exchanges.length) return;
+    setSelectedExchanges((prev) => {
+      if (prev.length === 0) return exchanges;
+      const available = new Set(exchanges);
+      const next = prev.filter((ex) => available.has(ex));
+      return next.length === 0 ? exchanges : next;
+    });
+  }, [exchanges.join("|")]);
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) {

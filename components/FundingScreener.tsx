@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, ChevronDown, Search, X } from "lucide-react";
+import { RefreshCw, ChevronDown, Search, X, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeToken, formatAPR, formatExchange } from "@/lib/formatters";
 import { getRate, calculateMaxArb } from "@/lib/funding";
@@ -28,6 +28,7 @@ type SortKey = "token" | "max_arb" | string; // string for exchange column_keys
 
 const TIMEOUT_MS = 8000;
 const MAX_ATTEMPTS = 2;
+const FAVORITES_KEY = "funding-screener-favorites";
 
 /* ================= HELPERS ================= */
 
@@ -55,6 +56,7 @@ export default function FundingScreener() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [minAPR, setMinAPR] = useState<number | "">(0);
+  const [favoriteTokens, setFavoriteTokens] = useState<string[]>([]);
 
   const [sortKey, setSortKey] = useState<SortKey>("max_arb");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -138,6 +140,41 @@ export default function FundingScreener() {
     [exchangeColumns]
   );
 
+  useEffect(() => {
+    if (!exchanges.length) return;
+    setSelectedExchanges((prev) => {
+      if (prev.length === 0) return exchanges;
+      const available = new Set(exchanges);
+      const next = prev.filter((ex) => available.has(ex));
+      return next.length === 0 ? exchanges : next;
+    });
+  }, [exchanges.join("|")]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stored = window.localStorage.getItem(FAVORITES_KEY);
+      if (!stored) return;
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        setFavoriteTokens(parsed.filter((token): token is string => typeof token === "string"));
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoriteTokens));
+    } catch {
+      // ignore storage errors
+    }
+  }, [favoriteTokens]);
+
+  const favoriteSet = useMemo(() => new Set(favoriteTokens), [favoriteTokens]);
+
   const exchangesWithMultipleQuotes = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const col of exchangeColumns) {
@@ -176,6 +213,15 @@ export default function FundingScreener() {
     resetPage();
   };
 
+  const toggleFavorite = (token?: string | null) => {
+    if (!token) return;
+    setFavoriteTokens((prev) =>
+      prev.includes(token)
+        ? prev.filter((t) => t !== token)
+        : [token, ...prev]
+    );
+  };
+
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -208,6 +254,10 @@ export default function FundingScreener() {
 
     // Sort
     result.sort((a, b) => {
+      const aFav = a.token ? favoriteSet.has(a.token) : false;
+      const bFav = b.token ? favoriteSet.has(b.token) : false;
+      if (aFav !== bFav) return aFav ? -1 : 1;
+
       if (sortKey === "token") {
         const aToken = a.token ?? "";
         const bToken = b.token ?? "";
@@ -230,7 +280,7 @@ export default function FundingScreener() {
     });
 
     return result;
-  }, [rows, search, sortKey, sortDir, timeWindow, minAPR]);
+  }, [rows, search, sortKey, sortDir, timeWindow, minAPR, favoriteSet]);
 
   /* ---------- pagination ---------- */
   const totalPages = limit === -1 ? 1 : Math.ceil(filtered.length / limit);
@@ -240,7 +290,7 @@ export default function FundingScreener() {
   /* ---------- render ---------- */
   if (loading && rows.length === 0) {
     return (
-      <section className="px-6 py-4">
+      <section className="py-4">
         <SkeletonLoader rows={10} />
       </section>
     );
@@ -248,7 +298,7 @@ export default function FundingScreener() {
 
   if (error) {
     return (
-      <section className="px-6 py-4">
+      <section className="py-4">
         <div className={`rounded-lg ${TAILWIND.bg.surface} p-6 text-center`}>
           <p className="text-red-400 mb-4">{error}</p>
           <button
@@ -265,13 +315,13 @@ export default function FundingScreener() {
 
   return (
     <ErrorBoundary>
-      <section className="px-6 py-4">
+      <section className="py-4">
         {/* ---------- table wrapper ---------- */}
         <div className="rounded-2xl border border-[#343a4e] bg-[#292e40] overflow-hidden">
           {/* ---------- header row with controls ---------- */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-[#343a4e]">
-            <h2 className="text-lg font-semibold text-white">Funding Rates</h2>
-            
+          <div className="flex flex-wrap items-center gap-4 px-4 py-4">
+            <h2 className="text-base font-roboto text-white">Screener</h2>
+
             <div className="flex items-center gap-3 ml-auto">
               {/* Time window dropdown */}
               <div className="relative">
@@ -314,7 +364,7 @@ export default function FundingScreener() {
                   resetPage();
                 }}
                 onResetExchanges={() => {
-                  setSelectedExchanges([]);
+                  setSelectedExchanges(exchanges);
                   resetPage();
                 }}
                 open={filterOpen}
@@ -328,8 +378,8 @@ export default function FundingScreener() {
                   type="text"
                   value={search}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  placeholder="Search token..."
-                  className="h-9 rounded-md bg-transparent border border-[#383d50] text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-[#383d50] pl-9 pr-8 w-40"
+                  placeholder="Search asset"
+                  className={`${TAILWIND.input.default} pl-10 pr-9 bg-transparent border border-[#383d50] focus:bg-transparent focus:border-[#383d50]`}
                 />
                 {search && (
                   <button
@@ -347,10 +397,11 @@ export default function FundingScreener() {
 
           {/* ---------- table ---------- */}
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-xs">
+            <table className="table-fixed w-max border-collapse text-xs whitespace-nowrap">
               <colgroup>
+                <col className="w-[48px]" />
+                <col className="w-[90px]" />
                 <col className="w-[80px]" />
-                <col className="w-[75px]" />
                 {filteredColumns.map((col) => (
                   <col key={col.column_key} className="w-[75px]" />
                 ))}
@@ -358,7 +409,12 @@ export default function FundingScreener() {
 
               <thead>
                 <tr className="border-b border-[#343a4e] bg-[#292e40]">
-                  <th className="px-3 py-2 text-left font-medium text-gray-400 sticky left-0 bg-[#292e40] z-10">
+                  <th className="px-4 py-2 text-center font-medium text-gray-400 sticky left-0 bg-[#292e40] z-10">
+                    <span className="inline-flex w-full justify-center">
+                      <Star size={14} className="text-yellow-300 fill-yellow-300" />
+                    </span>
+                  </th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-400 sticky left-[48px] bg-[#292e40] z-10">
                     <SortableHeader
                       label="Asset"
                       active={sortKey === "token"}
@@ -366,7 +422,7 @@ export default function FundingScreener() {
                       onClick={() => toggleSort("token")}
                     />
                   </th>
-                  <th className="px-3 py-2 text-right font-medium text-gray-400 sticky left-[80px] bg-[#292e40] z-10">
+                  <th className="px-4 py-2 text-right font-medium text-gray-400 sticky left-[138px] bg-[#292e40] z-10">
                     <SortableHeader
                       label="Max Arb"
                       active={sortKey === "max_arb"}
@@ -375,7 +431,7 @@ export default function FundingScreener() {
                     />
                   </th>
                   {filteredColumns.map((col) => (
-                    <th key={col.column_key} className="px-2 py-2 text-right font-medium text-gray-400">
+                    <th key={col.column_key} className="px-2 py-2 text-right font-medium text-gray-400 whitespace-nowrap">
                       <SortableHeader
                         label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
                         active={sortKey === col.column_key}
@@ -391,7 +447,7 @@ export default function FundingScreener() {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan={2 + filteredColumns.length}
+                      colSpan={3 + filteredColumns.length}
                       className="px-4 py-8 text-center"
                     >
                       <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
@@ -403,7 +459,7 @@ export default function FundingScreener() {
                 ) : paginatedRows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={2 + filteredColumns.length}
+                      colSpan={3 + filteredColumns.length}
                       className="px-4 py-8 text-center text-gray-500 text-sm"
                     >
                       No tokens found
@@ -418,14 +474,32 @@ export default function FundingScreener() {
                         key={row.token ?? `row-${idx}`}
                         className="border-b border-[#343a4e] last:border-b-0 hover:bg-[#353b52] transition-colors group"
                       >
+                        {/* Favorite - sticky */}
+                        <td className="px-4 py-2 text-center sticky left-0 bg-[#292e40] group-hover:bg-[#353b52] z-10 transition-colors">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(row.token);
+                            }}
+                            disabled={!row.token}
+                            className="inline-flex items-center justify-center text-yellow-300 disabled:text-gray-600"
+                            aria-label={favoriteSet.has(row.token ?? "") ? "Remove from favorites" : "Add to favorites"}
+                          >
+                            <Star
+                              size={14}
+                              className={favoriteSet.has(row.token ?? "") ? "fill-yellow-300" : "fill-transparent"}
+                            />
+                          </button>
+                        </td>
                         {/* Asset - sticky */}
-                        <td className="px-3 py-2 font-medium text-white sticky left-0 bg-[#292e40] group-hover:bg-[#353b52] z-10 transition-colors">
+                        <td className="px-4 py-2 font-medium text-white sticky left-[48px] bg-[#292e40] group-hover:bg-[#353b52] z-10 transition-colors">
                           {row.token ?? "–"}
                         </td>
 
                         {/* Max Arb - sticky */}
                         <td
-                          className={`px-3 py-2 text-right font-mono tabular-nums sticky left-[80px] bg-[#292e40] group-hover:bg-[#353b52] z-10 transition-colors ${
+                          className={`px-4 py-2 text-right font-mono tabular-nums sticky left-[138px] bg-[#292e40] group-hover:bg-[#353b52] z-10 transition-colors ${
                             maxArb !== null && maxArb > 0
                               ? "text-emerald-400"
                               : "text-gray-500"

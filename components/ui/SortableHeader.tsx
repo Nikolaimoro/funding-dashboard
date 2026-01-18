@@ -26,7 +26,7 @@ export default function SortableHeader({
       onClick={onClick}
       className={`inline-flex items-center gap-1 select-none cursor-pointer ${centered ? "justify-center w-full" : "text-left"}`}
     >
-      <span className="text-gray-400">{label}</span>
+      <span className="text-gray-400 whitespace-nowrap">{label}</span>
       <span className="flex flex-col items-center leading-[0.7]">
         <span
           className={`text-[11px] inline-block origin-center scale-y-[0.6] ${upActive ? "text-gray-200" : "text-gray-500/70"}`}

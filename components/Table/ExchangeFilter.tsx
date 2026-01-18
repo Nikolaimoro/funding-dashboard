@@ -24,7 +24,7 @@ export default function ExchangeFilter({
   open,
   onOpenChange,
 }: ExchangeFilterProps) {
-  const hasSelection = selectedExchanges.length > 0;
+  const canReset = exchanges.length > 0 && selectedExchanges.length !== exchanges.length;
 
   return (
     <div className="relative">
@@ -34,9 +34,6 @@ export default function ExchangeFilter({
         type="button"
       >
         <span>Exchanges</span>
-        {selectedExchanges.length > 0 && (
-          <span className="text-blue-400">({selectedExchanges.length})</span>
-        )}
         <ChevronDown className="h-4 w-4 text-gray-300" />
       </button>
 
@@ -52,10 +49,10 @@ export default function ExchangeFilter({
               <button
                 type="button"
                 onClick={onResetExchanges}
-                disabled={!hasSelection}
+                disabled={!canReset}
                 className={[
                   "font-light transition",
-                  hasSelection
+                  canReset
                     ? "text-gray-200 underline underline-offset-2"
                     : "text-gray-400/50",
                 ].join(" ")}

@@ -81,10 +81,6 @@ export default function MinimumFilter({
   open,
   onOpenChange,
 }: MinimumFilterProps) {
-  const activeFilters =
-    (typeof minOI === "number" && minOI > 0 ? 1 : 0) +
-    (typeof minVolume === "number" && minVolume > 0 ? 1 : 0);
-
   const clampedMinOI =
     typeof minOI === "number" ? clampValue(minOI, maxOI) : 0;
   const clampedMinVolume =
@@ -108,9 +104,6 @@ export default function MinimumFilter({
         type="button"
       >
         <span>Filters</span>
-        {activeFilters > 0 && (
-          <span className="text-blue-400">({activeFilters})</span>
-        )}
         <ChevronDown className="h-4 w-4 text-gray-300" />
       </button>
 

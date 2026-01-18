@@ -195,7 +195,7 @@ export default function ArbitrageTable() {
     resetPage();
   };
   const resetExchanges = () => {
-    setSelectedExchanges([]);
+    setSelectedExchanges(exchanges);
     resetPage();
   };
 
@@ -204,9 +204,13 @@ export default function ArbitrageTable() {
    * Prevents invalid filter selections when dataset changes
    */
   useEffect(() => {
-    if (!selectedExchanges.length) return;
+    if (!exchanges.length) return;
     const available = new Set(exchanges);
-    setSelectedExchanges((prev) => prev.filter((ex) => available.has(ex)));
+    setSelectedExchanges((prev) => {
+      if (prev.length === 0) return exchanges;
+      const next = prev.filter((ex) => available.has(ex));
+      return next.length === 0 ? exchanges : next;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exchanges.join("|")]);
 
@@ -302,7 +306,7 @@ export default function ArbitrageTable() {
             maxVolume={maxVolume}
             filtersOpen={filtersOpen}
             onFiltersOpenChange={setFiltersOpen}
-            searchPlaceholder="Search token"
+            searchPlaceholder="Search asset"
             inputClassName={TAILWIND.input.default}
             className="ml-auto"
           />
