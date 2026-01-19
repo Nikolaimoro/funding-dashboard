@@ -172,7 +172,8 @@ function AprInfo() {
     if (!showTooltip && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
-      const maxWidth = Math.min(320, viewportWidth - 32);
+      const baseWidth = 256; // w-64
+      const maxWidth = Math.min(baseWidth, viewportWidth - 32);
       const minCenter = 16 + maxWidth / 2;
       const maxCenter = Math.max(minCenter, viewportWidth - 16 - maxWidth / 2);
       const desiredCenter = rect.left + rect.width / 2;
@@ -203,10 +204,10 @@ function AprInfo() {
         createPortal(
           <div
             ref={tooltipRef}
-            style={{ top: tooltipPos.top, left: tooltipPos.left, maxWidth: tooltipWidth }}
+            style={{ top: tooltipPos.top, left: tooltipPos.left, width: tooltipWidth, maxWidth: tooltipWidth }}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
-            className="fixed z-[9999] -translate-x-1/2 -translate-y-full w-64 sm:w-80 max-w-[calc(100vw-32px)] p-3 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-gray-300 leading-relaxed text-left animate-tooltip pointer-events-auto"
+            className="fixed z-[9999] -translate-x-1/2 -translate-y-full p-3 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-gray-300 leading-relaxed text-left animate-tooltip pointer-events-auto"
           >
             <p className="text-left">Estimated APR based on historical funding data over the last 15 days.</p>
             <div className="absolute left-1/2 bottom-0 translate-y-full -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#343a4e]" />
