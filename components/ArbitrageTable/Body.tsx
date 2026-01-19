@@ -95,19 +95,35 @@ function StabilityInfo() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showTooltip]);
 
+  const updatePosition = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    setTooltipPos({
+      top: rect.top + rect.height / 2,
+      left: rect.left - 8,
+    });
+  };
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!showTooltip && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setTooltipPos({
-        top: rect.top + rect.height / 2,
-        left: rect.left - 8,
-      });
+      updatePosition();
       setShowTooltip(true);
       return;
     }
     setShowTooltip(false);
   };
+
+  useEffect(() => {
+    if (!showTooltip) return;
+    const handleUpdate = () => updatePosition();
+    window.addEventListener("scroll", handleUpdate, true);
+    window.addEventListener("resize", handleUpdate);
+    return () => {
+      window.removeEventListener("scroll", handleUpdate, true);
+      window.removeEventListener("resize", handleUpdate);
+    };
+  }, [showTooltip]);
 
   return (
     <>
@@ -167,20 +183,36 @@ function AprInfo() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showTooltip]);
 
+  const updatePosition = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    setTooltipPos({
+      top: rect.top,
+      left: rect.left + rect.width / 2,
+    });
+    setTooltipShiftX(0);
+  };
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!showTooltip && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setTooltipPos({
-        top: rect.top,
-        left: rect.left + rect.width / 2,
-      });
-      setTooltipShiftX(0);
+      updatePosition();
       setShowTooltip(true);
       return;
     }
     setShowTooltip(false);
   };
+
+  useEffect(() => {
+    if (!showTooltip) return;
+    const handleUpdate = () => updatePosition();
+    window.addEventListener("scroll", handleUpdate, true);
+    window.addEventListener("resize", handleUpdate);
+    return () => {
+      window.removeEventListener("scroll", handleUpdate, true);
+      window.removeEventListener("resize", handleUpdate);
+    };
+  }, [showTooltip]);
 
   useEffect(() => {
     if (!showTooltip || !tooltipRef.current) return;
