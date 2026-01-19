@@ -53,6 +53,7 @@ export default function FundingTable({
   const [search, setSearch] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [exchangesInitialized, setExchangesInitialized] = useState(false);
   
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [minOI, setMinOI] = useState<number | "">(0);
@@ -135,6 +136,7 @@ export default function FundingTable({
             const valid = parsed.filter((ex): ex is string => typeof ex === "string" && available.has(ex));
             if (valid.length > 0) {
               setSelectedExchanges(valid);
+              setExchangesInitialized(true);
               return;
             }
           }
@@ -144,21 +146,19 @@ export default function FundingTable({
       }
     }
     setSelectedExchanges(exchanges);
+    setExchangesInitialized(true);
   }, [exchanges.join("|")]);
 
-  // Save exchange selection to localStorage
+  // Save exchange selection to localStorage (only after initial load)
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!exchangesInitialized) return; // Don't save until initial load is complete
     try {
-      if (selectedExchanges.length === 0) {
-        window.localStorage.removeItem(EXCHANGES_KEY);
-      } else {
-        window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
-      }
+      window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
     } catch {
       // ignore storage errors
     }
-  }, [selectedExchanges]);
+  }, [selectedExchanges, exchangesInitialized]);
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) {
