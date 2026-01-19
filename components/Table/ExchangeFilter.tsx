@@ -6,6 +6,7 @@
 import { ChevronDown } from "lucide-react";
 import { formatExchange } from "@/lib/formatters";
 import { TAILWIND } from "@/lib/theme";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 
 interface ExchangeFilterProps {
   exchanges: string[];
@@ -91,7 +92,8 @@ export default function ExchangeFilter({
                     onChange={() => onToggleExchange(ex)}
                     className="cursor-pointer h-4 w-4 accent-blue-500"
                   />
-                  <span className="text-sm text-gray-200">
+                  <span className="text-sm text-gray-200 inline-flex items-center gap-1.5">
+                    <ExchangeIcon exchange={ex} size={16} />
                     {formatExchange(ex)}
                   </span>
                 </label>

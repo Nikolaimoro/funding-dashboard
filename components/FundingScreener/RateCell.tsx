@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { formatAPR, formatCompactUSD, formatExchange } from "@/lib/formatters";
 import { isValidUrl } from "@/lib/validation";
 import { FundingMatrixMarket } from "@/lib/types";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 
 interface RateCellProps {
   market: FundingMatrixMarket;
@@ -91,7 +92,8 @@ export default function RateCell({ market, rate, token, role }: RateCellProps) {
             className="fixed z-[100] w-44 p-2 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-left pointer-events-none -translate-x-1/2 -translate-y-full"
             style={{ left: tooltipPos.x, top: tooltipPos.y }}
           >
-            <div className="font-medium text-white mb-1">
+            <div className="font-medium text-white mb-1 flex items-center gap-1.5">
+              <ExchangeIcon exchange={market.exchange} size={14} />
               {exchangeName}{displayToken ? ` · ${displayToken}` : ""}
             </div>
             <div className="flex justify-between text-gray-400">

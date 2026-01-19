@@ -5,6 +5,7 @@ import { ArrowRightLeft } from "lucide-react";
 import { normalizeToken } from "@/lib/formatters";
 import { EXCHANGE_LABEL } from "@/lib/constants";
 import { TAILWIND } from "@/lib/theme";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import dynamic from "next/dynamic";
 import type { BacktesterChartData } from "@/lib/types/backtester";
 
@@ -330,8 +331,9 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                                   setLongExSearch("");
                                   setOpenCombo(null);
                                 }}
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-[#353b52] transition"
+                                className="w-full px-3 py-2 text-left text-sm hover:bg-[#353b52] transition flex items-center gap-2"
                               >
+                                <ExchangeIcon exchange={ex.exchange} size={16} />
                                 {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{baseAsset.quotes.length > 1 ? ` (${quote.asset})` : ""}
                               </button>
                             ))}
@@ -398,8 +400,9 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                                   setShortExSearch("");
                                   setOpenCombo(null);
                                 }}
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-[#353b52] transition"
+                                className="w-full px-3 py-2 text-left text-sm hover:bg-[#353b52] transition flex items-center gap-2"
                               >
+                                <ExchangeIcon exchange={ex.exchange} size={16} />
                                 {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{baseAsset.quotes.length > 1 ? ` (${quote.asset})` : ""}
                               </button>
                             ))}

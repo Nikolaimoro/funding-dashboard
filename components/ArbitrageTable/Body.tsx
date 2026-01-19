@@ -7,6 +7,7 @@ import { formatCompactUSD, formatAPR, formatExchange } from "@/lib/formatters";
 import { TAILWIND } from "@/lib/theme";
 import { ArbRow, SortDir } from "@/lib/types";
 import SortableHeader from "@/components/ui/SortableHeader";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 
 type SortKey = "opportunity_apr" | "stability";
 
@@ -141,9 +142,10 @@ function StabilityInfo() {
 interface LongButtonProps {
   href: string | null;
   label: string;
+  exchange: string;
 }
 
-function LongButton({ href, label }: LongButtonProps) {
+function LongButton({ href, label, exchange }: LongButtonProps) {
   if (!href) return <span className="text-gray-600">–</span>;
 
   return (
@@ -153,7 +155,7 @@ function LongButton({ href, label }: LongButtonProps) {
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className="
-        inline-flex items-center px-2.5 py-1 rounded-md text-[12px] sm:px-3 sm:py-1 sm:text-sm font-medium
+        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] sm:px-3 sm:py-1 sm:text-sm font-medium
         -translate-x-0.5 sm:translate-x-0
         text-green-400
         border border-green-500/30
@@ -161,6 +163,7 @@ function LongButton({ href, label }: LongButtonProps) {
         whitespace-nowrap
       "
     >
+      <ExchangeIcon exchange={exchange} size={16} />
       {label}
     </a>
   );
@@ -169,9 +172,10 @@ function LongButton({ href, label }: LongButtonProps) {
 interface ShortButtonProps {
   href: string | null;
   label: string;
+  exchange: string;
 }
 
-function ShortButton({ href, label }: ShortButtonProps) {
+function ShortButton({ href, label, exchange }: ShortButtonProps) {
   if (!href) return <span className="text-gray-600">–</span>;
 
   return (
@@ -181,7 +185,7 @@ function ShortButton({ href, label }: ShortButtonProps) {
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className="
-        inline-flex items-center px-2.5 py-1 rounded-md text-[12px] sm:px-3 sm:py-1 sm:text-sm font-medium
+        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] sm:px-3 sm:py-1 sm:text-sm font-medium
         -translate-x-0.5 sm:translate-x-0
         text-red-400
         border border-red-500/30
@@ -189,6 +193,7 @@ function ShortButton({ href, label }: ShortButtonProps) {
         whitespace-nowrap
       "
     >
+      <ExchangeIcon exchange={exchange} size={16} />
       {label}
     </a>
   );
@@ -341,6 +346,7 @@ export default function ArbitrageTableBody({
                   <LongButton
                     href={r.long_url}
                     label={formatExchange(r.long_exchange)}
+                    exchange={r.long_exchange}
                   />
                 </td>
 
@@ -348,6 +354,7 @@ export default function ArbitrageTableBody({
                   <ShortButton
                     href={r.short_url}
                     label={formatExchange(r.short_exchange)}
+                    exchange={r.short_exchange}
                   />
                 </td>
 

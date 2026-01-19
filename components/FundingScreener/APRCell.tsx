@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatAPR, formatExchange } from "@/lib/formatters";
 import { ArbPair } from "@/lib/funding";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 
 interface APRCellProps {
   maxArb: number | null;
@@ -35,15 +36,17 @@ export default function APRCell({ maxArb, arbPair }: APRCellProps) {
             className="fixed z-[100] w-44 p-2 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-left pointer-events-none -translate-x-1/2 -translate-y-full"
             style={{ left: tooltipPos.x, top: tooltipPos.y }}
           >
-            <div className="flex justify-between text-gray-400 mb-1">
+            <div className="flex justify-between items-center text-gray-400 mb-1">
               <span>Long</span>
-              <span className="text-emerald-400 font-medium">
+              <span className="text-emerald-400 font-medium inline-flex items-center gap-1">
+                <ExchangeIcon exchange={arbPair.longMarket.exchange} size={14} />
                 {formatExchange(arbPair.longMarket.exchange)}
               </span>
             </div>
-            <div className="flex justify-between text-gray-400">
+            <div className="flex justify-between items-center text-gray-400">
               <span>Short</span>
-              <span className="text-red-400 font-medium">
+              <span className="text-red-400 font-medium inline-flex items-center gap-1">
+                <ExchangeIcon exchange={arbPair.shortMarket.exchange} size={14} />
                 {formatExchange(arbPair.shortMarket.exchange)}
               </span>
             </div>

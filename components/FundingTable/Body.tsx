@@ -4,6 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { formatExchange, formatAPR, formatCompactUSD } from "@/lib/formatters";
 import { TAILWIND } from "@/lib/theme";
 import SortableHeader from "@/components/ui/SortableHeader";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { FundingRow, SortDir } from "@/lib/types";
 
 type SortKey =
@@ -151,7 +152,12 @@ export default function FundingTableBody({
               onClick={() => onRowClick(r)}
               className={`${TAILWIND.table.row} ${TAILWIND.bg.hover} cursor-pointer transition-colors`}
             >
-              <td className="px-4 py-4 text-left text-white font-mono">{formatExchange(r.exchange)}</td>
+              <td className="px-4 py-4 text-left text-white font-mono">
+                <span className="inline-flex items-center gap-1.5">
+                  <ExchangeIcon exchange={r.exchange} size={16} />
+                  {formatExchange(r.exchange)}
+                </span>
+              </td>
               <td className="px-4 py-4 text-left font-mono font-semibold text-white">
                 {r.ref_url ? (
                   <a

@@ -19,6 +19,7 @@ import RateCell from "@/components/FundingScreener/RateCell";
 import APRCell from "@/components/FundingScreener/APRCell";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import SortableHeader from "@/components/ui/SortableHeader";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { TAILWIND } from "@/lib/theme";
 import { withTimeout } from "@/lib/async";
 
@@ -508,13 +509,17 @@ export default function FundingScreener() {
                     />
                   </th>
                   {filteredColumns.map((col) => (
-                    <th key={col.column_key} className={`${TAILWIND.table.header} text-right whitespace-nowrap`}>
-                      <SortableHeader
-                        label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
-                        active={sortKey === col.column_key}
-                        dir={sortDir}
-                        onClick={() => toggleSort(col.column_key)}
-                      />
+                    <th key={col.column_key} className={`${TAILWIND.table.header} text-center whitespace-nowrap`}>
+                      <div className="flex flex-col items-center gap-1">
+                        <ExchangeIcon exchange={col.exchange} size={18} />
+                        <SortableHeader
+                          label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
+                          active={sortKey === col.column_key}
+                          dir={sortDir}
+                          onClick={() => toggleSort(col.column_key)}
+                          centered
+                        />
+                      </div>
                     </th>
                   ))}
                 </tr>

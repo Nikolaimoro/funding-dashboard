@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ExternalLink } from "lucide-react";
 import { formatExchange } from "@/lib/formatters";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { COLORS, CHART_CONFIG } from "@/lib/theme";
 import { RPC_FUNCTIONS } from "@/lib/constants";
 import { ArbChartRow } from "@/lib/types";
@@ -350,6 +351,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
                   className="inline-flex items-center gap-2 px-4 py-2 rounded bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 transition"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <ExchangeIcon exchange={selectedLongEx || ""} size={18} />
                   <span className="font-semibold">{formatExchange(selectedLongEx || "")}</span>
                   <ExternalLink size={16} />
                 </a>
@@ -363,6 +365,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
                   className="inline-flex items-center gap-2 px-4 py-2 rounded bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <ExchangeIcon exchange={selectedShortEx || ""} size={18} />
                   <span className="font-semibold">{formatExchange(selectedShortEx || "")}</span>
                   <ExternalLink size={16} />
                 </a>
