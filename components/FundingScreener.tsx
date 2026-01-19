@@ -395,10 +395,10 @@ export default function FundingScreener() {
         {/* ---------- table wrapper ---------- */}
         <div className="rounded-2xl border border-[#343a4e] bg-[#292e40]">
           {/* ---------- header row with controls ---------- */}
-          <div className="flex flex-wrap items-center gap-4 px-4 py-4">
+          <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:gap-4">
             <h2 className="text-base font-roboto text-white">Screener</h2>
 
-            <div className="flex items-center gap-3 ml-auto">
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:ml-auto">
               {/* Time window dropdown */}
               <div className="relative">
                 <select
@@ -450,14 +450,14 @@ export default function FundingScreener() {
               />
 
               {/* Search */}
-              <div className="relative">
+              <div className="relative w-full order-last sm:order-none sm:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-4 h-4" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Search asset"
-                  className={`${TAILWIND.input.default} pl-10 pr-9 bg-transparent border border-[#383d50] focus:bg-transparent focus:border-[#383d50]`}
+                  className={`${TAILWIND.input.default} w-full pl-10 pr-9 bg-transparent border border-[#383d50] focus:bg-transparent focus:border-[#383d50]`}
                 />
                 {search && (
                   <button
@@ -487,12 +487,12 @@ export default function FundingScreener() {
 
               <thead>
                 <tr className="border-b border-[#343a4e] bg-[#292e40]">
-                  <th className={`${TAILWIND.table.header} text-center sticky left-0 bg-[#292e40] z-10`}>
+                  <th className={`${TAILWIND.table.header} text-center md:sticky md:left-0 md:z-10 bg-[#292e40]`}>
                     <span className="inline-flex w-full justify-center">
                       <GradientStar filled size={14} />
                     </span>
                   </th>
-                  <th className={`${TAILWIND.table.header} sticky left-[48px] bg-[#292e40] z-10`}>
+                  <th className={`${TAILWIND.table.header} md:sticky md:left-[48px] md:z-10 bg-[#292e40]`}>
                     <SortableHeader
                       label="Asset"
                       active={sortKey === "token"}
@@ -500,7 +500,7 @@ export default function FundingScreener() {
                       onClick={() => toggleSort("token")}
                     />
                   </th>
-                  <th className={`${TAILWIND.table.header} text-right sticky left-[138px] bg-[#292e40] z-10`}>
+                  <th className={`${TAILWIND.table.header} text-right md:sticky md:left-[138px] md:z-10 bg-[#292e40]`}>
                     <SortableHeader
                       label="APR"
                       active={sortKey === "max_arb"}
@@ -554,7 +554,7 @@ export default function FundingScreener() {
                         className="border-b border-[#343a4e] last:border-b-0 hover:bg-[#353b52] transition-colors group"
                       >
                         {/* Favorite - sticky */}
-                        <td className="px-4 py-2 text-center sticky left-0 bg-[#292e40] group-hover:bg-[#353b52] z-10 transition-colors">
+                        <td className="px-4 py-2 text-center md:sticky md:left-0 md:z-10 bg-[#292e40] group-hover:bg-[#353b52] transition-colors">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -569,13 +569,13 @@ export default function FundingScreener() {
                           </button>
                         </td>
                         {/* Asset - sticky */}
-                        <td className="px-4 py-2 font-medium text-white sticky left-[48px] bg-[#292e40] group-hover:bg-[#353b52] z-10 transition-colors">
+                        <td className="px-4 py-2 font-medium text-white md:sticky md:left-[48px] md:z-10 bg-[#292e40] group-hover:bg-[#353b52] transition-colors">
                           {row.token ?? "–"}
                         </td>
 
                         {/* APR - sticky */}
                         <td
-                          className={`px-4 py-2 text-right font-mono tabular-nums sticky left-[138px] bg-[#292e40] group-hover:bg-[#353b52] z-10 transition-colors`}
+                          className={`px-4 py-2 text-right font-mono tabular-nums md:sticky md:left-[138px] md:z-10 bg-[#292e40] group-hover:bg-[#353b52] transition-colors`}
                         >
                           <APRCell maxArb={maxArb} arbPair={arbPair} />
                         </td>
