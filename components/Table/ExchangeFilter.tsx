@@ -47,7 +47,7 @@ export default function ExchangeFilter({
             className="fixed inset-0 z-40"
             onClick={() => onOpenChange(false)}
           />
-          <div className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-[min(92vw,340px)] sm:w-72 p-2 shadow-lg animate-dropdown right-0 sm:left-0 sm:right-auto">
+          <div className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-[min(92vw,340px)] sm:w-72 p-2 shadow-lg animate-tooltip-zoom right-0 sm:left-0 sm:right-auto">
             <div className="flex items-center justify-between px-2 pb-2 text-xs">
               <span className="font-light text-gray-300">Select Exchanges</span>
               <div className="flex items-center gap-2">

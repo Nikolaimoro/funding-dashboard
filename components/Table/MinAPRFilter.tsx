@@ -103,7 +103,7 @@ export default function MinAPRFilter({
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => onOpenChange(false)} />
-          <div className="absolute z-20 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-56 p-3 shadow-lg space-y-3 animate-dropdown-in">
+          <div className="absolute z-20 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-56 p-3 shadow-lg space-y-3 animate-tooltip-zoom">
             <div>
               <label className="block text-sm text-gray-300 mb-1">
                 Min Max Arb (%)

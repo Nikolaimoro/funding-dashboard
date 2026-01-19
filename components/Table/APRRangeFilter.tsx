@@ -176,7 +176,7 @@ export default function APRRangeFilter({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => onOpenChange(false)} />
-          <div className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-64 p-3 shadow-lg space-y-3 animate-dropdown">
+          <div className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-64 p-3 shadow-lg space-y-3 animate-tooltip-zoom">
             <div>
               <label className="block text-sm text-gray-300 mb-3">
                 APR Range (%)
