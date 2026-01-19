@@ -26,6 +26,7 @@ interface BacktesterFormProps {
 type ComboboxType = "token" | "long-ex" | "short-ex";
 
 export default function BacktesterForm({ tokens, exchanges, initialToken = "", initialLongEx = "", initialShortEx = "", initialLongQuote = "", initialShortQuote = "" }: BacktesterFormProps) {
+  const autoRunRef = useRef(false);
   const [selectedToken, setSelectedToken] = useState<string>(initialToken);
   const [selectedLongEx, setSelectedLongEx] = useState<string>(initialLongEx);
   const [selectedLongQuote, setSelectedLongQuote] = useState<string>(initialLongQuote);
@@ -180,6 +181,47 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       }
     }
   }, [initialToken, initialLongEx, initialLongQuote, initialShortEx, initialShortQuote, exchanges]);
+
+  // Auto-run chart when opening with URL params and market IDs are resolved
+  useEffect(() => {
+    const shouldAutoRun = Boolean(initialToken && initialLongEx && initialShortEx);
+    if (!shouldAutoRun || autoRunRef.current) return;
+    if (
+      selectedToken &&
+      selectedLongEx &&
+      selectedShortEx &&
+      selectedLongQuote &&
+      selectedShortQuote &&
+      selectedLongMarketId &&
+      selectedShortMarketId
+    ) {
+      setChartData({
+        token: selectedToken,
+        longEx: selectedLongEx,
+        shortEx: selectedShortEx,
+        longQuote: selectedLongQuote,
+        shortQuote: selectedShortQuote,
+        longMarketId: selectedLongMarketId,
+        shortMarketId: selectedShortMarketId,
+        longRefUrl: selectedLongRefUrl,
+        shortRefUrl: selectedShortRefUrl,
+      });
+      autoRunRef.current = true;
+    }
+  }, [
+    initialToken,
+    initialLongEx,
+    initialShortEx,
+    selectedToken,
+    selectedLongEx,
+    selectedShortEx,
+    selectedLongQuote,
+    selectedShortQuote,
+    selectedLongMarketId,
+    selectedShortMarketId,
+    selectedLongRefUrl,
+    selectedShortRefUrl,
+  ]);
 
   const handleSwapExchanges = () => {
     const tempEx = selectedLongEx;

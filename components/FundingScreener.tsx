@@ -581,7 +581,7 @@ export default function FundingScreener() {
                         <td
                           className={`px-4 py-2 text-right font-mono tabular-nums md:sticky md:left-[138px] md:z-10 bg-[#292e40] group-hover:bg-[#353b52] transition-colors`}
                         >
-                          <APRCell maxArb={maxArb} arbPair={arbPair} />
+                          <APRCell maxArb={maxArb} arbPair={arbPair} token={row.token} />
                         </td>
 
                         {/* Exchange columns */}

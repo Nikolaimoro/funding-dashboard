@@ -9,9 +9,10 @@ import ExchangeIcon from "@/components/ui/ExchangeIcon";
 interface APRCellProps {
   maxArb: number | null;
   arbPair: ArbPair | null;
+  token?: string | null;
 }
 
-export default function APRCell({ maxArb, arbPair }: APRCellProps) {
+export default function APRCell({ maxArb, arbPair, token }: APRCellProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
@@ -29,6 +30,18 @@ export default function APRCell({ maxArb, arbPair }: APRCellProps) {
     setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top - 8 });
   };
 
+  const historyUrl = (() => {
+    if (!arbPair || !token) return null;
+    const longExchange = arbPair.longMarket.exchange;
+    const shortExchange = arbPair.shortMarket.exchange;
+    const longQuote = arbPair.longMarket.quote;
+    const shortQuote = arbPair.shortMarket.quote;
+    if (!longExchange || !shortExchange || !longQuote || !shortQuote) return null;
+    const exchange1 = `${longExchange}${String(longQuote).toLowerCase()}`;
+    const exchange2 = `${shortExchange}${String(shortQuote).toLowerCase()}`;
+    return `/backtester?token=${encodeURIComponent(token)}&exchange1=${encodeURIComponent(exchange1)}&exchange2=${encodeURIComponent(exchange2)}`;
+  })();
+
   const tooltip =
     showTooltip && tooltipPos && arbPair && typeof document !== "undefined"
       ? createPortal(
@@ -36,6 +49,12 @@ export default function APRCell({ maxArb, arbPair }: APRCellProps) {
             className="fixed z-[100] w-44 p-2 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-left pointer-events-none -translate-x-1/2 -translate-y-full"
             style={{ left: tooltipPos.x, top: tooltipPos.y }}
           >
+            {historyUrl && (
+              <div className="mb-2 text-[10px] text-gray-400 break-all">
+                {historyUrl}
+              </div>
+            )}
+            <div className="mb-2 text-xs text-white">Click to open the history chart</div>
             <div className="flex justify-between items-center text-gray-400 mb-1">
               <span>Long</span>
               <span className="text-emerald-400 font-medium inline-flex items-center gap-1">
@@ -56,19 +75,34 @@ export default function APRCell({ maxArb, arbPair }: APRCellProps) {
         )
       : null;
 
+  const content = (
+    <span
+      ref={triggerRef}
+      className={`${rateColor} relative cursor-pointer`}
+      onMouseEnter={() => {
+        updateTooltipPosition();
+        setShowTooltip(true);
+      }}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {formatAPR(maxArb)}
+    </span>
+  );
+
+  if (historyUrl) {
+    return (
+      <>
+        <a href={historyUrl} target="_blank" rel="noopener noreferrer">
+          {content}
+        </a>
+        {tooltip}
+      </>
+    );
+  }
+
   return (
     <>
-      <span
-        ref={triggerRef}
-        className={`${rateColor} relative cursor-default`}
-        onMouseEnter={() => {
-          updateTooltipPosition();
-          setShowTooltip(true);
-        }}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
-        {formatAPR(maxArb)}
-      </span>
+      {content}
       {tooltip}
     </>
   );
