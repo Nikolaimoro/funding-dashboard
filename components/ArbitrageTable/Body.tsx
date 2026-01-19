@@ -125,7 +125,7 @@ function LongButton({ href, label }: LongButtonProps) {
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className="
-        inline-flex items-center px-2 py-0.5 rounded-md text-[11px] sm:px-3 sm:py-1 sm:text-sm font-medium
+        inline-flex items-center px-2.5 py-1 rounded-md text-[12px] sm:px-3 sm:py-1 sm:text-sm font-medium
         -translate-x-0.5 sm:translate-x-0
         text-green-400
         border border-green-500/30
@@ -153,7 +153,7 @@ function ShortButton({ href, label }: ShortButtonProps) {
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className="
-        inline-flex items-center px-2 py-0.5 rounded-md text-[11px] sm:px-3 sm:py-1 sm:text-sm font-medium
+        inline-flex items-center px-2.5 py-1 rounded-md text-[12px] sm:px-3 sm:py-1 sm:text-sm font-medium
         -translate-x-0.5 sm:translate-x-0
         text-red-400
         border border-red-500/30
@@ -226,7 +226,7 @@ export default function ArbitrageTableBody({
               </span>
             </th>
 
-            <th className={`${TAILWIND.table.header} text-center pl-10 sm:pl-4`}>
+            <th className={`${TAILWIND.table.header} text-center pl-12 sm:pl-4`}>
               <SortableHeader
                 label="APR"
                 active={sortKey === "opportunity_apr"}
@@ -246,7 +246,7 @@ export default function ArbitrageTableBody({
                 Short
               </span>
             </th>
-            <th className={`${TAILWIND.table.header} text-left sm:text-center pl-0 sm:pl-4`}>
+            <th className={`${TAILWIND.table.header} text-left sm:text-center pl-0 sm:pl-4 -ml-2 sm:ml-0`}>
               <span className="inline-flex items-center gap-1 justify-start sm:justify-center w-full select-none text-gray-400">
                 Open Interest
               </span>
@@ -303,7 +303,7 @@ export default function ArbitrageTableBody({
                   {r.base_asset}
                 </td>
 
-                <td className="py-4 pr-4 pl-8 sm:pl-4 text-center">
+                <td className="py-4 pr-4 pl-12 sm:pl-4 text-center">
                   <span className="inline-flex w-full justify-center">
                     {formatAPRNode(r.opportunity_apr)}
                   </span>
@@ -323,7 +323,7 @@ export default function ArbitrageTableBody({
                   />
                 </td>
 
-                <td className="py-4 pr-4 pl-0 sm:pl-4 text-left sm:text-center">
+                <td className="py-4 pr-4 pl-0 sm:pl-4 -ml-6 sm:ml-0 text-left sm:text-center">
                   <span className="inline-flex w-full justify-start sm:justify-center font-mono tabular-nums text-[14px] sm:text-base text-white">
                     <span>{formatCompactUSD(r.long_open_interest)}</span>
                     <span className="text-gray-500 px-1">/</span>
