@@ -226,7 +226,7 @@ export default function ArbitrageTableBody({
               </span>
             </th>
 
-            <th className={`${TAILWIND.table.header} text-center pl-6 sm:pl-4`}>
+            <th className={`${TAILWIND.table.header} text-center pl-10 sm:pl-4`}>
               <SortableHeader
                 label="APR"
                 active={sortKey === "opportunity_apr"}
@@ -246,7 +246,7 @@ export default function ArbitrageTableBody({
                 Short
               </span>
             </th>
-            <th className={`${TAILWIND.table.header} text-left sm:text-center pl-2 sm:pl-4`}>
+            <th className={`${TAILWIND.table.header} text-left sm:text-center pl-0 sm:pl-4`}>
               <span className="inline-flex items-center gap-1 justify-start sm:justify-center w-full select-none text-gray-400">
                 Open Interest
               </span>
@@ -303,7 +303,7 @@ export default function ArbitrageTableBody({
                   {r.base_asset}
                 </td>
 
-                <td className="py-4 pr-4 pl-6 sm:pl-4 text-center">
+                <td className="py-4 pr-4 pl-8 sm:pl-4 text-center">
                   <span className="inline-flex w-full justify-center">
                     {formatAPRNode(r.opportunity_apr)}
                   </span>
@@ -323,7 +323,7 @@ export default function ArbitrageTableBody({
                   />
                 </td>
 
-                <td className="py-4 pr-4 pl-2 sm:pl-4 text-left sm:text-center">
+                <td className="py-4 pr-4 pl-0 sm:pl-4 text-left sm:text-center">
                   <span className="inline-flex w-full justify-start sm:justify-center font-mono tabular-nums text-[14px] sm:text-base text-white">
                     <span>{formatCompactUSD(r.long_open_interest)}</span>
                     <span className="text-gray-500 px-1">/</span>

@@ -192,7 +192,7 @@ export default function AppHeader() {
             : "opacity-0 pointer-events-none -translate-y-4",
         ].join(" ")}
       >
-        <nav className="flex flex-col items-start gap-1 w-full px-6 pt-6">
+        <nav className="flex flex-col items-start gap-1 w-full pl-10 pr-6 pt-6">
           {mobileNavLink("/funding", "Funding")}
           {mobileNavLink("/markets", "Markets")}
           {mobileNavLink("/arbitrage", "Arbitrage")}
