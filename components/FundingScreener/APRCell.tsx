@@ -49,12 +49,6 @@ export default function APRCell({ maxArb, arbPair, token }: APRCellProps) {
             className="fixed z-[100] w-44 p-2 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-left pointer-events-none -translate-x-1/2 -translate-y-full"
             style={{ left: tooltipPos.x, top: tooltipPos.y }}
           >
-            {historyUrl && (
-              <div className="mb-2 text-[10px] text-gray-400 break-all">
-                {historyUrl}
-              </div>
-            )}
-            <div className="mb-2 text-xs text-white">Click to open the history chart</div>
             <div className="flex justify-between items-center text-gray-400 mb-1">
               <span>Long</span>
               <span className="text-emerald-400 font-medium inline-flex items-center gap-1">
@@ -69,6 +63,7 @@ export default function APRCell({ maxArb, arbPair, token }: APRCellProps) {
                 {formatExchange(arbPair.shortMarket.exchange)}
               </span>
             </div>
+            <div className="mt-2 text-xs text-white">Click to open the history chart</div>
             <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#343a4e]" />
           </div>,
           document.body
