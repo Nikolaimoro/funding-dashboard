@@ -172,8 +172,10 @@ export default function FundingScreener() {
           if (Array.isArray(parsed)) {
             const available = new Set(exchanges);
             const valid = parsed.filter((ex): ex is string => typeof ex === "string" && available.has(ex));
-            setSelectedExchanges(valid);
-            return;
+            if (valid.length > 0) {
+              setSelectedExchanges(valid);
+              return;
+            }
           }
         }
       } catch {
@@ -187,7 +189,11 @@ export default function FundingScreener() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
+      if (selectedExchanges.length === 0) {
+        window.localStorage.removeItem(EXCHANGES_KEY);
+      } else {
+        window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
+      }
     } catch {
       // ignore storage errors
     }

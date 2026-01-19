@@ -126,20 +126,13 @@ export default function AppHeader() {
   };
 
   const mobileNavLink = (href: string, label: string) => {
-    const active = path.startsWith(href);
     return (
       <Link
         href={href}
         onClick={() => setMobileMenuOpen(false)}
-        className={[
-          "block w-full text-lg font-roboto font-normal py-3 text-left transition-colors duration-200",
-          active ? "text-white" : "text-gray-400 hover:text-white",
-        ].join(" ")}
+        className="block w-full text-lg font-roboto font-normal py-3 text-left text-white"
       >
         {label}
-        {active && (
-          <span className="block mt-2 w-12 h-[2px] bg-gradient-to-r from-[#9E5DEE] to-[#FA814D]" />
-        )}
       </Link>
     );
   };
@@ -171,7 +164,7 @@ export default function AppHeader() {
         </Link>
 
         {/* Desktop navigation */}
-        <div className="hidden md:flex items-center">
+        <div className="hidden md:flex items-center gap-3">
           {navLink("/funding", "Funding", true)}
           {navLink("/markets", "Markets")}
           {navLink("/arbitrage", "Arbitrage")}
