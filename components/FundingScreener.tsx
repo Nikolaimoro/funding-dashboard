@@ -14,7 +14,7 @@ import {
 import { SCREENER_TIME_WINDOWS, SCREENER_TIME_LABELS } from "@/lib/constants";
 import Pagination from "@/components/Table/Pagination";
 import ExchangeFilter from "@/components/Table/ExchangeFilter";
-import MinAPRFilter from "@/components/Table/MinAPRFilter";
+import APRRangeFilter from "@/components/Table/APRRangeFilter";
 import RateCell from "@/components/FundingScreener/RateCell";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import SkeletonLoader from "@/components/ui/SkeletonLoader";
@@ -29,6 +29,7 @@ type SortKey = "token" | "max_arb" | string; // string for exchange column_keys
 const TIMEOUT_MS = 8000;
 const MAX_ATTEMPTS = 2;
 const FAVORITES_KEY = "funding-screener-favorites";
+const EXCHANGES_KEY = "funding-screener-exchanges";
 
 /* ================= HELPERS ================= */
 
@@ -74,6 +75,7 @@ export default function FundingScreener() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [minAPR, setMinAPR] = useState<number | "">(0);
+  const [maxAPRFilter, setMaxAPRFilter] = useState<number | "">("");
   const [favoriteTokens, setFavoriteTokens] = useState<string[]>([]);
 
   const [sortKey, setSortKey] = useState<SortKey>("max_arb");
@@ -160,6 +162,25 @@ export default function FundingScreener() {
 
   useEffect(() => {
     if (!exchanges.length) return;
+    // Try to load from localStorage first
+    if (typeof window !== "undefined") {
+      try {
+        const stored = window.localStorage.getItem(EXCHANGES_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const available = new Set(exchanges);
+            const valid = parsed.filter((ex): ex is string => typeof ex === "string" && available.has(ex));
+            if (valid.length > 0) {
+              setSelectedExchanges(valid);
+              return;
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
     setSelectedExchanges((prev) => {
       if (prev.length === 0) return exchanges;
       const available = new Set(exchanges);
@@ -167,6 +188,16 @@ export default function FundingScreener() {
       return next.length === 0 ? exchanges : next;
     });
   }, [exchanges.join("|")]);
+
+  // Save exchange selection to localStorage
+  useEffect(() => {
+    if (typeof window === "undefined" || selectedExchanges.length === 0) return;
+    try {
+      window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
+    } catch {
+      // ignore storage errors
+    }
+  }, [selectedExchanges]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -208,15 +239,20 @@ export default function FundingScreener() {
     );
   }, [exchangeColumns, selectedExchanges]);
 
+  // Set of column keys from filtered exchanges for max arb calculation
+  const filteredColumnKeys = useMemo(() => {
+    return new Set(filteredColumns.map((col) => col.column_key));
+  }, [filteredColumns]);
+
   /* ---------- max APR for slider ---------- */
   const maxAPRValue = useMemo(() => {
     let max = 0;
     for (const row of rows) {
-      const arb = calculateMaxArb(row.markets, timeWindow);
+      const arb = calculateMaxArb(row.markets, timeWindow, filteredColumnKeys);
       if (arb !== null && arb > max) max = arb;
     }
     return Math.ceil(max);
-  }, [rows, timeWindow]);
+  }, [rows, timeWindow, filteredColumnKeys]);
 
   /* ---------- handlers ---------- */
   const resetPage = () => setPage(0);
@@ -228,6 +264,11 @@ export default function FundingScreener() {
 
   const handleMinAPRChange = (value: number | "") => {
     setMinAPR(value);
+    resetPage();
+  };
+
+  const handleMaxAPRFilterChange = (value: number | "") => {
+    setMaxAPRFilter(value);
     resetPage();
   };
 
@@ -262,11 +303,19 @@ export default function FundingScreener() {
       );
     }
 
-    // Filter by min APR
+    // Filter by min APR (using filtered exchanges)
     if (typeof minAPR === "number" && minAPR > 0) {
       result = result.filter((row) => {
-        const maxArb = calculateMaxArb(row.markets, timeWindow);
+        const maxArb = calculateMaxArb(row.markets, timeWindow, filteredColumnKeys);
         return maxArb !== null && maxArb >= minAPR;
+      });
+    }
+
+    // Filter by max APR (using filtered exchanges)
+    if (typeof maxAPRFilter === "number") {
+      result = result.filter((row) => {
+        const maxArb = calculateMaxArb(row.markets, timeWindow, filteredColumnKeys);
+        return maxArb === null || maxArb <= maxAPRFilter;
       });
     }
 
@@ -284,8 +333,8 @@ export default function FundingScreener() {
       }
 
       if (sortKey === "max_arb") {
-        const aArb = calculateMaxArb(a.markets, timeWindow) ?? -Infinity;
-        const bArb = calculateMaxArb(b.markets, timeWindow) ?? -Infinity;
+        const aArb = calculateMaxArb(a.markets, timeWindow, filteredColumnKeys) ?? -Infinity;
+        const bArb = calculateMaxArb(b.markets, timeWindow, filteredColumnKeys) ?? -Infinity;
         const cmp = aArb - bArb;
         return sortDir === "asc" ? cmp : -cmp;
       }
@@ -298,7 +347,7 @@ export default function FundingScreener() {
     });
 
     return result;
-  }, [rows, search, sortKey, sortDir, timeWindow, minAPR, favoriteSet]);
+  }, [rows, search, sortKey, sortDir, timeWindow, minAPR, maxAPRFilter, favoriteSet, filteredColumnKeys]);
 
   /* ---------- pagination ---------- */
   const totalPages = limit === -1 ? 1 : Math.ceil(filtered.length / limit);
@@ -369,9 +418,11 @@ export default function FundingScreener() {
               </div>
 
               {/* Filters dropdown with slider */}
-              <MinAPRFilter
+              <APRRangeFilter
                 minAPR={minAPR}
+                maxAPRFilter={maxAPRFilter}
                 onMinAPRChange={handleMinAPRChange}
+                onMaxAPRFilterChange={handleMaxAPRFilterChange}
                 maxAPR={maxAPRValue}
                 open={filtersOpen}
                 onOpenChange={setFiltersOpen}
@@ -493,7 +544,7 @@ export default function FundingScreener() {
                   </tr>
                 ) : (
                   paginatedRows.map((row, idx) => {
-                    const maxArb = calculateMaxArb(row.markets, timeWindow);
+                    const maxArb = calculateMaxArb(row.markets, timeWindow, filteredColumnKeys);
 
                     return (
                       <tr

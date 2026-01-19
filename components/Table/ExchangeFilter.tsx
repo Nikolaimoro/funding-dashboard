@@ -40,10 +40,10 @@ export default function ExchangeFilter({
       {open && (
         <>
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-40"
             onClick={() => onOpenChange(false)}
           />
-          <div className="absolute z-20 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-56 p-2 shadow-lg animate-dropdown">
+          <div className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-56 p-2 shadow-lg animate-dropdown">
             <div className="flex items-center justify-between px-2 pb-2 text-xs">
               <span className="font-light text-gray-300">Select Exchanges</span>
               <button

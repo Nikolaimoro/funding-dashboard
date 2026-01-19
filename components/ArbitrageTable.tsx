@@ -21,6 +21,7 @@ import { withTimeout } from "@/lib/async";
 type SortKey = "opportunity_apr" | "stability";
 const TIMEOUT_MS = 8000;
 const MAX_ATTEMPTS = 2;
+const EXCHANGES_KEY = "arbitrage-exchanges";
 
 /* ================= COMPONENT ================= */
 
@@ -205,6 +206,25 @@ export default function ArbitrageTable() {
    */
   useEffect(() => {
     if (!exchanges.length) return;
+    // Try to load from localStorage first
+    if (typeof window !== "undefined") {
+      try {
+        const stored = window.localStorage.getItem(EXCHANGES_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const available = new Set(exchanges);
+            const valid = parsed.filter((ex): ex is string => typeof ex === "string" && available.has(ex));
+            if (valid.length > 0) {
+              setSelectedExchanges(valid);
+              return;
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
     const available = new Set(exchanges);
     setSelectedExchanges((prev) => {
       if (prev.length === 0) return exchanges;
@@ -213,6 +233,16 @@ export default function ArbitrageTable() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exchanges.join("|")]);
+
+  // Save exchange selection to localStorage
+  useEffect(() => {
+    if (typeof window === "undefined" || selectedExchanges.length === 0) return;
+    try {
+      window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
+    } catch {
+      // ignore storage errors
+    }
+  }, [selectedExchanges]);
 
   /**
    * Memoized filtering and sorting of arbitrage opportunities

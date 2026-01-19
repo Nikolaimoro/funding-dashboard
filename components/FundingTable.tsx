@@ -18,6 +18,10 @@ const FundingChart = dynamic(() => import("@/components/FundingChart"), {
   ssr: false,
 });
 
+/* ================= CONSTANTS ================= */
+
+const EXCHANGES_KEY = "markets-exchanges";
+
 /* ================= TYPES ================= */
 
 type SortKey =
@@ -115,6 +119,25 @@ export default function FundingTable({
 
   useEffect(() => {
     if (!exchanges.length) return;
+    // Try to load from localStorage first
+    if (typeof window !== "undefined") {
+      try {
+        const stored = window.localStorage.getItem(EXCHANGES_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const available = new Set(exchanges);
+            const valid = parsed.filter((ex): ex is string => typeof ex === "string" && available.has(ex));
+            if (valid.length > 0) {
+              setSelectedExchanges(valid);
+              return;
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
     setSelectedExchanges((prev) => {
       if (prev.length === 0) return exchanges;
       const available = new Set(exchanges);
@@ -122,6 +145,16 @@ export default function FundingTable({
       return next.length === 0 ? exchanges : next;
     });
   }, [exchanges.join("|")]);
+
+  // Save exchange selection to localStorage
+  useEffect(() => {
+    if (typeof window === "undefined" || selectedExchanges.length === 0) return;
+    try {
+      window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
+    } catch {
+      // ignore storage errors
+    }
+  }, [selectedExchanges]);
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) {

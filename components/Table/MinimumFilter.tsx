@@ -3,6 +3,9 @@
  * Used in FundingTable, ArbitrageTable
  */
 
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { TAILWIND } from "@/lib/theme";
 
@@ -17,8 +20,8 @@ interface MinimumFilterProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const SLIDER_STEPS = 1000;
 const MIDPOINT_VALUE = 1_000_000;
+
 function formatNumberWithSpaces(value: number) {
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
@@ -71,6 +74,128 @@ function sliderFromValue(value: number, maxValue: number) {
   );
 }
 
+interface SingleSliderProps {
+  label: string;
+  value: number | "";
+  onChange: (value: number | "") => void;
+  maxValue: number;
+  displayValue: string;
+  onDisplayChange: (value: string) => void;
+}
+
+function GradientSlider({
+  label,
+  value,
+  onChange,
+  maxValue,
+  displayValue,
+  onDisplayChange,
+}: SingleSliderProps) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
+  
+  const clampedValue = typeof value === "number" ? clampValue(value, maxValue) : 0;
+  const sliderRatio = sliderFromValue(clampedValue, maxValue);
+  const leftPercent = sliderRatio * 100;
+
+  const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const rawValue = valueFromSlider(ratio, maxValue);
+    onChange(Math.round(rawValue));
+  };
+
+  useEffect(() => {
+    if (!dragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!trackRef.current) return;
+      const rect = trackRef.current.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const rawValue = valueFromSlider(ratio, maxValue);
+      onChange(Math.round(rawValue));
+    };
+
+    const handleMouseUp = () => {
+      setDragging(false);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging, maxValue, onChange]);
+
+  return (
+    <div>
+      <label className="block text-sm text-gray-300 mb-3">{label}</label>
+      <div className="space-y-3">
+        <div
+          ref={trackRef}
+          className="relative h-2 rounded-full cursor-pointer"
+          style={{ backgroundColor: "#383d50" }}
+          onClick={handleTrackClick}
+        >
+          {/* Gradient fill from left to thumb */}
+          <div
+            className="absolute h-full rounded-full"
+            style={{
+              left: 0,
+              width: `${leftPercent}%`,
+              background: "linear-gradient(to right, #9E5DEE, #FA814D)",
+            }}
+          />
+          
+          {/* Thumb */}
+          <div
+            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 cursor-grab active:cursor-grabbing"
+            style={{
+              left: `${leftPercent}%`,
+              transform: `translate(-50%, -50%)`,
+              background: "#292e40",
+              borderColor: leftPercent < 50 ? "#9E5DEE" : "#FA814D",
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setDragging(true);
+            }}
+          />
+        </div>
+
+        {/* Input field */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={displayValue}
+            onChange={(e) => {
+              onDisplayChange(e.target.value);
+              const parsed = parseNumberInput(e.target.value);
+              onChange(parsed === "" ? "" : clampValue(Math.round(parsed), maxValue));
+            }}
+            placeholder="0"
+            className="w-28 bg-[#383d50] border border-transparent rounded px-2 py-1 text-xs text-gray-200 focus:outline-none text-center"
+          />
+          {typeof value === "number" && value > 0 && (
+            <button
+              type="button"
+              onClick={() => onChange(0)}
+              className="h-5 w-5 rounded-full bg-[#383d50] border border-[#343a4e] text-gray-300 text-xs leading-none flex items-center justify-center transition-colors duration-200 hover:border-white hover:text-white"
+              aria-label={`Clear ${label.toLowerCase()}`}
+              title="Clear"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MinimumFilter({
   minOI,
   minVolume,
@@ -81,20 +206,24 @@ export default function MinimumFilter({
   open,
   onOpenChange,
 }: MinimumFilterProps) {
-  const clampedMinOI =
-    typeof minOI === "number" ? clampValue(minOI, maxOI) : 0;
-  const clampedMinVolume =
-    typeof minVolume === "number" ? clampValue(minVolume, maxVolume) : 0;
-  const oiDisplayValue =
-    typeof minOI === "number" ? formatNumberWithSpaces(minOI) : "";
-  const volumeDisplayValue =
-    typeof minVolume === "number" ? formatNumberWithSpaces(minVolume) : "";
-  const oiSliderValue = Math.round(
-    sliderFromValue(clampedMinOI, maxOI) * SLIDER_STEPS
-  );
-  const volumeSliderValue = Math.round(
-    sliderFromValue(clampedMinVolume, maxVolume) * SLIDER_STEPS
-  );
+  const [oiDisplayValue, setOiDisplayValue] = useState("");
+  const [volumeDisplayValue, setVolumeDisplayValue] = useState("");
+
+  useEffect(() => {
+    if (typeof minOI === "number" && minOI > 0) {
+      setOiDisplayValue(formatNumberWithSpaces(minOI));
+    } else {
+      setOiDisplayValue("");
+    }
+  }, [minOI]);
+
+  useEffect(() => {
+    if (typeof minVolume === "number" && minVolume > 0) {
+      setVolumeDisplayValue(formatNumberWithSpaces(minVolume));
+    } else {
+      setVolumeDisplayValue("");
+    }
+  }, [minVolume]);
 
   return (
     <div className="relative">
@@ -110,110 +239,27 @@ export default function MinimumFilter({
       {open && (
         <>
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-40"
             onClick={() => onOpenChange(false)}
           />
-          <div className="absolute z-20 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-56 p-3 shadow-lg space-y-3 animate-dropdown">
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">
-                Min Open Interest
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={SLIDER_STEPS}
-                  value={oiSliderValue}
-                  onChange={(e) => {
-                    const sliderValue = Number(e.target.value) / SLIDER_STEPS;
-                    const rawValue = valueFromSlider(sliderValue, maxOI);
-                    onMinOIChange(Math.round(rawValue));
-                  }}
-                  disabled={maxOI <= 0}
-                  className="w-full accent-emerald-400"
-                />
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    min={0}
-                    max={maxOI || undefined}
-                    value={oiDisplayValue}
-                    onChange={(e) => {
-                      const parsed = parseNumberInput(e.target.value);
-                      onMinOIChange(
-                        parsed === ""
-                          ? ""
-                          : clampValue(Math.round(parsed), maxOI)
-                      );
-                    }}
-                    placeholder="0"
-                    className="w-36 bg-[#383d50] border border-transparent rounded px-2 py-1 text-sm text-gray-200 focus:outline-none"
-                  />
-                  {typeof minOI === "number" && minOI > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => onMinOIChange(0)}
-                      className="h-5 w-5 rounded-full bg-[#383d50] border border-[#343a4e] text-gray-300 text-xs leading-none flex items-center justify-center transition-colors duration-200 hover:border-white hover:text-white"
-                      aria-label="Clear minimum open interest"
-                      title="Clear"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">
-                Min Volume
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={SLIDER_STEPS}
-                  value={volumeSliderValue}
-                  onChange={(e) => {
-                    const sliderValue = Number(e.target.value) / SLIDER_STEPS;
-                    const rawValue = valueFromSlider(sliderValue, maxVolume);
-                    onMinVolumeChange(Math.round(rawValue));
-                  }}
-                  disabled={maxVolume <= 0}
-                  className="w-full accent-emerald-400"
-                />
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    min={0}
-                    max={maxVolume || undefined}
-                    value={volumeDisplayValue}
-                    onChange={(e) => {
-                      const parsed = parseNumberInput(e.target.value);
-                      onMinVolumeChange(
-                        parsed === ""
-                          ? ""
-                          : clampValue(Math.round(parsed), maxVolume)
-                      );
-                    }}
-                    placeholder="0"
-                    className="w-36 bg-[#383d50] border border-transparent rounded px-2 py-1 text-sm text-gray-200 focus:outline-none"
-                  />
-                  {typeof minVolume === "number" && minVolume > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => onMinVolumeChange(0)}
-                      className="h-5 w-5 rounded-full bg-[#383d50] border border-[#343a4e] text-gray-300 text-xs leading-none flex items-center justify-center transition-colors duration-200 hover:border-white hover:text-white"
-                      aria-label="Clear minimum volume"
-                      title="Clear"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+          <div className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded w-64 p-3 shadow-lg space-y-4 animate-dropdown">
+            <GradientSlider
+              label="Min Open Interest"
+              value={minOI}
+              onChange={onMinOIChange}
+              maxValue={maxOI}
+              displayValue={oiDisplayValue}
+              onDisplayChange={setOiDisplayValue}
+            />
+
+            <GradientSlider
+              label="Min Volume"
+              value={minVolume}
+              onChange={onMinVolumeChange}
+              maxValue={maxVolume}
+              displayValue={volumeDisplayValue}
+              onDisplayChange={setVolumeDisplayValue}
+            />
           </div>
         </>
       )}
