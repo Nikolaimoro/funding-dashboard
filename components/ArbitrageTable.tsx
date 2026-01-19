@@ -220,28 +220,21 @@ export default function ArbitrageTable() {
           if (Array.isArray(parsed)) {
             const available = new Set(exchanges);
             const valid = parsed.filter((ex): ex is string => typeof ex === "string" && available.has(ex));
-            if (valid.length > 0) {
-              setSelectedExchanges(valid);
-              return;
-            }
+            setSelectedExchanges(valid);
+            return;
           }
         }
       } catch {
         // ignore
       }
     }
-    const available = new Set(exchanges);
-    setSelectedExchanges((prev) => {
-      if (prev.length === 0) return exchanges;
-      const next = prev.filter((ex) => available.has(ex));
-      return next.length === 0 ? exchanges : next;
-    });
+    setSelectedExchanges(exchanges);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exchanges.join("|")]);
 
   // Save exchange selection to localStorage
   useEffect(() => {
-    if (typeof window === "undefined" || selectedExchanges.length === 0) return;
+    if (typeof window === "undefined") return;
     try {
       window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
     } catch {
@@ -270,7 +263,9 @@ export default function ArbitrageTable() {
       data = data.filter((r) => normalizeToken(r.base_asset).startsWith(q));
     }
 
-    if (selectedExchanges.length) {
+    if (exchanges.length > 0 && selectedExchanges.length === 0) {
+      data = [];
+    } else if (selectedExchanges.length) {
       const set = new Set(selectedExchanges);
       data = data.filter(
         (r) => set.has(r.long_exchange) && set.has(r.short_exchange)

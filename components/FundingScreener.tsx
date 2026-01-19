@@ -172,27 +172,20 @@ export default function FundingScreener() {
           if (Array.isArray(parsed)) {
             const available = new Set(exchanges);
             const valid = parsed.filter((ex): ex is string => typeof ex === "string" && available.has(ex));
-            if (valid.length > 0) {
-              setSelectedExchanges(valid);
-              return;
-            }
+            setSelectedExchanges(valid);
+            return;
           }
         }
       } catch {
         // ignore
       }
     }
-    setSelectedExchanges((prev) => {
-      if (prev.length === 0) return exchanges;
-      const available = new Set(exchanges);
-      const next = prev.filter((ex) => available.has(ex));
-      return next.length === 0 ? exchanges : next;
-    });
+    setSelectedExchanges(exchanges);
   }, [exchanges.join("|")]);
 
   // Save exchange selection to localStorage
   useEffect(() => {
-    if (typeof window === "undefined" || selectedExchanges.length === 0) return;
+    if (typeof window === "undefined") return;
     try {
       window.localStorage.setItem(EXCHANGES_KEY, JSON.stringify(selectedExchanges));
     } catch {
@@ -234,7 +227,7 @@ export default function FundingScreener() {
   }, [exchangeColumns]);
 
   const filteredColumns = useMemo(() => {
-    if (selectedExchanges.length === 0) return exchangeColumns;
+    if (selectedExchanges.length === 0) return [];
     return exchangeColumns.filter((col) =>
       selectedExchanges.includes(col.exchange)
     );
@@ -302,6 +295,11 @@ export default function FundingScreener() {
       result = result.filter((row) =>
         normalizeToken(row.token ?? "").startsWith(term)
       );
+    }
+
+    // Filter by exchanges (empty selection = no rows)
+    if (exchanges.length > 0 && selectedExchanges.length === 0) {
+      return [];
     }
 
     // Filter by min APR (using filtered exchanges)
