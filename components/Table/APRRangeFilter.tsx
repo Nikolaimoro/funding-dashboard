@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { TAILWIND } from "@/lib/theme";
 
 interface APRRangeFilterProps {
@@ -67,6 +67,7 @@ export default function APRRangeFilter({
   onOpenChange,
 }: APRRangeFilterProps) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const previousUserSelect = useRef("");
   
   const clampedMin = typeof minAPR === "number" ? clampValue(minAPR, maxAPR) : 0;
   const clampedMax = typeof maxAPRFilter === "number" ? clampValue(maxAPRFilter, maxAPR) : maxAPR;
@@ -77,6 +78,9 @@ export default function APRRangeFilter({
   const [minInputValue, setMinInputValue] = useState<string>("");
   const [maxInputValue, setMaxInputValue] = useState<string>("");
   const [dragging, setDragging] = useState<"min" | "max" | null>(null);
+  const hasActiveFilter =
+    (typeof minAPR === "number" && minAPR > 0) ||
+    (typeof maxAPRFilter === "number" && maxAPRFilter < maxAPR);
 
   useEffect(() => {
     if (typeof minAPR === "number" && minAPR > 0) {
@@ -132,11 +136,14 @@ export default function APRRangeFilter({
 
   useEffect(() => {
     if (dragging) {
+      previousUserSelect.current = document.body.style.userSelect;
+      document.body.style.userSelect = "none";
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
       return () => {
         window.removeEventListener("mousemove", handleMouseMove);
         window.removeEventListener("mouseup", handleMouseUp);
+        document.body.style.userSelect = previousUserSelect.current;
       };
     }
   }, [dragging, clampedMin, clampedMax, maxAPR]);
@@ -146,14 +153,33 @@ export default function APRRangeFilter({
 
   return (
     <div className="relative">
-      <button
-        onClick={() => onOpenChange(!open)}
-        className={`${TAILWIND.button.secondary} inline-flex items-center gap-2 text-sm`}
-        type="button"
-      >
-        <span>Filters</span>
-        <ChevronDown className="h-4 w-4 text-gray-300" />
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onOpenChange(!open)}
+          className={`${TAILWIND.button.secondary} inline-flex items-center gap-2 text-sm`}
+          type="button"
+        >
+          <span>Filters</span>
+          <ChevronDown className="h-4 w-4 text-gray-300" />
+        </button>
+        {hasActiveFilter && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMinAPRChange("");
+              onMaxAPRFilterChange("");
+              setMinInputValue("");
+              setMaxInputValue("");
+            }}
+            className="h-6 w-6 rounded-full bg-[#383d50] border border-[#343a4e] text-gray-300 text-xs leading-none flex items-center justify-center transition-colors duration-200 hover:border-white hover:text-white"
+            aria-label="Clear APR filters"
+            title="Clear"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
 
       {open && (
         <>
@@ -175,12 +201,13 @@ export default function APRRangeFilter({
               </svg>
 
               {/* Custom dual range slider */}
-              <div className="space-y-3">
+              <div className="space-y-3 select-none">
                 <div
                   ref={trackRef}
                   className="relative h-2 rounded-full cursor-pointer"
                   style={{ backgroundColor: "#383d50" }}
                   onClick={handleTrackClick}
+                  onMouseDown={(e) => e.preventDefault()}
                 >
                   {/* Gradient fill between thumbs */}
                   <div
@@ -203,6 +230,7 @@ export default function APRRangeFilter({
                       borderColor: "#9E5DEE",
                     }}
                     onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       setDragging("min");
                     }}
@@ -219,6 +247,7 @@ export default function APRRangeFilter({
                       borderColor: "#FA814D",
                     }}
                     onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       setDragging("max");
                     }}
