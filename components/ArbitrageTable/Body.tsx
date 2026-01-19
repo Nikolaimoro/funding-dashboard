@@ -144,7 +144,6 @@ function StabilityInfo() {
 function AprInfo() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
-  const [tooltipShiftX, setTooltipShiftX] = useState(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -172,30 +171,14 @@ function AprInfo() {
     if (!showTooltip && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       setTooltipPos({
-        top: rect.top - 8,
+        top: rect.top,
         left: rect.left + rect.width / 2,
       });
-      setTooltipShiftX(0);
       setShowTooltip(true);
       return;
     }
     setShowTooltip(false);
   };
-
-  useEffect(() => {
-    if (!showTooltip || !tooltipRef.current) return;
-    const rect = tooltipRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    let shift = 0;
-    if (rect.left < 8) {
-      shift = 8 - rect.left;
-    } else if (rect.right > viewportWidth - 8) {
-      shift = (viewportWidth - 8) - rect.right;
-    }
-    if (shift !== 0) {
-      setTooltipShiftX(shift);
-    }
-  }, [showTooltip]);
 
   return (
     <>
@@ -212,16 +195,13 @@ function AprInfo() {
         createPortal(
           <div
             ref={tooltipRef}
-            style={{ top: tooltipPos.top, left: tooltipPos.left, marginLeft: tooltipShiftX }}
+            style={{ top: tooltipPos.top, left: tooltipPos.left, transform: "translate(-50%, calc(-100% - 8px))" }}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
-            className="fixed z-[9999] -translate-x-1/2 -translate-y-full w-64 sm:w-80 max-w-[calc(100vw-32px)] p-3 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-gray-300 leading-relaxed text-left animate-tooltip pointer-events-auto"
+            className="fixed z-[9999] w-64 sm:w-80 p-3 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-gray-300 leading-relaxed text-left animate-tooltip pointer-events-auto"
           >
             <p className="text-left">Estimated APR based on historical funding data over the last 15 days.</p>
-            <div
-              style={{ left: `calc(50% - ${tooltipShiftX}px)` }}
-              className="absolute bottom-0 translate-y-full -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#343a4e]"
-            />
+            <div className="absolute left-1/2 bottom-0 translate-y-full -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#343a4e]" />
           </div>,
           document.body
         )}
