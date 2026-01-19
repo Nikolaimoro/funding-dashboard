@@ -140,7 +140,7 @@ function StabilityInfo() {
         createPortal(
           <div 
             ref={tooltipRef}
-            style={{ top: tooltipPos.top, left: tooltipPos.left }}
+            style={{ top: tooltipPos.top, left: tooltipPos.left, transform: "translate(-100%, -50%)" }}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
             className="fixed z-[9999] w-64 sm:w-80 p-3 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-gray-300 leading-relaxed text-left animate-tooltip-zoom pointer-events-auto"
