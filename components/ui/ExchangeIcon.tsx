@@ -6,16 +6,16 @@ import Image from "next/image";
  * Exchange icon configuration
  * Maps exchange key to icon filename and optional background color
  */
-export const EXCHANGE_ICONS: Record<string, { file: string; bg?: string }> = {
+export const EXCHANGE_ICONS: Record<string, { file: string; bg?: string; scale?: number }> = {
   aster: { file: "aster.svg", bg: "#1a1a2e" },
   binance: { file: "binance.png", bg: "#1e2026" },
-  bingx: { file: "bingx.png", bg: "#1a1a2e" },
+  bingx: { file: "bingx.png", bg: "#1a1a2e", scale: 1 },
   bybit: { file: "bybit.svg", bg: "#1a1a2e" },
   gate: { file: "gate.png", bg: "#1a1a2e" },
   hyperliquid: { file: "hyperliquid.png", bg: "#1a1a2e" },
-  mexc: { file: "mexc.svg", bg: "#1a1a2e" },
-  okx: { file: "okx.png", bg: "#1a1a2e" },
-  paradex: { file: "paradex.png", bg: "#1a1a2e" },
+  mexc: { file: "mexc.svg", bg: "#1a1a2e", scale: 1 },
+  okx: { file: "okx.png", bg: "#1a1a2e", scale: 1 },
+  paradex: { file: "paradex.png", bg: "#1a1a2e", scale: 1 },
 };
 
 interface ExchangeIconProps {
@@ -57,7 +57,8 @@ export default function ExchangeIcon({
   }
 
   const bg = bgColor || config.bg || "#1a1a2e";
-  const iconSize = Math.round(size * 0.9); // Slightly larger to reduce visible padding
+  const scale = config.scale ?? 0.8;
+  const iconSize = Math.round(size * scale);
 
   return (
     <span
