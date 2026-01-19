@@ -139,6 +139,77 @@ function StabilityInfo() {
   );
 }
 
+/**
+ * Info tooltip component for APR header
+ */
+function AprInfo() {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showTooltip) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      if (
+        tooltipRef.current &&
+        !tooltipRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
+        setShowTooltip(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showTooltip]);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!showTooltip && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setTooltipPos({
+        top: rect.top + rect.height / 2,
+        left: rect.left - 8,
+      });
+      setShowTooltip(true);
+      return;
+    }
+    setShowTooltip(false);
+  };
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={handleClick}
+        className="text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+        aria-label="APR info"
+      >
+        <Info size={14} />
+      </button>
+      {showTooltip && tooltipPos && typeof window !== "undefined" &&
+        createPortal(
+          <div
+            ref={tooltipRef}
+            style={{ top: tooltipPos.top, left: tooltipPos.left }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            className="fixed z-[9999] w-64 sm:w-80 p-3 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-gray-300 leading-relaxed text-left animate-tooltip pointer-events-auto"
+          >
+            <p className="text-left">Estimated APR based on historical funding data over the last 15 days.</p>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[6px] border-l-[#343a4e]" />
+          </div>,
+          document.body
+        )}
+    </>
+  );
+}
+
 interface LongButtonProps {
   href: string | null;
   label: string;
@@ -260,13 +331,16 @@ export default function ArbitrageTableBody({
             </th>
 
             <th className={`${TAILWIND.table.header} text-center pl-12 sm:pl-4`}>
-              <SortableHeader
-                label="APR"
-                active={sortKey === "opportunity_apr"}
-                dir={sortDir}
-                onClick={() => onSort("opportunity_apr")}
-                centered
-              />
+              <div className="inline-flex items-center justify-center gap-1 w-full">
+                <SortableHeader
+                  label="APR"
+                  active={sortKey === "opportunity_apr"}
+                  dir={sortDir}
+                  onClick={() => onSort("opportunity_apr")}
+                  centered
+                />
+                <AprInfo />
+              </div>
             </th>
 
             <th className={`${TAILWIND.table.header} pl-24`}>

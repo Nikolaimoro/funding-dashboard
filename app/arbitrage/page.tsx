@@ -24,7 +24,6 @@ export default function ArbitragePage() {
     <main className="min-h-screen text-gray-200">
       <PageHeader
         title="Arbitrage Top Opportunities"
-        description="Last 15 days"
       />
       <ArbitrageTable />
     </main>
