@@ -4,10 +4,57 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+interface BurgerIconProps {
+  open: boolean;
+  color?: "white" | "black";
+  onClick: () => void;
+}
+
+function BurgerIcon({ open, color = "white", onClick }: BurgerIconProps) {
+  const lineColor = color === "white" ? "bg-white" : "bg-black";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative w-6 h-6 flex flex-col items-center justify-center gap-1.5"
+      aria-label={open ? "Close menu" : "Open menu"}
+    >
+      <span
+        className={`block w-5 h-[2px] ${lineColor} transition-all duration-300 ${
+          open ? "rotate-45 translate-y-[5px]" : ""
+        }`}
+      />
+      <span
+        className={`block w-5 h-[2px] ${lineColor} transition-all duration-300 ${
+          open ? "-rotate-45 -translate-y-[3px]" : ""
+        }`}
+      />
+    </button>
+  );
+}
+
 export default function AppHeader() {
   const path = usePathname();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [path]);
+
+  // Prevent scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,7 +96,9 @@ export default function AppHeader() {
       ? "h-[18px] w-auto invert"
       : "h-[18px] w-auto invert-0";
 
-  const link = (href: string, label: string, isFirst = false) => {
+  const burgerColor = logoTone === "light" ? "white" : "black";
+
+  const navLink = (href: string, label: string, isFirst = false) => {
     const active = path.startsWith(href);
     return (
       <Link
@@ -76,6 +125,25 @@ export default function AppHeader() {
     );
   };
 
+  const mobileNavLink = (href: string, label: string) => {
+    const active = path.startsWith(href);
+    return (
+      <Link
+        href={href}
+        onClick={() => setMobileMenuOpen(false)}
+        className={[
+          "block text-2xl font-roboto font-normal py-4 text-center transition-colors duration-200",
+          active ? "text-white" : "text-gray-400 hover:text-white",
+        ].join(" ")}
+      >
+        {label}
+        {active && (
+          <span className="block mx-auto mt-2 w-12 h-[2px] bg-gradient-to-r from-[#9E5DEE] to-[#FA814D]" />
+        )}
+      </Link>
+    );
+  };
+
   return (
     <>
       {/* Spacer for fixed header */}
@@ -87,7 +155,7 @@ export default function AppHeader() {
           "flex gap-2 border-b border-[#343a4e] py-2 items-center bg-[#1c202f]",
           "max-w-[1600px] mx-auto px-6",
           "transition-transform duration-300",
-          !isVisible ? "-translate-y-full" : "translate-y-0",
+          !isVisible && !mobileMenuOpen ? "-translate-y-full" : "translate-y-0",
         ].join(" ")}
       >
         <Link
@@ -101,10 +169,42 @@ export default function AppHeader() {
             className={logoClassName}
           />
         </Link>
-        {link("/funding", "Funding", true)}
-        {link("/markets", "Markets")}
-        {link("/arbitrage", "Arbitrage")}
-        {link("/backtester", "Backtester")}
+
+        {/* Desktop navigation */}
+        <div className="hidden md:flex items-center">
+          {navLink("/funding", "Funding", true)}
+          {navLink("/markets", "Markets")}
+          {navLink("/arbitrage", "Arbitrage")}
+          {navLink("/backtester", "Backtester")}
+        </div>
+
+        {/* Mobile burger */}
+        <div className="md:hidden ml-auto">
+          <BurgerIcon
+            open={mobileMenuOpen}
+            color={burgerColor}
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+          />
+        </div>
+      </div>
+
+      {/* Mobile full-screen menu */}
+      <div
+        className={[
+          "fixed inset-0 z-40 bg-[#1c202f] pt-[52px]",
+          "flex flex-col items-center justify-center",
+          "transition-all duration-300 ease-out md:hidden",
+          mobileMenuOpen
+            ? "opacity-100 pointer-events-auto translate-y-0"
+            : "opacity-0 pointer-events-none -translate-y-4",
+        ].join(" ")}
+      >
+        <nav className="flex flex-col items-center gap-2">
+          {mobileNavLink("/funding", "Funding")}
+          {mobileNavLink("/markets", "Markets")}
+          {mobileNavLink("/arbitrage", "Arbitrage")}
+          {mobileNavLink("/backtester", "Backtester")}
+        </nav>
       </div>
     </>
   );
