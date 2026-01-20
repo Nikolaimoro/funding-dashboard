@@ -45,6 +45,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
   const [openCombo, setOpenCombo] = useState<ComboboxType | null>(null);
   const [loading, setLoading] = useState(false);
   const [chartData, setChartData] = useState<BacktesterChartData | null>(initialToken && initialLongEx && initialShortEx ? { token: initialToken, longEx: initialLongEx, shortEx: initialShortEx, longQuote: "", shortQuote: "", longMarketId: 0, shortMarketId: 0, longRefUrl: null, shortRefUrl: null } : null);
+  const [runToken, setRunToken] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -132,32 +133,38 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     }
   }, [selectedToken, exchanges]);
 
-  // Auto-fill quote when exchange is selected (pick first available quote for the token)
+  // Auto-fill quote when exchange is selected (prefer USDT, fallback to first available)
   useEffect(() => {
-    if (selectedLongEx && !selectedLongQuote && selectedToken) {
+    if (selectedLongEx && selectedToken) {
       const ex = exchanges.find(e => e.exchange === selectedLongEx);
       const normalizedToken = normalizeToken(selectedToken);
       const baseAsset = ex?.baseAssets.find(ba => normalizeToken(ba.asset) === normalizedToken);
-      if (baseAsset?.quotes[0]) {
-        setSelectedLongQuote(baseAsset.quotes[0].asset);
-        setSelectedLongMarketId(baseAsset.quotes[0].marketId);
-        setSelectedLongRefUrl(baseAsset.quotes[0].refUrl);
+      if (!baseAsset?.quotes?.length) return;
+      const preferred = baseAsset.quotes.find(q => q.asset === "USDT") ?? baseAsset.quotes[0];
+      const currentValid = baseAsset.quotes.some(q => q.asset === selectedLongQuote);
+      if (!selectedLongQuote || !currentValid) {
+        setSelectedLongQuote(preferred.asset);
+        setSelectedLongMarketId(preferred.marketId);
+        setSelectedLongRefUrl(preferred.refUrl);
       }
     }
-  }, [selectedLongEx, selectedToken]);
+  }, [selectedLongEx, selectedToken, selectedLongQuote, exchanges]);
 
   useEffect(() => {
-    if (selectedShortEx && !selectedShortQuote && selectedToken) {
+    if (selectedShortEx && selectedToken) {
       const ex = exchanges.find(e => e.exchange === selectedShortEx);
       const normalizedToken = normalizeToken(selectedToken);
       const baseAsset = ex?.baseAssets.find(ba => normalizeToken(ba.asset) === normalizedToken);
-      if (baseAsset?.quotes[0]) {
-        setSelectedShortQuote(baseAsset.quotes[0].asset);
-        setSelectedShortMarketId(baseAsset.quotes[0].marketId);
-        setSelectedShortRefUrl(baseAsset.quotes[0].refUrl);
+      if (!baseAsset?.quotes?.length) return;
+      const preferred = baseAsset.quotes.find(q => q.asset === "USDT") ?? baseAsset.quotes[0];
+      const currentValid = baseAsset.quotes.some(q => q.asset === selectedShortQuote);
+      if (!selectedShortQuote || !currentValid) {
+        setSelectedShortQuote(preferred.asset);
+        setSelectedShortMarketId(preferred.marketId);
+        setSelectedShortRefUrl(preferred.refUrl);
       }
     }
-  }, [selectedShortEx]);
+  }, [selectedShortEx, selectedToken, selectedShortQuote, exchanges]);
 
   // Initialize marketIds when initializing from URL parameters
   useEffect(() => {
@@ -217,6 +224,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         longRefUrl: selectedLongRefUrl,
         shortRefUrl: selectedShortRefUrl,
       });
+      setRunToken((t) => t + 1);
       autoRunRef.current = true;
     }
   }, [
@@ -273,6 +281,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       longRefUrl: selectedLongRefUrl,
       shortRefUrl: selectedShortRefUrl,
     });
+    setRunToken((t) => t + 1);
   }, [
     selectedToken,
     selectedLongEx,
@@ -330,6 +339,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         longRefUrl: selectedLongRefUrl,
         shortRefUrl: selectedShortRefUrl,
       });
+      setRunToken((t) => t + 1);
     } catch (error) {
       console.error("Backtest failed:", error);
       alert("Failed to run backtest");
@@ -542,7 +552,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
           </div>
         )}
       >
-        <BacktesterChart chartData={chartData} selectedLongEx={selectedLongEx} selectedShortEx={selectedShortEx} />
+        <BacktesterChart chartData={chartData} selectedLongEx={selectedLongEx} selectedShortEx={selectedShortEx} runToken={runToken} />
       </Suspense>
     </div>
   );

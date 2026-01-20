@@ -49,10 +49,15 @@ interface PnLRow {
 
 interface BacktesterPnLChartProps {
   chartData: BacktesterChartData | null;
+  runToken?: number;
 }
 
 function formatCurrency(value: number) {
   return `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatWholeCurrency(value: number) {
+  return `$${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
 async function fetchPnLData(params: {
@@ -79,7 +84,7 @@ async function fetchPnLData(params: {
   return (data ?? []) as PnLRow[];
 }
 
-export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProps) {
+export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPnLChartProps) {
   const [rows, setRows] = useState<PnLRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>("");
@@ -120,10 +125,10 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId, days]);
+  }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId, days, runToken]);
 
   const parsedPositionSize = useMemo(() => {
-    const normalized = positionInput.replace(/,/g, "").replace(/[^\d.]/g, "");
+    const normalized = positionInput.replace(/,/g, "").replace(/[^\d]/g, "");
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : 0;
   }, [positionInput]);
@@ -137,8 +142,8 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
   const totalPositionSize = positionSize * 2;
   const totalExecutionCost = useMemo(() => {
     const execCostDecimal = executionCost / 100;
-    return totalPositionSize * execCostDecimal;
-  }, [executionCost, totalPositionSize]);
+    return positionSize * execCostDecimal;
+  }, [executionCost, positionSize]);
 
   // Calculate PnL values
   const pnlCalculations = useMemo(() => {
@@ -154,7 +159,7 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
 
     // Execution cost is total for open + close across both legs
     const execCostDecimal = executionCost / 100;
-    const totalExecutionCost = totalPositionSize * execCostDecimal;
+    const totalExecutionCost = positionSize * execCostDecimal;
 
     // Each spread_pct is already a percentage
     // For position PnL: (spread_pct / 100) * positionSize
@@ -359,7 +364,7 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
                   <Info size={14} className="text-gray-400" />
                   <span className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 p-2 rounded-md bg-[#292e40] border border-[#343a4e] text-[11px] text-gray-300 shadow-lg">
                     <span>Position Size per leg</span>
-                    <span className="mt-1 block text-gray-400">Total (long + short): {formatCurrency(totalPositionSize)}</span>
+                    <span className="mt-1 block text-gray-400">Total (long + short): {formatWholeCurrency(totalPositionSize)}</span>
                   </span>
                 </span>
               </label>
@@ -457,34 +462,32 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
 
         {/* Right Panel - Chart */}
         <div className="flex-1 min-w-0">
-          {loading && (
-            <div className="h-72 flex items-center justify-center text-gray-500 rounded border border-[#343a4e]">
-              <p>Loading PnL data...</p>
-            </div>
-          )}
-
-          {err && (
-            <div className="h-72 flex items-center justify-center text-red-400 rounded border border-red-800 bg-red-950/20">
-              <p>{err}</p>
-            </div>
-          )}
-
-          {!loading && !err && rows.length === 0 && (
-            <div className="h-72 flex items-center justify-center text-gray-500 rounded border border-[#343a4e]">
-              <p>No data available for this period.</p>
-            </div>
-          )}
-
-          {!loading && !err && rows.length > 0 && (
-            <div className="border border-[#343a4e] rounded p-4 bg-[#292e40] h-72">
+          <div className="relative border border-[#343a4e] rounded p-4 bg-[#292e40] h-72">
+            {rows.length > 0 ? (
               <Chart
                 key={`pnl-chart-${chartData.longMarketId}-${chartData.shortMarketId}`}
                 type="bar"
                 data={chartDataObj as any}
                 options={options}
               />
-            </div>
-          )}
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-500">
+                <p>No data available for this period.</p>
+              </div>
+            )}
+
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-200 bg-[#1c202f]/60">
+                <p>Loading PnL data...</p>
+              </div>
+            )}
+
+            {err && (
+              <div className="absolute inset-0 flex items-center justify-center text-red-400 bg-red-950/40">
+                <p>{err}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

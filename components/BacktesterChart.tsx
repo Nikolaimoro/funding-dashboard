@@ -46,6 +46,7 @@ interface BacktesterChartProps {
   chartData: BacktesterChartData | null;
   selectedLongEx?: string;
   selectedShortEx?: string;
+  runToken?: number;
 }
 
 async function fetchBacktestData(params: {
@@ -73,7 +74,7 @@ async function fetchBacktestData(params: {
   return (data ?? []) as ArbChartRow[];
 }
 
-export default function BacktesterChart({ chartData, selectedLongEx, selectedShortEx }: BacktesterChartProps) {
+export default function BacktesterChart({ chartData, selectedLongEx, selectedShortEx, runToken }: BacktesterChartProps) {
   const [rows, setRows] = useState<ArbChartRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>("");
@@ -111,7 +112,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId]);
+  }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId, runToken]);
 
   const chartDataObj = useMemo(() => {
     const allPoints = rows
@@ -377,7 +378,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
       )}
 
       {/* PnL Calculator Chart */}
-      <BacktesterPnLChart chartData={chartData} />
+      <BacktesterPnLChart chartData={chartData} runToken={runToken} />
     </div>
   );
 }
