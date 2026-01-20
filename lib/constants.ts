@@ -25,6 +25,7 @@ export const MULTIPLIERS = ["1000000", "100000", "10000", "1000", "100", "10"] a
 export const RPC_FUNCTIONS = {
   FUNDING_CHART: "get_funding_chart",
   ARB_CHART: "get_arb_chart_data",
+  ARB_PNL: "get_arb_pnl",
 } as const;
 
 export const SUPABASE_TABLES = {

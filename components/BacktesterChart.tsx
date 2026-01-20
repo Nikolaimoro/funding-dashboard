@@ -9,6 +9,7 @@ import { COLORS, CHART_CONFIG } from "@/lib/theme";
 import { RPC_FUNCTIONS } from "@/lib/constants";
 import { ArbChartRow } from "@/lib/types";
 import type { BacktesterChartData } from "@/lib/types/backtester";
+import BacktesterPnLChart from "@/components/BacktesterPnLChart";
 import {
   Chart as ChartJS,
   LineController,
@@ -374,6 +375,9 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
           )}
         </div>
       )}
+
+      {/* PnL Calculator Chart */}
+      <BacktesterPnLChart chartData={chartData} />
     </div>
   );
 }
