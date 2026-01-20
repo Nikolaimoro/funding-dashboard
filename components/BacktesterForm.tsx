@@ -473,7 +473,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
             className={`${TAILWIND.button.secondary} h-9 w-9 flex items-center justify-center p-0`}
             title="Swap Long and Short"
           >
-            <ArrowRightLeft size={16} />
+            <ArrowRightLeft size={18} />
           </button>
 
           {/* Short Exchange */}
