@@ -591,15 +591,15 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
             />
 
             <StatCard
-              icon={Activity}
-              iconColor="text-purple-400"
-              label="APR"
+              icon={TrendingUp}
+              iconColor="text-emerald-400"
+              label="Funding PnL"
               value={
-                <span className={pnlCalculations.apr >= 0 ? "text-green-400" : "text-red-400"}>
-                  {formatPercent(pnlCalculations.apr)}
+                <span className={pnlCalculations.totalFundingPnL >= 0 ? "text-green-400" : "text-red-400"}>
+                  {formatCurrency(pnlCalculations.totalFundingPnL)}
                 </span>
               }
-              subValue="annualized"
+              subValue="before costs"
             />
 
             <StatCard
@@ -615,15 +615,27 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
             />
 
             <StatCard
-              icon={TrendingUp}
-              iconColor="text-emerald-400"
-              label="Funding PnL"
+              icon={ArrowUpRight}
+              iconColor="text-green-400"
+              label="Best Day"
               value={
-                <span className={pnlCalculations.totalFundingPnL >= 0 ? "text-green-400" : "text-red-400"}>
-                  {formatCurrency(pnlCalculations.totalFundingPnL)}
+                <span className="text-green-400">
+                  {formatCurrency(pnlCalculations.bestDay.pnl)}
                 </span>
               }
-              subValue="before costs"
+              subValue={pnlCalculations.bestDay.date ? new Date(pnlCalculations.bestDay.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "-"}
+            />
+
+            <StatCard
+              icon={Activity}
+              iconColor="text-purple-400"
+              label="APR"
+              value={
+                <span className={pnlCalculations.apr >= 0 ? "text-green-400" : "text-red-400"}>
+                  {formatPercent(pnlCalculations.apr)}
+                </span>
+              }
+              subValue="annualized"
             />
 
             <StatCard
@@ -648,18 +660,6 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
                 </span>
               }
               subValue="to breakeven"
-            />
-
-            <StatCard
-              icon={ArrowUpRight}
-              iconColor="text-green-400"
-              label="Best Day"
-              value={
-                <span className="text-green-400">
-                  {formatCurrency(pnlCalculations.bestDay.pnl)}
-                </span>
-              }
-              subValue={pnlCalculations.bestDay.date ? new Date(pnlCalculations.bestDay.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "-"}
             />
 
             <StatCard
