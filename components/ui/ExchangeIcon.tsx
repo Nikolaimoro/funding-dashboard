@@ -18,7 +18,7 @@ export const EXCHANGE_ICONS: Record<string, { file: string; bg?: string; scale?:
   paradex: { file: "paradex.png", bg: "#1a1a2e", scale: 1 },
   variational: { file: "variational.png", bg: "#1a1a2e", scale: 1 },
   extended: { file: "extended.svg", bg: "#1a1a2e", scale: 0.7 },
-  lighter: { file: "lighter.svg", bg: "#1a1a2e", scale: 0.6},
+  lighter: { file: "lighter.svg", bg: "#1a1a2e", scale: 0.5},
 };
 
 interface ExchangeIconProps {
