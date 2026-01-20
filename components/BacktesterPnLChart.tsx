@@ -81,8 +81,9 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
   const [chartKey, setChartKey] = useState(0);
 
   // Inputs
-  const [positionSize, setPositionSize] = useState<number>(10000);
-  const [executionCost, setExecutionCost] = useState<number>(1);
+  const [positionInput, setPositionInput] = useState<string>("10,000");
+  const [executionCostInput, setExecutionCostInput] = useState<string>("0.2");
+  const [days, setDays] = useState<number>(30);
 
   const isLoaded = !!chartData?.longMarketId && !!chartData?.shortMarketId;
 
@@ -98,7 +99,7 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
     fetchPnLData({
       longMarketId: chartData.longMarketId,
       shortMarketId: chartData.shortMarketId,
-      days: 30,
+      days,
     })
       .then((d) => {
         if (cancelled) return;
@@ -116,7 +117,20 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId]);
+  }, [isLoaded, chartData?.longMarketId, chartData?.shortMarketId, days]);
+
+  const parsedPositionSize = useMemo(() => {
+    const normalized = positionInput.replace(/,/g, "").replace(/[^\d.]/g, "");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }, [positionInput]);
+
+  const positionSize = parsedPositionSize > 0 ? parsedPositionSize : 10000;
+
+  const executionCost = useMemo(() => {
+    const parsed = Number(executionCostInput);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0.2;
+  }, [executionCostInput]);
 
   // Calculate PnL values
   const pnlCalculations = useMemo(() => {
@@ -206,12 +220,11 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
           data: pnlCalculations.cumPnL,
           yAxisID: "y",
           borderColor: "rgba(148, 163, 184, 1)",
-          backgroundColor: "rgba(148, 163, 184, 0.1)",
           borderWidth: 2,
           pointRadius: 0,
           pointHitRadius: 10,
           tension: 0.25,
-          fill: true,
+          fill: false,
         },
       ],
     };
@@ -307,6 +320,26 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Panel - Inputs & Summary */}
         <div className="w-full lg:w-64 shrink-0 space-y-4">
+          {/* Time Window */}
+          <div className="bg-[#1c202f] border border-[#343a4e] rounded-lg p-3">
+            <div className="text-xs text-gray-500 mb-2">Time Window</div>
+            <div className="flex flex-wrap gap-2">
+              {[1, 3, 7, 15, 30].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setDays(value)}
+                  className={`px-2.5 py-1 rounded text-xs border transition ${
+                    days === value
+                      ? "bg-[#343a4e] border-[#47506b] text-white"
+                      : "bg-transparent border-[#343a4e] text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {value}d
+                </button>
+              ))}
+            </div>
+          </div>
           {/* Inputs */}
           <div className="bg-[#1c202f] border border-[#343a4e] rounded-lg p-4 space-y-3">
             <h3 className="text-sm font-medium text-gray-400 mb-2">Parameters</h3>
@@ -314,11 +347,20 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
             <div>
               <label className="block text-xs text-gray-500 mb-1">Position Size (USD)</label>
               <input
-                type="number"
-                value={positionSize}
-                onChange={(e) => setPositionSize(Number(e.target.value) || 10000)}
+                type="text"
+                inputMode="numeric"
+                value={positionInput}
+                onChange={(e) => setPositionInput(e.target.value)}
+                onBlur={() => {
+                  if (!positionInput.trim() || parsedPositionSize <= 0) {
+                    setPositionInput("10,000");
+                    return;
+                  }
+                  const normalized = parsedPositionSize
+                    .toLocaleString("en-US", { maximumFractionDigits: 0 });
+                  setPositionInput(normalized);
+                }}
                 className="w-full px-3 py-2 bg-[#292e40] border border-[#343a4e] rounded text-white text-sm focus:outline-none focus:border-[#4a5568]"
-                min={0}
               />
             </div>
 
@@ -326,8 +368,13 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
               <label className="block text-xs text-gray-500 mb-1">Execution Cost (%)</label>
               <input
                 type="number"
-                value={executionCost}
-                onChange={(e) => setExecutionCost(Number(e.target.value) || 0)}
+                value={executionCostInput}
+                onChange={(e) => setExecutionCostInput(e.target.value)}
+                onBlur={() => {
+                  if (!executionCostInput.trim()) {
+                    setExecutionCostInput("0.2");
+                  }
+                }}
                 className="w-full px-3 py-2 bg-[#292e40] border border-[#343a4e] rounded text-white text-sm focus:outline-none focus:border-[#4a5568]"
                 min={0}
                 step={0.1}

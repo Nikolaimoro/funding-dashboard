@@ -22,12 +22,12 @@ interface MinimumFilterProps {
 
 const MIDPOINT_VALUE = 1_000_000;
 
-function formatNumberWithSpaces(value: number) {
-  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+function formatNumberWithCommas(value: number) {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function parseNumberInput(rawValue: string) {
-  const digitsOnly = rawValue.replace(/\s+/g, "").replace(/[^\d]/g, "");
+  const digitsOnly = rawValue.replace(/,/g, "").replace(/[^\d]/g, "");
   if (!digitsOnly) return "";
   return Number(digitsOnly);
 }
@@ -241,7 +241,7 @@ export default function MinimumFilter({
 
   useEffect(() => {
     if (typeof minOI === "number" && minOI > 0) {
-      setOiDisplayValue(formatNumberWithSpaces(minOI));
+      setOiDisplayValue(formatNumberWithCommas(minOI));
     } else {
       setOiDisplayValue("");
     }
@@ -249,7 +249,7 @@ export default function MinimumFilter({
 
   useEffect(() => {
     if (typeof minVolume === "number" && minVolume > 0) {
-      setVolumeDisplayValue(formatNumberWithSpaces(minVolume));
+      setVolumeDisplayValue(formatNumberWithCommas(minVolume));
     } else {
       setVolumeDisplayValue("");
     }
