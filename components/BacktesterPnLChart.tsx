@@ -513,6 +513,8 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
                 {showPositionTip && (
                   <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 rounded-lg bg-[#292e40] border border-[#343a4e] text-[11px] shadow-lg z-50">
                     <span className="text-gray-300">Position size, per leg</span>
+                    <hr className="border-[#343a4e] my-1.5" />
+                    <span className="text-gray-500">Total: {(parsedPositionSize * 2).toLocaleString()}</span>
                   </span>
                 )}
               </span>
@@ -561,6 +563,8 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
                   <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 p-2 rounded-lg bg-[#292e40] border border-[#343a4e] text-[11px] shadow-lg z-50 whitespace-normal">
                     <span className="text-gray-300">Total execution cost</span>
                     <span className="block text-gray-400">(open + close, both legs)</span>
+                    <hr className="border-[#343a4e] my-1.5" />
+                    <span className="text-gray-500">Includes slippage + fees.</span>
                   </span>
                 )}
               </span>
