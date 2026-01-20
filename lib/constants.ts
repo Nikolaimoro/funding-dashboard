@@ -14,6 +14,7 @@ export const EXCHANGE_LABEL: Record<string, string> = {
   okx: "OKX",
   aster: "Aster",
   variational: "Variational",
+  lighter: "Lighter",
 };
 
 /**
