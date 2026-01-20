@@ -403,9 +403,14 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
             <label className="block text-xs text-gray-500 mb-1">Long</label>
             <button
               onClick={() => setOpenCombo(openCombo === "long-ex" ? null : "long-ex")}
-              className="w-full text-left text-sm bg-[#1c202f] border border-[#343a4e] rounded-lg px-3 py-2 text-gray-200 hover:border-[#4a5568] transition"
+              className="w-full text-left text-sm bg-[#1c202f] border border-[#343a4e] rounded-lg px-3 py-2 text-gray-200 hover:border-[#4a5568] transition flex items-center gap-2"
             >
-              {selectedLongEx ? `${EXCHANGE_LABEL[selectedLongEx] || selectedLongEx}${selectedLongQuote ? ` (${selectedLongQuote})` : ""}` : "Select..."}
+              {selectedLongEx ? (
+                <>
+                  <ExchangeIcon exchange={selectedLongEx} size={16} />
+                  {EXCHANGE_LABEL[selectedLongEx] || selectedLongEx}{selectedLongQuote ? ` (${selectedLongQuote})` : ""}
+                </>
+              ) : "Select..."}
             </button>
 
             {openCombo === "long-ex" && (
@@ -472,9 +477,14 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
             <label className="block text-xs text-gray-500 mb-1">Short</label>
             <button
               onClick={() => setOpenCombo(openCombo === "short-ex" ? null : "short-ex")}
-              className="w-full text-left text-sm bg-[#1c202f] border border-[#343a4e] rounded-lg px-3 py-2 text-gray-200 hover:border-[#4a5568] transition"
+              className="w-full text-left text-sm bg-[#1c202f] border border-[#343a4e] rounded-lg px-3 py-2 text-gray-200 hover:border-[#4a5568] transition flex items-center gap-2"
             >
-              {selectedShortEx ? `${EXCHANGE_LABEL[selectedShortEx] || selectedShortEx}${selectedShortQuote ? ` (${selectedShortQuote})` : ""}` : "Select..."}
+              {selectedShortEx ? (
+                <>
+                  <ExchangeIcon exchange={selectedShortEx} size={16} />
+                  {EXCHANGE_LABEL[selectedShortEx] || selectedShortEx}{selectedShortQuote ? ` (${selectedShortQuote})` : ""}
+                </>
+              ) : "Select..."}
             </button>
 
             {openCombo === "short-ex" && (

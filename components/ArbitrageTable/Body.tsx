@@ -11,6 +11,86 @@ import ExchangeIcon from "@/components/ui/ExchangeIcon";
 type SortKey = "opportunity_apr" | "stability";
 
 /**
+ * APR cell with tooltip showing long/short exchanges
+ * Clicking opens the backtester with pre-filled parameters
+ */
+function APRCellWithTooltip({ 
+  row, 
+  children 
+}: { 
+  row: ArbRow; 
+  children: React.ReactNode;
+}) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const triggerRef = useRef<HTMLAnchorElement>(null);
+
+  const updateTooltipPosition = () => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top - 8 });
+  };
+
+  // Build backtester URL with parameters
+  const backtesterUrl = (() => {
+    const longExchange = row.long_exchange?.toLowerCase() || "";
+    const shortExchange = row.short_exchange?.toLowerCase() || "";
+    const longQuote = row.long_quote?.toLowerCase() || "usdt";
+    const shortQuote = row.short_quote?.toLowerCase() || "usdt";
+    const exchange1 = `${longExchange}${longQuote}`;
+    const exchange2 = `${shortExchange}${shortQuote}`;
+    return `/backtester?token=${encodeURIComponent(row.base_asset)}&exchange1=${encodeURIComponent(exchange1)}&exchange2=${encodeURIComponent(exchange2)}`;
+  })();
+
+  const tooltip =
+    showTooltip && tooltipPos && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="fixed z-[100] w-44 p-2 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-left pointer-events-none -translate-x-1/2 -translate-y-full"
+            style={{ left: tooltipPos.x, top: tooltipPos.y }}
+          >
+            <div className="flex justify-between items-center text-gray-400 mb-1">
+              <span>Long</span>
+              <span className="text-emerald-400 font-medium inline-flex items-center gap-1">
+                <ExchangeIcon exchange={row.long_exchange} size={14} />
+                {formatExchange(row.long_exchange)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-gray-400">
+              <span>Short</span>
+              <span className="text-red-400 font-medium inline-flex items-center gap-1">
+                <ExchangeIcon exchange={row.short_exchange} size={14} />
+                {formatExchange(row.short_exchange)}
+              </span>
+            </div>
+            <div className="mt-2 text-xs text-white">Click to open backtester</div>
+            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#343a4e]" />
+          </div>,
+          document.body
+        )
+      : null;
+
+  return (
+    <>
+      <a
+        ref={triggerRef}
+        href={backtesterUrl}
+        onClick={(e) => e.stopPropagation()}
+        className="cursor-pointer"
+        onMouseEnter={() => {
+          updateTooltipPosition();
+          setShowTooltip(true);
+        }}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        {children}
+      </a>
+      {tooltip}
+    </>
+  );
+}
+
+/**
  * Stability progress bar component
  * Shows a horizontal bar with fill based on stability value (0-1)
  * Color coded: green (0.8-1), orange (0.5-0.8), red (<0.5)
@@ -483,9 +563,11 @@ export default function ArbitrageTableBody({
                 </td>
 
                 <td className="py-4 pr-4 pl-12 sm:pl-4 text-center">
-                  <span className="inline-flex w-full justify-center">
-                    {formatAPRNode(r.opportunity_apr)}
-                  </span>
+                  <APRCellWithTooltip row={r}>
+                    <span className="inline-flex w-full justify-center">
+                      {formatAPRNode(r.opportunity_apr)}
+                    </span>
+                  </APRCellWithTooltip>
                 </td>
 
                 <td className="px-4 py-4 pl-24">
