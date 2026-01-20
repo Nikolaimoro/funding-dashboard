@@ -555,17 +555,17 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
             ))}
           </div>
         ) : hasData ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 auto-rows-fr gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 auto-rows-fr gap-3">
             <StatCard
               icon={TrendingUp}
               iconColor="text-green-400"
               label="Total PnL"
               value={
-                <span className={pnlCalculations.totalPnL >= 0 ? "text-green-400" : "text-red-400"}>
+                <span className={`${pnlCalculations.totalPnL >= 0 ? "text-green-400" : "text-red-400"} text-2xl sm:text-3xl`}>
                   {formatPercent(pnlCalculations.totalPnLPercent)}
                 </span>
               }
-              subValue={formatCurrency(pnlCalculations.totalPnL)}
+              subValue={<span className="text-sm">{formatCurrency(pnlCalculations.totalPnL)}</span>}
               subValueColor={pnlCalculations.totalPnL >= 0 ? "text-green-400/70" : "text-red-400/70"}
               className="row-span-2"
             />
@@ -653,6 +653,18 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
                 </span>
               }
               subValue={pnlCalculations.bestDay.date ? new Date(pnlCalculations.bestDay.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "-"}
+            />
+
+            <StatCard
+              icon={ArrowDownRight}
+              iconColor="text-red-400"
+              label="Worst Day"
+              value={
+                <span className="text-red-400">
+                  {formatCurrency(pnlCalculations.worstDay.pnl)}
+                </span>
+              }
+              subValue={pnlCalculations.worstDay.date ? new Date(pnlCalculations.worstDay.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "-"}
             />
           </div>
         ) : null}
