@@ -274,7 +274,16 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
             x: { min: minX, max: maxX, maxRange: FULL_RANGE, minRange: MIN_RANGE },
           },
         },
-        legend: { display: true, labels: { color: COLORS.text.primary } },
+        legend: {
+          display: true,
+          labels: {
+            color: COLORS.text.primary,
+            usePointStyle: true,
+            pointStyle: "rectRounded",
+            boxWidth: 10,
+            boxHeight: 10,
+          },
+        },
         tooltip: {
           callbacks: {
             label: (ctx) => {
