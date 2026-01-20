@@ -87,7 +87,7 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
 
   // Inputs
   const [positionInput, setPositionInput] = useState<string>("10,000");
-  const [executionCostInput, setExecutionCostInput] = useState<string>("0.2");
+  const [executionCostInput, setExecutionCostInput] = useState<string>("0.4");
   const [days, setDays] = useState<number>(30);
 
   const isLoaded = !!chartData?.longMarketId && !!chartData?.shortMarketId;
@@ -130,17 +130,17 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
     return Number.isFinite(parsed) ? parsed : 0;
   }, [positionInput]);
 
+  const executionCost = useMemo(() => {
+    const parsed = Number(executionCostInput);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0.4;
+  }, [executionCostInput]);
+
   const positionSize = parsedPositionSize > 0 ? parsedPositionSize : 10000;
   const totalPositionSize = positionSize * 2;
   const totalExecutionCost = useMemo(() => {
     const execCostDecimal = executionCost / 100;
-    return positionSize * execCostDecimal * 2;
-  }, [executionCost, positionSize]);
-
-  const executionCost = useMemo(() => {
-    const parsed = Number(executionCostInput);
-    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0.2;
-  }, [executionCostInput]);
+    return totalPositionSize * execCostDecimal;
+  }, [executionCost, totalPositionSize]);
 
   // Calculate PnL values
   const pnlCalculations = useMemo(() => {
@@ -154,9 +154,9 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
       };
     }
 
-    // Execution cost is a roundtrip cost for one leg; total position has two legs
+    // Execution cost is total for open + close across both legs
     const execCostDecimal = executionCost / 100;
-    const totalExecutionCost = positionSize * execCostDecimal * 2;
+    const totalExecutionCost = totalPositionSize * execCostDecimal;
 
     // Each spread_pct is already a percentage
     // For position PnL: (spread_pct / 100) * positionSize
@@ -172,13 +172,13 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
       // Event PnL from funding
       let eventPnLValue = (spreadPct / 100) * positionSize;
 
-      // Apply execution cost on first bar (opening) for both legs
+      // Apply half of total execution cost on first bar (opening)
       if (index === 0) {
-        eventPnLValue -= positionSize * execCostDecimal;
+        eventPnLValue -= totalExecutionCost / 2;
       }
-      // Apply execution cost on last bar (closing) for both legs
+      // Apply half of total execution cost on last bar (closing)
       if (index === rows.length - 1) {
-        eventPnLValue -= positionSize * execCostDecimal;
+        eventPnLValue -= totalExecutionCost / 2;
       }
 
       cumulativePnL += eventPnLValue;
@@ -389,7 +389,7 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
                 <span className="relative group inline-flex items-center">
                   <Info size={14} className="text-gray-400" />
                   <span className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 p-2 rounded-md bg-[#292e40] border border-[#343a4e] text-[11px] text-gray-300 shadow-lg">
-                    <span>Roundtrip cost per leg (open + close). Total cost doubles.</span>
+                    <span>Total execution cost for open + close across both legs.</span>
                     <span className="mt-1 block text-gray-400">Total: {formatCurrency(totalExecutionCost)}</span>
                   </span>
                 </span>
@@ -400,7 +400,7 @@ export default function BacktesterPnLChart({ chartData }: BacktesterPnLChartProp
                 onChange={(e) => setExecutionCostInput(e.target.value)}
                 onBlur={() => {
                   if (!executionCostInput.trim()) {
-                    setExecutionCostInput("0.2");
+                    setExecutionCostInput("0.4");
                   }
                 }}
                 className="w-full px-3 py-2 bg-[#292e40] border border-[#343a4e] rounded text-white text-sm focus:outline-none focus:border-[#4a5568]"
