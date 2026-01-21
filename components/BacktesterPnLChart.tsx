@@ -284,10 +284,10 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
     // APR calculation
     const apr = avgDailyPnLPercent * 365;
 
-    // Best and worst day
+    // Best and worst day (funding-only, without execution cost)
     let bestDay = { date: "", pnl: -Infinity };
     let worstDay = { date: "", pnl: Infinity };
-    dailyPnLArray.forEach(([date, pnl]) => {
+    dailyFundingArray.forEach(([date, pnl]) => {
       if (pnl > bestDay.pnl) bestDay = { date, pnl };
       if (pnl < worstDay.pnl) worstDay = { date, pnl };
     });
