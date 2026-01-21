@@ -18,6 +18,7 @@ export const EXCHANGE_LABEL: Record<string, string> = {
   edgex: "edgeX",
   dydx: "dYdX",
   blofin: "BloFin",
+  apex: "ApeX",
 };
 
 /**

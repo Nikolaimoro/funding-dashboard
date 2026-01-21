@@ -23,6 +23,7 @@ export const EXCHANGE_ICONS: Record<string, { file: string; bg?: string; scale?:
   dydx: { file: "dydx.svg", bg: "#1a1a2e", scale: 1 },
   blofin: { file: "blofin.webp", bg: "#1a1a2e", scale: 1 },
   grvt: { file: "grvt.png", bg: "#1a1a2e", scale: 1.4 },
+  apex: { file: "apex.svg", bg: "#1a1a2e", scale: 1},
 };
 
 interface ExchangeIconProps {
