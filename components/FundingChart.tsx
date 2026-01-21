@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/Modal";
 import { COLORS, CHART_CONFIG, TAILWIND } from "@/lib/theme";
-import { RPC_FUNCTIONS } from "@/lib/constants";
 import { FundingChartPoint } from "@/lib/types";
 import {
   Chart as ChartJS,
@@ -51,7 +49,7 @@ async function fetchFundingChartData(params: {
   signal?: AbortSignal;
 }): Promise<FundingChartPoint[]> {
   const { marketId, days = 30, signal } = params;
-  const timeoutMs = 5000;
+  const timeoutMs = 12000;
   const timeoutMessage = "Unable to load history. Please try again.";
   const controller = new AbortController();
   let timedOut = false;
@@ -70,16 +68,24 @@ async function fetchFundingChartData(params: {
   }, timeoutMs);
 
   try {
-    const request = supabase.rpc(RPC_FUNCTIONS.FUNDING_CHART, {
-      p_market_id: marketId,
-      p_days: days,
-    });
-    request.abortSignal(controller.signal);
-    const { data, error } = await request;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const res = await fetch(`/api/chart/funding?marketId=${marketId}&days=${days}`, {
+        signal: controller.signal,
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { rows?: FundingChartPoint[] };
+        return json.rows ?? [];
+      }
 
-    if (error) throw error;
+      if (attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        continue;
+      }
 
-    return (data ?? []) as FundingChartPoint[];
+      throw new Error("Unable to load history. Please try again.");
+    }
+
+    return [];
   } catch (err) {
     if (timedOut) {
       throw new Error(timeoutMessage);

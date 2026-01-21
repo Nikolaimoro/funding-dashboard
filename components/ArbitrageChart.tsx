@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/Modal";
 import { COLORS, CHART_CONFIG } from "@/lib/theme";
-import { RPC_FUNCTIONS } from "@/lib/constants";
 import { ArbChartRow } from "@/lib/types";
 import {
   Chart as ChartJS,
@@ -58,7 +56,7 @@ async function fetchArbChartData(params: {
   signal?: AbortSignal;
 }): Promise<ArbChartRow[]> {
   const { longMarketId, shortMarketId, days = 30, signal } = params;
-  const timeoutMs = 5000;
+  const timeoutMs = 12000;
   const timeoutMessage = "Unable to load history. Please try again.";
   const controller = new AbortController();
   let timedOut = false;
@@ -77,17 +75,24 @@ async function fetchArbChartData(params: {
   }, timeoutMs);
 
   try {
-    const request = supabase.rpc(RPC_FUNCTIONS.ARB_CHART, {
-      p_long_market_id: longMarketId,
-      p_short_market_id: shortMarketId,
-      p_days: days,
-    });
-    request.abortSignal(controller.signal);
-    const { data, error } = await request;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const res = await fetch(`/api/chart/arbitrage?longMarketId=${longMarketId}&shortMarketId=${shortMarketId}&days=${days}`, {
+        signal: controller.signal,
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { rows?: ArbChartRow[] };
+        return json.rows ?? [];
+      }
 
-    if (error) throw error;
+      if (attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        continue;
+      }
 
-    return (data ?? []) as ArbChartRow[];
+      throw new Error("Unable to load history. Please try again.");
+    }
+
+    return [];
   } catch (err) {
     if (timedOut) {
       throw new Error(timeoutMessage);

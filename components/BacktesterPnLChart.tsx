@@ -2,11 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Info, TrendingUp, DollarSign, Activity, ArrowUpRight, ArrowDownRight, Zap, Percent, Clock, BarChart3, Layers } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { formatCompactUSD, formatExchange } from "@/lib/formatters";
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { COLORS, CHART_CONFIG } from "@/lib/theme";
-import { RPC_FUNCTIONS } from "@/lib/constants";
 import type { BacktesterChartData } from "@/lib/types/backtester";
 import {
   Chart as ChartJS,
@@ -66,24 +64,23 @@ async function fetchPnLData(params: {
   longMarketId: number;
   shortMarketId: number;
   days?: number;
+  cacheBust?: number;
 }): Promise<PnLRow[]> {
-  const { longMarketId, shortMarketId, days = 30 } = params;
-
+  const { longMarketId, shortMarketId, days = 30, cacheBust } = params;
   const timeoutPromise = new Promise((_, reject) =>
     setTimeout(() => reject(new Error("Request timeout. Please try again.")), 10000)
   );
+  const cacheParam = Number.isFinite(cacheBust) ? `&t=${cacheBust}` : "";
+  const fetchPromise = fetch(
+    `/api/chart/pnl?longMarketId=${longMarketId}&shortMarketId=${shortMarketId}&days=${days}${cacheParam}`
+  );
 
-  const fetchPromise = supabase.rpc(RPC_FUNCTIONS.ARB_PNL, {
-    p_long_market_id: longMarketId,
-    p_short_market_id: shortMarketId,
-    p_days: days,
-  });
+  const res = (await Promise.race([fetchPromise, timeoutPromise as any])) as Response;
 
-  const { data, error } = await Promise.race([fetchPromise, timeoutPromise as any]);
+  if (!res.ok) throw new Error("Request timeout. Please try again.");
 
-  if (error) throw error;
-
-  return (data ?? []) as PnLRow[];
+  const json = (await res.json()) as { rows?: PnLRow[] };
+  return json.rows ?? [];
 }
 
 // Stat Card Component
@@ -164,6 +161,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
       longMarketId: chartData.longMarketId,
       shortMarketId: chartData.shortMarketId,
       days,
+      cacheBust: runToken,
     })
       .then((d) => {
         if (cancelled) return;

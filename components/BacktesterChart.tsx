@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { ExternalLink } from "lucide-react";
 import { formatExchange } from "@/lib/formatters";
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { COLORS, CHART_CONFIG } from "@/lib/theme";
-import { RPC_FUNCTIONS } from "@/lib/constants";
 import { ArbChartRow } from "@/lib/types";
 import type { BacktesterChartData } from "@/lib/types/backtester";
 import BacktesterPnLChart from "@/components/BacktesterPnLChart";
@@ -53,25 +51,26 @@ async function fetchBacktestData(params: {
   longMarketId: number;
   shortMarketId: number;
   days?: number;
+  cacheBust?: number;
 }): Promise<ArbChartRow[]> {
-  const { longMarketId, shortMarketId, days = 30 } = params;
+  const { longMarketId, shortMarketId, days = 30, cacheBust } = params;
 
   // Add 10 second timeout to prevent infinite loading
   const timeoutPromise = new Promise((_, reject) =>
     setTimeout(() => reject(new Error("Request timeout. Please try again.")), 10000)
   );
 
-  const fetchPromise = supabase.rpc(RPC_FUNCTIONS.ARB_CHART, {
-    p_long_market_id: longMarketId,
-    p_short_market_id: shortMarketId,
-    p_days: days,
-  });
+    const cacheParam = Number.isFinite(cacheBust) ? `&t=${cacheBust}` : "";
+    const fetchPromise = fetch(
+      `/api/chart/arbitrage?longMarketId=${longMarketId}&shortMarketId=${shortMarketId}&days=${days}${cacheParam}`
+    );
 
-  const { data, error } = await Promise.race([fetchPromise, timeoutPromise as any]);
+    const res = (await Promise.race([fetchPromise, timeoutPromise as any])) as Response;
 
-  if (error) throw error;
+    if (!res.ok) throw new Error("Unable to load history. Please try again.");
 
-  return (data ?? []) as ArbChartRow[];
+    const json = (await res.json()) as { rows?: ArbChartRow[] };
+    return json.rows ?? [];
 }
 
 export default function BacktesterChart({ chartData, selectedLongEx, selectedShortEx, runToken }: BacktesterChartProps) {
@@ -95,6 +94,7 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
       longMarketId: chartData.longMarketId,
       shortMarketId: chartData.shortMarketId,
       days: 30,
+      cacheBust: runToken,
     })
       .then((d) => {
         if (cancelled) return;
