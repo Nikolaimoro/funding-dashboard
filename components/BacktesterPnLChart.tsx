@@ -601,7 +601,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
             ))}
           </div>
         ) : hasData ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 auto-rows-fr gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 auto-rows-fr gap-3">
             <StatCard
               icon={TrendingUp}
               iconColor="text-green-400"
@@ -613,7 +613,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               }
               subValue={<span className="text-base">{formatPercent(pnlCalculations.totalPnLPercent)}</span>}
               subValueColor={pnlCalculations.totalPnL >= 0 ? "text-green-400/70" : "text-red-400/70"}
-              className="row-span-1 sm:row-span-1 lg:row-span-1 col-span-2 sm:col-span-1 lg:col-span-1 order-1 sm:order-none"
+              className="row-span-1 sm:row-span-2 col-span-2 sm:col-span-1 order-1 sm:order-none"
             />
             
             <StatCard
