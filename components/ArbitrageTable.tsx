@@ -104,17 +104,14 @@ export default function ArbitrageTable() {
     }
 
     const fetchRows = async () => {
-      const { data, error } = await supabase
-        .from(SUPABASE_TABLES.ARB_OPPORTUNITIES)
-        .select("*")
-        .order("stability", { ascending: false })
-        .order("opportunity_apr", { ascending: false });
-
-      if (error) {
-        throw new Error(error.message);
+      const res = await fetch("/api/dashboard?type=arbitrage", {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to load arbitrage data");
       }
-
-      return (data ?? []) as ArbRow[];
+      const json = (await res.json()) as { rows?: ArbRow[] };
+      return json.rows ?? [];
     };
 
     const load = async () => {

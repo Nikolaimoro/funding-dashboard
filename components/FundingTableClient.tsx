@@ -1,42 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import FundingTable from "@/components/FundingTable";
 import { FundingRow } from "@/lib/types";
 import { getLocalCache, setLocalCache, withTimeout } from "@/lib/async";
 
-const PAGE_SIZE = 1000;
 const TIMEOUT_MS = 8000;
 const MAX_ATTEMPTS = 2;
 const CACHE_KEY = "cache-funding-dashboard-rows";
 const CACHE_TTL_MS = 3 * 60 * 1000;
 
 const fetchFundingRows = async (): Promise<FundingRow[]> => {
-  let allRows: FundingRow[] = [];
-  let from = 0;
-
-  while (true) {
-    const { data, error: fetchError } = await supabase
-      .from("funding_dashboard_mv")
-      .select("*")
-      .order("volume_24h", { ascending: false, nullsFirst: false })
-      .range(from, from + PAGE_SIZE - 1);
-
-    if (fetchError) {
-      throw new Error(fetchError.message);
-    }
-
-    if (!data || data.length === 0) break;
-
-    allRows = allRows.concat(data as FundingRow[]);
-
-    if (data.length < PAGE_SIZE) break;
-
-    from += PAGE_SIZE;
+  const res = await fetch("/api/dashboard?type=funding", {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error("Failed to load funding dashboard data");
   }
-
-  return allRows;
+  const json = (await res.json()) as { rows?: FundingRow[] };
+  return json.rows ?? [];
 };
 
 export default function FundingTableClient() {

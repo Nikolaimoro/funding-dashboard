@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { RefreshCw, ChevronDown, Search, X } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { normalizeToken, formatAPR, formatExchange } from "@/lib/formatters";
 import { getRate, calculateMaxArb, findArbPair } from "@/lib/funding";
 import {
@@ -104,33 +103,19 @@ export default function FundingScreener() {
       setError(null);
     }
 
-    const fetchExchangeColumns = async (): Promise<ExchangeColumn[]> => {
-      const { data, error } = await supabase
-        .from("exchange_columns")
-        .select("*")
-        .order("column_key", { ascending: true });
-      if (error) throw new Error(error.message);
-      return data as ExchangeColumn[];
-    };
-
-    const fetchMatrixData = async (): Promise<FundingMatrixRow[]> => {
-      const tableName = "token_funding_matrix_mv";
-      let allRows: FundingMatrixRow[] = [];
-      let from = 0;
-      const PAGE_SIZE = 1000;
-
-      while (true) {
-        const { data, error } = await supabase
-          .from(tableName)
-          .select("*")
-          .range(from, from + PAGE_SIZE - 1);
-        if (error) throw new Error(error.message);
-        if (!data?.length) break;
-        allRows = allRows.concat(data as FundingMatrixRow[]);
-        if (data.length < PAGE_SIZE) break;
-        from += PAGE_SIZE;
+    const fetchScreenerData = async (): Promise<{ columns: ExchangeColumn[]; rows: FundingMatrixRow[] }> => {
+      const res = await fetch("/api/dashboard?type=screener", { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error("Failed to load funding screener data");
       }
-      return allRows;
+      const json = (await res.json()) as {
+        columns?: ExchangeColumn[];
+        rows?: FundingMatrixRow[];
+      };
+      return {
+        columns: json.columns ?? [],
+        rows: json.rows ?? [],
+      };
     };
 
     const load = async () => {
@@ -140,10 +125,10 @@ export default function FundingScreener() {
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         const currentAttempt = ++attemptId;
         try {
-          const [columns, matrixData] = await Promise.all([
-            withTimeout(fetchExchangeColumns(), TIMEOUT_MS),
-            withTimeout(fetchMatrixData(), TIMEOUT_MS),
-          ]);
+          const { columns, rows: matrixData } = await withTimeout(
+            fetchScreenerData(),
+            TIMEOUT_MS
+          );
 
           if (!cancelled && currentAttempt === attemptId) {
             setExchangeColumns(columns);
