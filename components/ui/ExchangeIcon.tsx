@@ -21,6 +21,7 @@ export const EXCHANGE_ICONS: Record<string, { file: string; bg?: string; scale?:
   lighter: { file: "lighter.svg", bg: "#1a1a2e", scale: 0.45 },
   edgex: { file: "edgex.svg", bg: "#1a1a2e", scale: 0.7 },
   dydx: { file: "dydx.svg", bg: "#1a1a2e", scale: 1 },
+  blofin: { file: "blofin.webp", bg: "#1a1a2e", scale: 1 },
 };
 
 interface ExchangeIconProps {

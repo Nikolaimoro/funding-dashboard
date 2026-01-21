@@ -17,6 +17,7 @@ export const EXCHANGE_LABEL: Record<string, string> = {
   lighter: "Lighter",
   edgex: "edgeX",
   dydx: "dYdX",
+  blofin: "BloFin",
 };
 
 /**
