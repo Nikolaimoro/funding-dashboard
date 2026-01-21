@@ -11,11 +11,11 @@ import type { BacktesterChartData } from "@/lib/types/backtester";
 
 const BacktesterChart = dynamic(() => import("@/components/BacktesterChart"), { ssr: false });
 
-type Quote = { asset: string; marketId: number; refUrl: string | null };
+type Quote = { asset: string; marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null };
 
 interface BacktesterFormProps {
   tokens: string[];
-  exchanges: { exchange: string; baseAssets: { asset: string; quotes: { asset: string; marketId: number; refUrl: string | null }[] }[] }[];
+  exchanges: { exchange: string; baseAssets: { asset: string; quotes: { asset: string; marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null }[] }[] }[];
   initialToken?: string;
   initialLongEx?: string;
   initialShortEx?: string;
@@ -33,10 +33,14 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
   const [selectedLongQuote, setSelectedLongQuote] = useState<string>(initialLongQuote);
   const [selectedLongMarketId, setSelectedLongMarketId] = useState<number | null>(null);
   const [selectedLongRefUrl, setSelectedLongRefUrl] = useState<string | null>(null);
+  const [selectedLongVolume24h, setSelectedLongVolume24h] = useState<number | null>(null);
+  const [selectedLongOpenInterest, setSelectedLongOpenInterest] = useState<number | null>(null);
   const [selectedShortEx, setSelectedShortEx] = useState<string>(initialShortEx);
   const [selectedShortQuote, setSelectedShortQuote] = useState<string>(initialShortQuote);
   const [selectedShortMarketId, setSelectedShortMarketId] = useState<number | null>(null);
   const [selectedShortRefUrl, setSelectedShortRefUrl] = useState<string | null>(null);
+  const [selectedShortVolume24h, setSelectedShortVolume24h] = useState<number | null>(null);
+  const [selectedShortOpenInterest, setSelectedShortOpenInterest] = useState<number | null>(null);
 
   const [tokenSearch, setTokenSearch] = useState("");
   const [longExSearch, setLongExSearch] = useState("");
@@ -44,7 +48,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
 
   const [openCombo, setOpenCombo] = useState<ComboboxType | null>(null);
   const [loading, setLoading] = useState(false);
-  const [chartData, setChartData] = useState<BacktesterChartData | null>(initialToken && initialLongEx && initialShortEx ? { token: initialToken, longEx: initialLongEx, shortEx: initialShortEx, longQuote: "", shortQuote: "", longMarketId: 0, shortMarketId: 0, longRefUrl: null, shortRefUrl: null } : null);
+  const [chartData, setChartData] = useState<BacktesterChartData | null>(initialToken && initialLongEx && initialShortEx ? { token: initialToken, longEx: initialLongEx, shortEx: initialShortEx, longQuote: "", shortQuote: "", longMarketId: 0, shortMarketId: 0, longRefUrl: null, shortRefUrl: null, longVolume24h: null, shortVolume24h: null, longOpenInterest: null, shortOpenInterest: null } : null);
   const [runToken, setRunToken] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -119,6 +123,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         setSelectedLongQuote("");
         setSelectedLongMarketId(null);
         setSelectedLongRefUrl(null);
+        setSelectedLongVolume24h(null);
+        setSelectedLongOpenInterest(null);
       }
     }
     if (selectedToken && selectedShortEx) {
@@ -129,6 +135,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         setSelectedShortQuote("");
         setSelectedShortMarketId(null);
         setSelectedShortRefUrl(null);
+        setSelectedShortVolume24h(null);
+        setSelectedShortOpenInterest(null);
       }
     }
   }, [selectedToken, exchanges]);
@@ -146,6 +154,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         setSelectedLongQuote(preferred.asset);
         setSelectedLongMarketId(preferred.marketId);
         setSelectedLongRefUrl(preferred.refUrl);
+        setSelectedLongVolume24h(preferred.volume24h ?? null);
+        setSelectedLongOpenInterest(preferred.openInterest ?? null);
       }
     }
   }, [selectedLongEx, selectedToken, selectedLongQuote, exchanges]);
@@ -162,6 +172,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         setSelectedShortQuote(preferred.asset);
         setSelectedShortMarketId(preferred.marketId);
         setSelectedShortRefUrl(preferred.refUrl);
+        setSelectedShortVolume24h(preferred.volume24h ?? null);
+        setSelectedShortOpenInterest(preferred.openInterest ?? null);
       }
     }
   }, [selectedShortEx, selectedToken, selectedShortQuote, exchanges]);
@@ -176,6 +188,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       if (quote) {
         setSelectedLongMarketId(quote.marketId);
         setSelectedLongRefUrl(quote.refUrl);
+        setSelectedLongVolume24h(quote.volume24h ?? null);
+        setSelectedLongOpenInterest(quote.openInterest ?? null);
       }
     }
     if (initialToken && initialShortEx && initialShortQuote && !selectedShortMarketId) {
@@ -186,6 +200,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       if (quote) {
         setSelectedShortMarketId(quote.marketId);
         setSelectedShortRefUrl(quote.refUrl);
+        setSelectedShortVolume24h(quote.volume24h ?? null);
+        setSelectedShortOpenInterest(quote.openInterest ?? null);
       }
     }
   }, [initialToken, initialLongEx, initialLongQuote, initialShortEx, initialShortQuote, exchanges]);
@@ -223,6 +239,10 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         shortMarketId: selectedShortMarketId,
         longRefUrl: selectedLongRefUrl,
         shortRefUrl: selectedShortRefUrl,
+        longVolume24h: selectedLongVolume24h,
+        shortVolume24h: selectedShortVolume24h,
+        longOpenInterest: selectedLongOpenInterest,
+        shortOpenInterest: selectedShortOpenInterest,
       });
       setRunToken((t) => t + 1);
       autoRunRef.current = true;
@@ -240,6 +260,10 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     selectedShortMarketId,
     selectedLongRefUrl,
     selectedShortRefUrl,
+    selectedLongVolume24h,
+    selectedShortVolume24h,
+    selectedLongOpenInterest,
+    selectedShortOpenInterest,
   ]);
 
   // Auto-run and sync URL when fields are valid (no Run click needed)
@@ -280,6 +304,10 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       shortMarketId: selectedShortMarketId,
       longRefUrl: selectedLongRefUrl,
       shortRefUrl: selectedShortRefUrl,
+      longVolume24h: selectedLongVolume24h,
+      shortVolume24h: selectedShortVolume24h,
+      longOpenInterest: selectedLongOpenInterest,
+      shortOpenInterest: selectedShortOpenInterest,
     });
     setRunToken((t) => t + 1);
   }, [
@@ -292,6 +320,10 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     selectedShortMarketId,
     selectedLongRefUrl,
     selectedShortRefUrl,
+    selectedLongVolume24h,
+    selectedShortVolume24h,
+    selectedLongOpenInterest,
+    selectedShortOpenInterest,
   ]);
 
   const handleSwapExchanges = () => {
@@ -299,14 +331,20 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     const tempQuote = selectedLongQuote;
     const tempMarketId = selectedLongMarketId;
     const tempRefUrl = selectedLongRefUrl;
+    const tempVolume = selectedLongVolume24h;
+    const tempOI = selectedLongOpenInterest;
     setSelectedLongEx(selectedShortEx);
     setSelectedLongQuote(selectedShortQuote);
     setSelectedLongMarketId(selectedShortMarketId);
     setSelectedLongRefUrl(selectedShortRefUrl);
+    setSelectedLongVolume24h(selectedShortVolume24h);
+    setSelectedLongOpenInterest(selectedShortOpenInterest);
     setSelectedShortEx(tempEx);
     setSelectedShortQuote(tempQuote);
     setSelectedShortMarketId(tempMarketId);
     setSelectedShortRefUrl(tempRefUrl);
+    setSelectedShortVolume24h(tempVolume);
+    setSelectedShortOpenInterest(tempOI);
   };
 
   const handleRun = async () => {
@@ -338,6 +376,10 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         shortMarketId: selectedShortMarketId,
         longRefUrl: selectedLongRefUrl,
         shortRefUrl: selectedShortRefUrl,
+        longVolume24h: selectedLongVolume24h,
+        shortVolume24h: selectedShortVolume24h,
+        longOpenInterest: selectedLongOpenInterest,
+        shortOpenInterest: selectedShortOpenInterest,
       });
       setRunToken((t) => t + 1);
     } catch (error) {
@@ -445,6 +487,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                                 setSelectedLongQuote(quote.asset);
                                 setSelectedLongMarketId(quote.marketId);
                                 setSelectedLongRefUrl(quote.refUrl);
+                                setSelectedLongVolume24h(quote.volume24h ?? null);
+                                setSelectedLongOpenInterest(quote.openInterest ?? null);
                                 setLongExSearch("");
                                 setOpenCombo(null);
                               }}
@@ -522,6 +566,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                                 setSelectedShortQuote(quote.asset);
                                 setSelectedShortMarketId(quote.marketId);
                                 setSelectedShortRefUrl(quote.refUrl);
+                                setSelectedShortVolume24h(quote.volume24h ?? null);
+                                setSelectedShortOpenInterest(quote.openInterest ?? null);
                                 setShortExSearch("");
                                 setOpenCombo(null);
                               }}

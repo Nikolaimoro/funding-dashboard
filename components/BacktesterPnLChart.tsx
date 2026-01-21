@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Info, TrendingUp, DollarSign, Activity, ArrowUpRight, ArrowDownRight, Zap, Percent, Clock } from "lucide-react";
+import { Info, TrendingUp, DollarSign, Activity, ArrowUpRight, ArrowDownRight, Zap, Percent, Clock, BarChart3 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { formatCompactUSD, formatExchange } from "@/lib/formatters";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { COLORS, CHART_CONFIG } from "@/lib/theme";
 import { RPC_FUNCTIONS } from "@/lib/constants";
 import type { BacktesterChartData } from "@/lib/types/backtester";
@@ -725,6 +727,64 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               subValue={pnlCalculations.worstDay.date ? new Date(pnlCalculations.worstDay.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "-"}
               alignSubValueBottom
               className="order-9 sm:order-none"
+            />
+
+            <StatCard
+              icon={BarChart3}
+              iconColor="text-blue-400"
+              label="Volume 24h"
+              value={
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="inline-flex items-center gap-1 text-gray-400">
+                      <ExchangeIcon exchange={chartData.longEx} size={14} />
+                      {formatExchange(chartData.longEx)}
+                    </span>
+                    <span className="font-mono text-gray-100">
+                      {formatCompactUSD(chartData.longVolume24h ?? null)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="inline-flex items-center gap-1 text-gray-400">
+                      <ExchangeIcon exchange={chartData.shortEx} size={14} />
+                      {formatExchange(chartData.shortEx)}
+                    </span>
+                    <span className="font-mono text-gray-100">
+                      {formatCompactUSD(chartData.shortVolume24h ?? null)}
+                    </span>
+                  </div>
+                </div>
+              }
+              className="order-10 sm:order-none"
+            />
+
+            <StatCard
+              icon={Activity}
+              iconColor="text-purple-400"
+              label="Open Interest"
+              value={
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="inline-flex items-center gap-1 text-gray-400">
+                      <ExchangeIcon exchange={chartData.longEx} size={14} />
+                      {formatExchange(chartData.longEx)}
+                    </span>
+                    <span className="font-mono text-gray-100">
+                      {formatCompactUSD(chartData.longOpenInterest ?? null)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="inline-flex items-center gap-1 text-gray-400">
+                      <ExchangeIcon exchange={chartData.shortEx} size={14} />
+                      {formatExchange(chartData.shortEx)}
+                    </span>
+                    <span className="font-mono text-gray-100">
+                      {formatCompactUSD(chartData.shortOpenInterest ?? null)}
+                    </span>
+                  </div>
+                </div>
+              }
+              className="order-11 sm:order-none"
             />
           </div>
         ) : null}

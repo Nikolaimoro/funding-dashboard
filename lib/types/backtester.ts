@@ -12,6 +12,10 @@ export type BacktesterChartData = {
   shortMarketId: number;
   longRefUrl: string | null;
   shortRefUrl: string | null;
+  longVolume24h?: number | null;
+  shortVolume24h?: number | null;
+  longOpenInterest?: number | null;
+  shortOpenInterest?: number | null;
 };
 
 export type BacktesterExchange = {
