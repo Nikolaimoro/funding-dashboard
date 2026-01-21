@@ -16,27 +16,12 @@ import { getLocalCache, setLocalCache, withTimeout } from "@/lib/async";
 import Pagination from "@/components/Table/Pagination";
 import ExchangeFilter from "@/components/Table/ExchangeFilter";
 import APRRangeFilter from "@/components/Table/APRRangeFilter";
-const CACHE_KEY = "cache-funding-screener-data";
-const CACHE_TTL_MS = 3 * 60 * 1000;
 import RateCell from "@/components/FundingScreener/RateCell";
 import APRCell from "@/components/FundingScreener/APRCell";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import SortableHeader from "@/components/ui/SortableHeader";
-
-    const cached = getLocalCache<{ columns: ExchangeColumn[]; rows: FundingMatrixRow[] }>(
-      CACHE_KEY,
-      CACHE_TTL_MS
-    );
-    const hasCache = !!cached && cached.rows.length > 0 && cached.columns.length > 0;
-    if (hasCache) {
-      setExchangeColumns(cached!.columns);
-      setRows(cached!.rows);
-      setLoading(false);
-      setError(null);
-    }
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { TAILWIND } from "@/lib/theme";
-      setLoading(!hasCache);
 
 /* ================= TYPES ================= */
 
@@ -46,20 +31,15 @@ const TIMEOUT_MS = 8000;
 const MAX_ATTEMPTS = 2;
 const FAVORITES_KEY = "funding-screener-favorites";
 const EXCHANGES_KEY = "funding-screener-exchanges";
+const CACHE_KEY = "cache-funding-screener-data";
+const CACHE_TTL_MS = 3 * 60 * 1000;
 
 /* ================= HELPERS ================= */
-            setLocalCache(CACHE_KEY, { columns, rows: matrixData });
-
 function formatColumnHeader(col: ExchangeColumn, exchangesWithMultipleQuotes: Set<string>): string {
   const name = formatExchange(col.exchange);
   if (exchangesWithMultipleQuotes.has(col.exchange)) {
     return `${name} (${col.quote_asset})`;
   }
-
-          if (hasCache) {
-            setLoading(false);
-            return;
-          }
   return name;
 }
 
@@ -112,6 +92,18 @@ export default function FundingScreener() {
     let cancelled = false;
     let attemptId = 0;
 
+    const cached = getLocalCache<{ columns: ExchangeColumn[]; rows: FundingMatrixRow[] }>(
+      CACHE_KEY,
+      CACHE_TTL_MS
+    );
+    const hasCache = !!cached && cached.rows.length > 0 && cached.columns.length > 0;
+    if (hasCache) {
+      setExchangeColumns(cached!.columns);
+      setRows(cached!.rows);
+      setLoading(false);
+      setError(null);
+    }
+
     const fetchExchangeColumns = async (): Promise<ExchangeColumn[]> => {
       const { data, error } = await supabase
         .from("exchange_columns")
@@ -142,7 +134,7 @@ export default function FundingScreener() {
     };
 
     const load = async () => {
-      setLoading(true);
+      setLoading(!hasCache);
       setError(null);
 
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -157,10 +149,16 @@ export default function FundingScreener() {
             setExchangeColumns(columns);
             setRows(matrixData);
             setLoading(false);
+            setLocalCache(CACHE_KEY, { columns, rows: matrixData });
           }
           return;
         } catch (err) {
           if (cancelled || currentAttempt !== attemptId) return;
+
+          if (hasCache) {
+            setLoading(false);
+            return;
+          }
           if (err instanceof Error && err.message === "timeout") {
             if (attempt < MAX_ATTEMPTS - 1) continue;
             setError("Error loading data: Request timed out");
