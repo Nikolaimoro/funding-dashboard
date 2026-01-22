@@ -28,7 +28,7 @@ export type FundingRow = {
 
 export type ArbRow = {
   base_asset: string;
-  opportunity_apr: number;
+  apr_spread: number;
   stability: number | null;
 
   long_market_id: number;

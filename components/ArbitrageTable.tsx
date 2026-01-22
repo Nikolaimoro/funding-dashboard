@@ -18,7 +18,7 @@ import { getLocalCache, setLocalCache, withTimeout } from "@/lib/async";
 
 /* ================= TYPES ================= */
 
-type SortKey = "opportunity_apr" | "stability";
+type SortKey = "apr_spread" | "stability";
 const TIMEOUT_MS = 8000;
 const MAX_ATTEMPTS = 2;
 const CACHE_KEY = "cache-arbitrage-rows";
@@ -269,7 +269,7 @@ export default function ArbitrageTable() {
    * 2. Exchange filter: Include only rows where BOTH long AND short exchanges are selected
    * 3. OI filter: Exclude opportunities where either side has insufficient open interest
    * 4. Volume filter: Exclude opportunities where either side has insufficient volume
-   * 5. Sort: Apply by opportunity_apr or stability based on sortKey
+   * 5. Sort: Apply by apr_spread or stability based on sortKey
    * 
    * Dependencies: [rows, search, selectedExchanges, sortKey, sortDir, minOI, minVolume]
    */
@@ -303,7 +303,7 @@ export default function ArbitrageTable() {
       data = data.filter(r => (r.long_volume_24h ?? 0) >= minVolValue && (r.short_volume_24h ?? 0) >= minVolValue);
     }
 
-    // MV уже отсортирована по opportunity_apr desc,
+    // MV уже отсортирована по apr_spread desc,
     // но после фильтров порядок может "плыть" — перестрахуемся
     return [...data].sort((a, b) => {
   const av = a[sortKey] ?? 0;

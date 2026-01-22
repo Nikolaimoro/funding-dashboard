@@ -8,7 +8,7 @@ import { TAILWIND } from "@/lib/theme";
 import { ArbRow, SortDir } from "@/lib/types";
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
 
-type SortKey = "opportunity_apr" | "stability";
+type SortKey = "apr_spread" | "stability";
 
 /**
  * APR cell with tooltip showing long/short exchanges
@@ -457,11 +457,11 @@ export default function ArbitrageTableBody({
               <div
                 role="button"
                 tabIndex={0}
-                onClick={() => onSort("opportunity_apr")}
+                onClick={() => onSort("apr_spread")}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    onSort("opportunity_apr");
+                    onSort("apr_spread");
                   }
                 }}
                 className="inline-flex items-center justify-center gap-1 w-full select-none cursor-pointer"
@@ -470,12 +470,12 @@ export default function ArbitrageTableBody({
                 <AprInfo />
                 <span className="flex flex-col items-center leading-[0.7]">
                   <span
-                    className={`text-[11px] inline-block origin-center scale-y-[0.6] ${sortKey === "opportunity_apr" && sortDir === "asc" ? "text-gray-200" : "text-gray-500/70"}`}
+                    className={`text-[11px] inline-block origin-center scale-y-[0.6] ${sortKey === "apr_spread" && sortDir === "asc" ? "text-gray-200" : "text-gray-500/70"}`}
                   >
                     ▲
                   </span>
                   <span
-                    className={`text-[11px] inline-block origin-center scale-y-[0.6] ${sortKey === "opportunity_apr" && sortDir === "desc" ? "text-gray-200" : "text-gray-500/70"}`}
+                    className={`text-[11px] inline-block origin-center scale-y-[0.6] ${sortKey === "apr_spread" && sortDir === "desc" ? "text-gray-200" : "text-gray-500/70"}`}
                   >
                     ▼
                   </span>
@@ -553,7 +553,7 @@ export default function ArbitrageTableBody({
                 <td className="py-4 pr-4 pl-12 sm:pl-4 text-center">
                   <APRCellWithTooltip row={r}>
                     <span className="inline-flex w-full justify-center">
-                      {formatAPRNode(r.opportunity_apr)}
+                      {formatAPRNode(r.apr_spread)}
                     </span>
                   </APRCellWithTooltip>
                 </td>

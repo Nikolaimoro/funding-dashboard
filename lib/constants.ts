@@ -35,7 +35,7 @@ export const RPC_FUNCTIONS = {
 
 export const SUPABASE_TABLES = {
   FUNDING_DASHBOARD_MV: "funding_dashboard_mv",
-  ARB_OPPORTUNITIES: "arb_opportunities_enriched",
+  ARB_OPPORTUNITIES: "arb_pairs_final_mv",
 } as const;
 
 export const PAGINATION_LIMITS = [20, 50, 100, -1] as const;
