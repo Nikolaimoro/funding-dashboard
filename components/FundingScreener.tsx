@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { RefreshCw, ChevronDown, Search, X, Pin } from "lucide-react";
 import { normalizeToken, formatAPR, formatExchange } from "@/lib/formatters";
-import { getRate, calculateMaxArb, findArbPair } from "@/lib/funding";
+import { getRate, calculateMaxArb, findArbPair, ArbPair } from "@/lib/funding";
 import {
   ExchangeColumn,
+  FundingMatrixMarket,
   FundingMatrixRow,
   TimeWindow,
   SortDir,
