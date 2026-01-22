@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, ChevronDown, Search, X, Pin } from "lucide-react";
+import { RefreshCw, ChevronDown, Search, X } from "lucide-react";
 import { normalizeToken, formatAPR, formatExchange } from "@/lib/formatters";
 import { getRate, calculateMaxArb, findArbPair, ArbPair } from "@/lib/funding";
 import {
@@ -58,6 +58,33 @@ function GradientStar({ filled = false, size = 14 }: { filled?: boolean; size?: 
       aria-hidden="true"
     >
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
+    </svg>
+  );
+}
+
+function PinIcon({ active, size = 12 }: { active: boolean; size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={active ? "url(#pinGradient)" : "currentColor"}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {active && (
+        <defs>
+          <linearGradient id="pinGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#9E5DEE" />
+            <stop offset="100%" stopColor="#FA814D" />
+          </linearGradient>
+        </defs>
+      )}
+      <path d="M12 17v5" />
+      <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
     </svg>
   );
 }
@@ -640,10 +667,7 @@ export default function FundingScreener() {
                               aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
                               title={isPinned ? "Unpin" : "Pin"}
                             >
-                              <Pin
-                                size={12}
-                                style={isPinned ? { stroke: "url(#navUnderlineGradient)" } : undefined}
-                              />
+                              <PinIcon active={isPinned} size={12} />
                             </button>
                           </div>
                           <SortableHeader
