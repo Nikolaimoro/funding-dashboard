@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, ChevronDown, Search, X } from "lucide-react";
+import { RefreshCw, ChevronDown, Search, X, Pin } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { normalizeToken, formatAPR, formatExchange } from "@/lib/formatters";
 import { getRate, calculateMaxArb, findArbPair, ArbPair } from "@/lib/funding";
 import {
@@ -62,32 +63,7 @@ function GradientStar({ filled = false, size = 14 }: { filled?: boolean; size?: 
   );
 }
 
-function PinIcon({ active, size = 12 }: { active: boolean; size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={active ? "url(#pinGradient)" : "currentColor"}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {active && (
-        <defs>
-          <linearGradient id="pinGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#9E5DEE" />
-            <stop offset="100%" stopColor="#FA814D" />
-          </linearGradient>
-        </defs>
-      )}
-      <path d="M12 17v5" />
-      <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
-    </svg>
-  );
-}
+const PINNED_QUERY_KEY = "pinned";
 
 function findArbPairPinned(
   markets: Record<string, FundingMatrixMarket> | null | undefined,
@@ -167,6 +143,8 @@ function calculateMaxArbPinned(
 
 export default function FundingScreener() {
   /* ---------- state ---------- */
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<FundingMatrixRow[]>([]);
   const [exchangeColumns, setExchangeColumns] = useState<ExchangeColumn[]>([]);
   const [loading, setLoading] = useState(true);
@@ -355,13 +333,18 @@ export default function FundingScreener() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
+      const pinnedParam = searchParams.get(PINNED_QUERY_KEY);
+      if (pinnedParam) {
+        setPinnedColumnKey(pinnedParam);
+        return;
+      }
       const stored = window.localStorage.getItem(PINNED_KEY);
       if (!stored) return;
       setPinnedColumnKey(stored);
     } catch {
       // ignore
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -377,7 +360,22 @@ export default function FundingScreener() {
   }, [pinnedColumnKey]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (pinnedColumnKey) {
+      url.searchParams.set(PINNED_QUERY_KEY, pinnedColumnKey);
+    } else {
+      url.searchParams.delete(PINNED_QUERY_KEY);
+    }
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    if (nextUrl !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      router.replace(nextUrl);
+    }
+  }, [pinnedColumnKey, router]);
+
+  useEffect(() => {
     if (!pinnedColumnKey) return;
+    if (filteredColumnKeys.size === 0) return;
     if (!filteredColumnKeys.has(pinnedColumnKey)) {
       setPinnedColumnKey(null);
     }
@@ -663,11 +661,11 @@ export default function FundingScreener() {
                                 e.stopPropagation();
                                 setPinnedColumnKey((prev) => (prev === col.column_key ? null : col.column_key));
                               }}
-                              className={`p-0.5 rounded ${isPinned ? "text-gray-200" : "text-gray-500 hover:text-gray-300"}`}
+                              className={`p-0.5 rounded ${isPinned ? "text-[#9E5DEE]" : "text-gray-500 hover:text-gray-300"}`}
                               aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
                               title={isPinned ? "Unpin" : "Pin"}
                             >
-                              <PinIcon active={isPinned} size={12} />
+                              <Pin size={12} />
                             </button>
                           </div>
                           <SortableHeader
