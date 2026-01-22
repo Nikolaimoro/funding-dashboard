@@ -33,6 +33,7 @@ const MAX_ATTEMPTS = 2;
 const FAVORITES_KEY = "funding-screener-favorites";
 const EXCHANGES_KEY = "funding-screener-exchanges";
 const PINNED_KEY = "funding-screener-pinned";
+const PINNED_QUERY_KEY = "pinned";
 const CACHE_KEY = "cache-funding-screener-data";
 const CACHE_TTL_MS = 3 * 60 * 1000;
 
@@ -62,8 +63,17 @@ function GradientStar({ filled = false, size = 14 }: { filled?: boolean; size?: 
     </svg>
   );
 }
+function toPinnedParam(col: ExchangeColumn, exchangesWithMultipleQuotes: Set<string>) {
+  const exchange = col.exchange.toLowerCase();
+  if (exchangesWithMultipleQuotes.has(col.exchange)) {
+    return `${exchange}${col.quote_asset.toLowerCase()}`;
+  }
+  return exchange;
+}
 
-const PINNED_QUERY_KEY = "pinned";
+function normalizePinnedParam(value: string) {
+  return value.trim().toLowerCase();
+}
 
 function findArbPairPinned(
   markets: Record<string, FundingMatrixMarket> | null | undefined,
@@ -318,6 +328,22 @@ export default function FundingScreener() {
     return new Set(Object.entries(counts).filter(([, c]) => c > 1).map(([e]) => e));
   }, [exchangeColumns]);
 
+  const pinnedParamByColumnKey = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const col of exchangeColumns) {
+      map.set(col.column_key, toPinnedParam(col, exchangesWithMultipleQuotes));
+    }
+    return map;
+  }, [exchangeColumns, exchangesWithMultipleQuotes]);
+
+  const columnKeyByPinnedParam = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const col of exchangeColumns) {
+      map.set(toPinnedParam(col, exchangesWithMultipleQuotes), col.column_key);
+    }
+    return map;
+  }, [exchangeColumns, exchangesWithMultipleQuotes]);
+
   const filteredColumns = useMemo(() => {
     if (selectedExchanges.length === 0) return [];
     return exchangeColumns.filter((col) =>
@@ -332,11 +358,16 @@ export default function FundingScreener() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (columnKeyByPinnedParam.size === 0) return;
     try {
       const pinnedParam = searchParams.get(PINNED_QUERY_KEY);
       if (pinnedParam) {
-        setPinnedColumnKey(pinnedParam);
-        return;
+        const normalized = normalizePinnedParam(pinnedParam);
+        const keyFromParam = columnKeyByPinnedParam.get(normalized);
+        if (keyFromParam) {
+          setPinnedColumnKey(keyFromParam);
+          return;
+        }
       }
       const stored = window.localStorage.getItem(PINNED_KEY);
       if (!stored) return;
@@ -344,7 +375,7 @@ export default function FundingScreener() {
     } catch {
       // ignore
     }
-  }, [searchParams]);
+  }, [searchParams, columnKeyByPinnedParam]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -362,8 +393,11 @@ export default function FundingScreener() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
-    if (pinnedColumnKey) {
-      url.searchParams.set(PINNED_QUERY_KEY, pinnedColumnKey);
+    const pinnedParam = pinnedColumnKey
+      ? pinnedParamByColumnKey.get(pinnedColumnKey)
+      : null;
+    if (pinnedParam) {
+      url.searchParams.set(PINNED_QUERY_KEY, pinnedParam);
     } else {
       url.searchParams.delete(PINNED_QUERY_KEY);
     }
@@ -371,7 +405,7 @@ export default function FundingScreener() {
     if (nextUrl !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       router.replace(nextUrl);
     }
-  }, [pinnedColumnKey, router]);
+  }, [pinnedColumnKey, pinnedParamByColumnKey, router]);
 
   useEffect(() => {
     if (!pinnedColumnKey) return;
@@ -661,7 +695,7 @@ export default function FundingScreener() {
                                 e.stopPropagation();
                                 setPinnedColumnKey((prev) => (prev === col.column_key ? null : col.column_key));
                               }}
-                              className={`p-0.5 rounded ${isPinned ? "text-[#9E5DEE]" : "text-gray-500 hover:text-gray-300"}`}
+                              className={`p-0.5 rounded ${isPinned ? "text-[#FA814D]" : "text-gray-500 hover:text-gray-300"}`}
                               aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
                               title={isPinned ? "Unpin" : "Pin"}
                             >
