@@ -61,6 +61,8 @@ function APRCellWithTooltip({
       <a
         ref={triggerRef}
         href={backtesterUrl}
+        target="_blank"
+        rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
         className="cursor-pointer"
         onMouseEnter={() => {
