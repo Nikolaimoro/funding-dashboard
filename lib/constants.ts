@@ -19,6 +19,7 @@ export const EXCHANGE_LABEL: Record<string, string> = {
   dydx: "dYdX",
   blofin: "BloFin",
   apex: "ApeX",
+  pacifica: "Pacifica",
 };
 
 /**
