@@ -171,6 +171,8 @@ export default function FundingScreener() {
   const [maxAPRFilter, setMaxAPRFilter] = useState<number | "">("");
   const [favoriteTokens, setFavoriteTokens] = useState<string[]>([]);
   const [pinnedColumnKey, setPinnedColumnKey] = useState<string | null>(null);
+  const [pinnedInitialized, setPinnedInitialized] = useState(false);
+  const [pinnedDirty, setPinnedDirty] = useState(false);
 
   const [sortKey, setSortKey] = useState<SortKey>("max_arb");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -374,11 +376,15 @@ export default function FundingScreener() {
       setPinnedColumnKey(stored);
     } catch {
       // ignore
+    } finally {
+      setPinnedInitialized(true);
     }
   }, [searchParams, columnKeyByPinnedParam]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!pinnedInitialized) return;
+    if (!pinnedDirty && !pinnedColumnKey) return;
     try {
       if (!pinnedColumnKey) {
         window.localStorage.removeItem(PINNED_KEY);
@@ -388,10 +394,12 @@ export default function FundingScreener() {
     } catch {
       // ignore
     }
-  }, [pinnedColumnKey]);
+  }, [pinnedColumnKey, pinnedDirty, pinnedInitialized]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!pinnedInitialized) return;
+    if (!pinnedDirty && !pinnedColumnKey) return;
     const url = new URL(window.location.href);
     const pinnedParam = pinnedColumnKey
       ? pinnedParamByColumnKey.get(pinnedColumnKey)
@@ -405,15 +413,16 @@ export default function FundingScreener() {
     if (nextUrl !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       router.replace(nextUrl);
     }
-  }, [pinnedColumnKey, pinnedParamByColumnKey, router]);
+  }, [pinnedColumnKey, pinnedDirty, pinnedParamByColumnKey, pinnedInitialized, router]);
 
   useEffect(() => {
+    if (!pinnedInitialized) return;
     if (!pinnedColumnKey) return;
     if (filteredColumnKeys.size === 0) return;
     if (!filteredColumnKeys.has(pinnedColumnKey)) {
       setPinnedColumnKey(null);
     }
-  }, [pinnedColumnKey, filteredColumnKeys]);
+  }, [pinnedColumnKey, filteredColumnKeys, pinnedInitialized]);
 
   /* ---------- max APR for slider ---------- */
   const maxAPRValue = useMemo(() => {
@@ -693,6 +702,7 @@ export default function FundingScreener() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
+                                setPinnedDirty(true);
                                 setPinnedColumnKey((prev) => (prev === col.column_key ? null : col.column_key));
                               }}
                               className={`p-0.5 rounded ${isPinned ? "text-[#FA814D]" : "text-gray-500 hover:text-gray-300"}`}
