@@ -10,6 +10,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import TableControls from "@/components/Table/TableControls";
 import ArbitrageTableBody from "@/components/ArbitrageTable/Body";
 import ArbitrageMobileCards from "@/components/ArbitrageTable/MobileCards";
+import MobileSort from "@/components/ArbitrageTable/MobileSort";
 import SkeletonLoader from "@/components/ui/SkeletonLoader";
 import { TableEmptyState, TableLoadingState } from "@/components/ui/TableStates";
 import { TAILWIND } from "@/lib/theme";
@@ -41,6 +42,7 @@ export default function ArbitrageTable() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [minOI, setMinOI] = useState<number | "">(0);
   const [minVolume, setMinVolume] = useState<number | "">(0);
+  const [mobileSortOpen, setMobileSortOpen] = useState(false);
 
   const [pinnedExchanges, setPinnedExchanges] = useState<string[]>([]);
 
@@ -101,14 +103,20 @@ export default function ArbitrageTable() {
 }
 
   function toggleSort(key: SortKey) {
-  if (sortKey === key) {
-    setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-  } else {
-    setSortKey(key);
-    setSortDir("desc");
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+    resetPage();
   }
-  resetPage();
-}
+
+  const setSort = (key: SortKey, dir: SortDir) => {
+    setSortKey(key);
+    setSortDir(dir);
+    resetPage();
+  };
 
 
   /* ---------- load data (per window) ---------- */
@@ -467,6 +475,13 @@ export default function ArbitrageTable() {
             searchPlaceholder="Search asset"
             inputClassName={TAILWIND.input.default}
             className="ml-auto"
+          />
+          <MobileSort
+            open={mobileSortOpen}
+            onOpenChange={setMobileSortOpen}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSelect={setSort}
           />
         </div>
 
