@@ -534,12 +534,12 @@ export default function ArbitrageTableBody({
               </div>
             </th>
 
-            <th className={`${TAILWIND.table.header} pl-24`}>
+            <th className={`${TAILWIND.table.header} pl-24 pr-2 sm:pr-4`}>
               <span className="inline-flex items-center gap-1 text-left select-none text-gray-400">
                 Long
               </span>
             </th>
-            <th className={TAILWIND.table.header}>
+            <th className={`${TAILWIND.table.header} pl-6 sm:pl-4`}>
               <span className="inline-flex items-center gap-1 text-left select-none text-gray-400">
                 Short
               </span>
@@ -609,7 +609,7 @@ export default function ArbitrageTableBody({
                   </APRCellWithTooltip>
                 </td>
 
-                <td className="px-4 py-4 pl-24">
+                <td className="px-4 py-4 pl-24 pr-2 sm:pr-4">
                   <LongButton
                     href={r.long_url}
                     label={formatExchange(r.long_exchange)}
@@ -620,7 +620,7 @@ export default function ArbitrageTableBody({
                   />
                 </td>
 
-                <td className="px-4 py-4">
+                <td className="px-4 py-4 pl-6 sm:pl-4">
                   <ShortButton
                     href={r.short_url}
                     label={formatExchange(r.short_exchange)}

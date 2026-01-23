@@ -52,7 +52,7 @@ export default function ExchangeFilter({
             className="fixed inset-0 z-40"
             onClick={() => onOpenChange(false)}
           />
-          <div className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded-lg left-1/2 -translate-x-1/2 w-[calc(100vw-16px)] max-w-[420px] sm:translate-x-0 sm:left-0 sm:right-auto sm:w-[380px] p-2 shadow-lg animate-tooltip-zoom">
+          <div className="fixed z-50 bg-[#292e40] border border-[#343a4e] rounded-lg left-2 right-2 top-20 max-h-[80vh] overflow-hidden sm:absolute sm:top-auto sm:mt-2 sm:left-0 sm:right-auto sm:w-[380px] sm:max-h-none p-2 shadow-lg animate-tooltip-zoom">
             <div className="flex items-center justify-between px-2 pb-2 text-xs">
               <span className="font-light text-gray-300">Select Exchanges</span>
               <div className="flex items-center gap-2">
@@ -92,11 +92,11 @@ export default function ExchangeFilter({
               {exchanges.map((ex) => (
                 <div
                   key={ex}
-                  className="flex items-center justify-between gap-1.5 px-2 py-3 sm:py-1.5 hover:bg-[#353b52] rounded-lg"
+                  className="grid grid-cols-[1fr_auto] items-center gap-1 px-2 py-3 sm:py-1.5 sm:flex sm:justify-between sm:gap-2 hover:bg-[#353b52] rounded-lg"
                 >
                   <label
                     htmlFor={`exchange-${ex}`}
-                    className="flex items-center gap-1 cursor-pointer flex-1 min-w-0"
+                    className="flex items-center gap-0.5 sm:gap-1 cursor-pointer min-w-0"
                   >
                     <input
                       id={`exchange-${ex}`}
@@ -105,14 +105,14 @@ export default function ExchangeFilter({
                       onChange={() => onToggleExchange(ex)}
                       className="cursor-pointer h-4 w-4 accent-blue-500"
                     />
-                    <span className="text-sm text-gray-200 inline-flex items-center gap-1.5">
+                    <span className="text-sm text-gray-200 inline-flex items-center gap-1">
                       <ExchangeIcon exchange={ex} size={16} />
                       {formatExchange(ex)}
                     </span>
                   </label>
                   {renderExchangeActions && (
                     <div
-                      className="w-7 sm:w-7 flex items-center justify-center"
+                      className="w-5 sm:w-7 flex items-center justify-center"
                       onClick={(event) => {
                         event.stopPropagation();
                       }}

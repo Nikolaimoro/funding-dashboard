@@ -640,7 +640,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               }
               subValue="before costs"
               alignSubValueBottom
-              className="order-3 sm:order-none"
+              className="order-4 sm:order-none"
             />
 
             <StatCard
@@ -654,7 +654,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               }
               subValue={`${pnlCalculations.winningDays} days`}
               alignSubValueBottom
-              className="order-4 sm:order-none"
+              className="order-6 sm:order-none"
             />
 
             <StatCard
@@ -668,7 +668,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               }
               subValue={pnlCalculations.bestDay.date ? new Date(pnlCalculations.bestDay.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "-"}
               alignSubValueBottom
-              className="order-5 sm:order-none"
+              className="order-8 sm:order-none"
             />
 
             <StatCard
@@ -697,7 +697,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
                   </div>
                 </div>
               }
-              className="order-6 sm:order-none"
+              className="order-10 sm:order-none"
             />
 
             <StatCard
@@ -711,7 +711,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               }
               subValue="annualized"
               alignSubValueBottom
-              className="order-7 sm:order-none"
+              className="order-3 sm:order-none"
             />
 
             <StatCard
@@ -725,7 +725,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               }
               subValue="slippage + fees"
               alignSubValueBottom
-              className="order-8 sm:order-none"
+              className="order-5 sm:order-none"
             />
 
             <StatCard
@@ -739,7 +739,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               }
               subValue="to breakeven"
               alignSubValueBottom
-              className="order-9 sm:order-none"
+              className="order-7 sm:order-none"
             />
 
             <StatCard
@@ -753,7 +753,7 @@ export default function BacktesterPnLChart({ chartData, runToken }: BacktesterPn
               }
               subValue={pnlCalculations.worstDay.date ? new Date(pnlCalculations.worstDay.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "-"}
               alignSubValueBottom
-              className="order-10 sm:order-none"
+              className="order-9 sm:order-none"
             />
 
             <StatCard
