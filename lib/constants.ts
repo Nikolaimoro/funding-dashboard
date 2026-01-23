@@ -22,6 +22,8 @@ export const EXCHANGE_LABEL: Record<string, string> = {
   pacifica: "Pacifica",
 };
 
+export const EXCHANGE_SEO_LIST = Object.values(EXCHANGE_LABEL);
+
 /**
  * Numeric multiplier prefixes/suffixes that are removed during token normalization
  * Used for search matching to handle cases like "1000PEPE", "PEPE1000", etc.

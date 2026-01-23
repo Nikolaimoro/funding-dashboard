@@ -3,19 +3,22 @@ import { Suspense } from "react";
 import BacktesterClient from "@/app/backtester/client";
 import PageHeader from "@/components/ui/PageHeader";
 import { supabase } from "@/lib/supabase";
+import { EXCHANGE_SEO_LIST } from "@/lib/constants";
 
 export const revalidate = 3600; // revalidate every hour
 
+const exchangeKeywords = EXCHANGE_SEO_LIST.slice(0, 10);
+
 export const metadata: Metadata = {
   title: "Crypto Funding Arbitrage Backtester | bendbasis",
-  description: "Backtest cryptocurrency arbitrage strategies with historical funding rate data",
-  keywords: ["backtester", "arbitrage", "crypto", "funding rates", "strategy testing"],
+  description: "Backtest cryptocurrency funding arbitrage strategies with historical funding rate data across exchanges.",
+  keywords: ["backtester", "arbitrage", "crypto", "funding rates", "strategy testing", ...exchangeKeywords],
   alternates: {
     canonical: "/backtester",
   },
   openGraph: {
     title: "Crypto Funding Arbitrage Backtester | bendbasis",
-    description: "Backtest cryptocurrency arbitrage strategies with historical funding rate data",
+    description: "Backtest cryptocurrency funding arbitrage strategies with historical funding rate data across exchanges.",
     type: "website",
   },
 };
@@ -158,6 +161,18 @@ async function getAllExchanges(): Promise<{ exchange: string; baseAssets: { asse
 export default async function BacktesterPage() {
   const tokens = await getAllTokens();
   const exchanges = await getAllExchanges();
+  const exchangeList = EXCHANGE_SEO_LIST.join(", ");
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Crypto Funding Arbitrage Backtester",
+    description:
+      "Backtest cryptocurrency funding arbitrage strategies with historical funding rate data across exchanges.",
+    publisher: {
+      "@type": "Organization",
+      name: "bendbasis",
+    },
+  };
 
   return (
     <main className="min-h-screen text-gray-200">
@@ -165,6 +180,17 @@ export default async function BacktesterPage() {
       <Suspense fallback={<div className="text-gray-400">Loading...</div>}>
         <BacktesterClient tokens={tokens} exchanges={exchanges} />
       </Suspense>
+      <section className="sr-only" aria-hidden="true">
+        <h2>Backtest funding arbitrage across exchanges</h2>
+        <p>
+          Run funding arbitrage backtests across exchanges like {exchangeList}
+          with historical funding rate data and exchange-level comparisons.
+        </p>
+      </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
     </main>
   );
 }
