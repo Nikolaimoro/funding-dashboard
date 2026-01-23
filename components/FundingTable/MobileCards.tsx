@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { FundingRow } from "@/lib/types";
 import { formatAPR, formatCompactUSD, formatExchange } from "@/lib/formatters";
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
@@ -86,74 +86,61 @@ export default function FundingMobileCards({
                 className="rounded-xl border border-[#343a4e] bg-[#1c202f] p-3 text-xs text-gray-200 flex flex-col gap-3"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <span className="text-[10px] text-gray-500 uppercase">
-                      Exchange
-                    </span>
-                    <span className="text-sm font-semibold text-white inline-flex items-center gap-1.5">
-                      <ExchangeIcon exchange={row.exchange} size={16} />
-                      {formatExchange(row.exchange)}
-                    </span>
+                  <div className="min-w-0">
+                    {row.ref_url ? (
+                      <a
+                        href={row.ref_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                        className="text-sm font-mono text-white inline-flex items-center gap-1.5 hover:underline"
+                      >
+                        <span className="truncate">{row.market}</span>
+                        <ExternalLink size={12} className="text-gray-400" />
+                      </a>
+                    ) : (
+                      <span className="text-sm font-mono text-white inline-flex items-center gap-1.5">
+                        <span className="truncate">{row.market}</span>
+                        <ExternalLink size={12} className="text-gray-500" />
+                      </span>
+                    )}
                   </div>
-                  {row.market_id && (
-                    <span className="text-[10px] text-gray-500 inline-flex items-center gap-1">
-                      View Chart
-                      <ArrowUpRight size={10} />
-                    </span>
-                  )}
+                  <span className="text-sm font-semibold text-white inline-flex items-center gap-1.5">
+                    <ExchangeIcon exchange={row.exchange} size={16} />
+                    {formatExchange(row.exchange)}
+                  </span>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <span className="text-[10px] text-gray-500 uppercase">
-                      Market
-                    </span>
-                    <span className="text-sm font-mono text-white truncate">
-                      {row.ref_url ? (
-                        <a
-                          href={row.ref_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(event) => event.stopPropagation()}
-                          className="text-blue-300 hover:underline"
-                        >
-                          {row.market}
-                        </a>
-                      ) : (
-                        row.market
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[10px] text-gray-500 uppercase">
+                <div className="grid grid-cols-[1.1fr_0.9fr] gap-2">
+                  <div className="rounded-lg border border-[#343a4e] bg-[#202437] px-3 py-3">
+                    <div className="text-[10px] text-gray-500 uppercase">
                       Now
-                    </span>
-                    <span className="text-sm font-mono text-white">
+                    </div>
+                    <div className="text-lg font-mono text-white">
                       {formatAPRText(row.funding_rate_now)}
-                    </span>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="rounded-lg border border-[#343a4e] bg-[#202437] px-2 py-2">
+                      <div className="text-[10px] text-gray-500 uppercase">
+                        OI
+                      </div>
+                      <div className="text-sm font-mono text-white">
+                        {formatCompactUSD(row.open_interest)}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[#343a4e] bg-[#202437] px-2 py-2">
+                      <div className="text-[10px] text-gray-500 uppercase">
+                        Vol 24h
+                      </div>
+                      <div className="text-sm font-mono text-white">
+                        {formatCompactUSD(row.volume_24h)}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg border border-[#343a4e] bg-[#202437] px-2 py-2">
-                    <div className="text-[10px] text-gray-500 uppercase">
-                      Open Interest
-                    </div>
-                    <div className="text-sm font-mono text-white">
-                      {formatCompactUSD(row.open_interest)}
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-[#343a4e] bg-[#202437] px-2 py-2">
-                    <div className="text-[10px] text-gray-500 uppercase">
-                      Volume 24h
-                    </div>
-                    <div className="text-sm font-mono text-white">
-                      {formatCompactUSD(row.volume_24h)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {(["1d", "3d", "7d", "15d", "30d"] as const).map((label) => (
                     <div
                       key={label}
@@ -168,6 +155,15 @@ export default function FundingMobileCards({
                     </div>
                   ))}
                 </div>
+
+                {row.market_id && (
+                  <div className="flex justify-end">
+                    <span className="text-[10px] text-gray-500 inline-flex items-center gap-1">
+                      View Chart
+                      <ArrowUpRight size={10} />
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
