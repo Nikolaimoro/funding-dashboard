@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { COLORS, CHART_CONFIG } from "@/lib/theme";
 import { ArbChartRow } from "@/lib/types";
@@ -369,7 +370,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
       height={CHART_CONFIG.MODAL_HEIGHT}
     >
       <div className="flex h-full flex-col">
-        <div className="h-[220px] sm:h-[340px]">
+        <div className="h-[300px] sm:h-[420px]">
           {rows.length > 0 && (
             <Chart
               key={`${longMarketId}-${shortMarketId}`}
@@ -381,42 +382,42 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
         </div>
         {(longUrl || shortUrl || backtesterUrl) && (
           <div className="mt-3 flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2">
-              {longUrl ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:flex-1">
+                {longUrl && (
+                  <a
+                    href={longUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-green-500/40 px-3 py-2 text-xs text-green-400 hover:border-green-500/70 transition"
+                  >
+                    <ExternalLink size={12} />
+                    Long {longLabel}
+                  </a>
+                )}
+                {shortUrl && (
+                  <a
+                    href={shortUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-500/40 px-3 py-2 text-xs text-red-400 hover:border-red-500/70 transition"
+                  >
+                    <ExternalLink size={12} />
+                    Short {shortLabel}
+                  </a>
+                )}
+              </div>
+              {backtesterUrl && (
                 <a
-                  href={longUrl}
+                  href={backtesterUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-lg border border-green-500/40 px-3 py-2 text-xs text-green-400 hover:border-green-500/70 transition"
+                  className="inline-flex items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition sm:ml-auto"
                 >
-                  Long {longLabel}
+                  Backtester
                 </a>
-              ) : (
-                <span />
-              )}
-              {shortUrl ? (
-                <a
-                  href={shortUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-lg border border-red-500/40 px-3 py-2 text-xs text-red-400 hover:border-red-500/70 transition"
-                >
-                  Short {shortLabel}
-                </a>
-              ) : (
-                <span />
               )}
             </div>
-            {backtesterUrl && (
-              <a
-                href={backtesterUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition self-center"
-              >
-                Backtester
-              </a>
-            )}
           </div>
         )}
       </div>
