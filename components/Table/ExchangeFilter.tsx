@@ -52,9 +52,12 @@ export default function ExchangeFilter({
             className="fixed inset-0 z-40"
             onClick={() => onOpenChange(false)}
           />
-          <div className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded-lg left-0 w-[min(320px,calc(100vw-16px))] sm:w-[360px] max-w-[calc(100vw-16px)] max-h-[70vh] overflow-x-auto overflow-y-hidden shadow-lg animate-tooltip-zoom p-2">
+          <div
+            className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded-lg left-0 w-[min(220px,calc(100vw-16px))] sm:w-[320px] max-w-[calc(100vw-16px)] max-h-[70vh] overflow-x-auto overflow-y-auto overscroll-contain shadow-lg animate-tooltip-zoom p-2"
+            onWheel={(event) => event.stopPropagation()}
+            onTouchMove={(event) => event.stopPropagation()}
+          >
             <div className="flex items-center justify-between px-2 pb-2 text-xs">
-              <span className="font-light text-gray-300">Select Exchanges</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -92,7 +95,7 @@ export default function ExchangeFilter({
               {exchanges.map((ex) => (
                 <div
                   key={ex}
-                  className="grid grid-cols-[1fr_auto] items-center gap-0.5 px-2 py-3 sm:py-1.5 sm:flex sm:justify-between sm:gap-1.5 hover:bg-[#353b52] rounded-lg"
+                  className="grid grid-cols-[1fr_auto] items-center gap-0 px-2 py-3 sm:py-1.5 sm:flex sm:justify-between sm:gap-1.5 hover:bg-[#353b52] rounded-lg"
                 >
                   <label
                     htmlFor={`exchange-${ex}`}
@@ -112,7 +115,7 @@ export default function ExchangeFilter({
                   </label>
                   {renderExchangeActions && (
                     <div
-                      className="w-5 sm:w-6 flex items-center justify-center"
+                      className="w-4 sm:w-6 flex items-center justify-center"
                       onClick={(event) => {
                         event.stopPropagation();
                       }}

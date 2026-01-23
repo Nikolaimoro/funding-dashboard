@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RefreshCw, Pin } from "lucide-react";
+import { ArrowUpRight, RefreshCw, Pin } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import ArbitrageChart from "@/components/ArbitrageChart";
 import { formatCompactUSD, formatExchange, normalizeToken } from "@/lib/formatters";
@@ -537,19 +537,19 @@ export default function ArbitrageTable() {
 
         {/* ---------- Loading / Empty (desktop) ---------- */}
         {loading && (
-          <div className="hidden sm:block">
+          <div className="hidden min-[960px]:block">
             <TableLoadingState message="Loading arbitrage opportunities…" />
           </div>
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="hidden sm:block">
+          <div className="hidden min-[960px]:block">
             <TableEmptyState message="No opportunities for this filter." />
           </div>
         )}
 
         {/* ---------- Mobile Cards ---------- */}
-        <div className="sm:hidden px-4 pb-4">
+        <div className="min-[960px]:hidden px-4 pb-4">
           {loading ? (
             <div className="grid grid-cols-2 gap-3">
               {Array.from({ length: 8 }).map((_, idx) => (
@@ -562,7 +562,6 @@ export default function ArbitrageTable() {
             <>
               <div className="grid grid-cols-2 gap-3">
                 {filtered.slice(0, mobileVisibleCount).map((row) => {
-                  const backtesterUrl = buildBacktesterUrl(row);
                   const isLongPinned = pinnedSet.has(row.long_exchange);
                   const isShortPinned = pinnedSet.has(row.short_exchange);
                   return (
@@ -571,25 +570,24 @@ export default function ArbitrageTable() {
                       role="button"
                       tabIndex={0}
                       onClick={() => {
-                        if (typeof window !== "undefined") {
-                          window.open(backtesterUrl, "_blank", "noopener,noreferrer");
-                        }
+                        openChart(row);
                       }}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          if (typeof window !== "undefined") {
-                            window.open(backtesterUrl, "_blank", "noopener,noreferrer");
-                          }
+                          openChart(row);
                         }
                       }}
-                      className="rounded-xl border border-[#343a4e] bg-[#1c202f] p-3 text-xs text-gray-200 flex flex-col gap-2"
+                      className="rounded-xl border border-[#343a4e] bg-[#1c202f] p-3 text-xs text-gray-200 flex flex-col gap-2 relative"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-white text-sm">{row.base_asset}</span>
-                        <span className="font-mono text-white">
-                          {row.apr_spread != null ? `${row.apr_spread.toFixed(2)}%` : "–"}
-                        </span>
+                        <div className="flex flex-col items-end">
+                          <span className="font-mono text-white">
+                            {row.apr_spread != null ? `${row.apr_spread.toFixed(2)}%` : "–"}
+                          </span>
+                          <span className="text-[10px] text-gray-500">APR 15d</span>
+                        </div>
                       </div>
 
                       <div className="flex flex-col gap-1">
@@ -644,6 +642,11 @@ export default function ArbitrageTable() {
                         <span>Stability</span>
                         <span className={`h-2.5 w-2.5 rounded-full ${getStabilityColor(row.stability)}`} />
                       </div>
+
+                      <div className="absolute bottom-2 right-2 text-[10px] text-gray-500 inline-flex items-center gap-1">
+                        <span>Open Chart</span>
+                        <ArrowUpRight size={10} />
+                      </div>
                     </div>
                   );
                 })}
@@ -667,7 +670,7 @@ export default function ArbitrageTable() {
         </div>
 
         {/* ---------- Table (desktop) ---------- */}
-        <div className="hidden sm:block">
+        <div className="hidden min-[960px]:block">
           {loading ? (
             <SkeletonLoader rows={8} columns={7} />
           ) : (
@@ -688,7 +691,7 @@ export default function ArbitrageTable() {
         </div>
 
         {/* ---------- Pagination (desktop) ---------- */}
-        <div className="px-4 pb-4 hidden sm:block">
+        <div className="px-4 pb-4 hidden min-[960px]:block">
           <Pagination
             currentPage={page}
             totalPages={totalPages}
@@ -715,6 +718,9 @@ export default function ArbitrageTable() {
               ? `${formatExchange(selectedRow.short_exchange)}${selectedRow.short_quote ? ` (${selectedRow.short_quote})` : ""}`
               : ""
           }
+          longUrl={selectedRow?.long_url ?? null}
+          shortUrl={selectedRow?.short_url ?? null}
+          backtesterUrl={selectedRow ? buildBacktesterUrl(selectedRow) : null}
         />
 
         {showBackToTop && (
@@ -725,7 +731,7 @@ export default function ArbitrageTable() {
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }
             }}
-            className="sm:hidden fixed bottom-24 right-4 z-40 rounded-full bg-[#1c202f] border border-[#343a4e] text-gray-200 px-3 py-2 text-xs shadow-lg"
+            className="min-[960px]:hidden fixed bottom-24 right-4 z-40 rounded-full bg-[#1c202f] border border-[#343a4e] text-gray-200 px-3 py-2 text-xs shadow-lg"
           >
             Back to top
           </button>

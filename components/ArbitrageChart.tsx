@@ -47,6 +47,9 @@ export type ArbitrageChartProps = {
   shortMarketId: number;
   longLabel: string;
   shortLabel: string;
+  longUrl?: string | null;
+  shortUrl?: string | null;
+  backtesterUrl?: string | null;
 };
 
 async function fetchArbChartData(params: {
@@ -106,7 +109,7 @@ async function fetchArbChartData(params: {
 /* ================= COMPONENT ================= */
 
 export default function ArbitrageChart(props: ArbitrageChartProps) {
-  const { open, onClose, baseAsset, longMarketId, shortMarketId, longLabel, shortLabel } = props;
+  const { open, onClose, baseAsset, longMarketId, shortMarketId, longLabel, shortLabel, longUrl, shortUrl, backtesterUrl } = props;
 
   const [rows, setRows] = useState<ArbChartRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -372,6 +375,40 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
           data={chartData as any}
           options={options}
         />
+      )}
+      {(longUrl || shortUrl || backtesterUrl) && (
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          {longUrl && (
+            <a
+              href={longUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-lg border border-green-500/40 px-3 py-2 text-xs text-green-400 hover:border-green-500/70 transition"
+            >
+              Long {longLabel}
+            </a>
+          )}
+          {shortUrl && (
+            <a
+              href={shortUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-lg border border-red-500/40 px-3 py-2 text-xs text-red-400 hover:border-red-500/70 transition"
+            >
+              Short {shortLabel}
+            </a>
+          )}
+          {backtesterUrl && (
+            <a
+              href={backtesterUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition"
+            >
+              Backtester
+            </a>
+          )}
+        </div>
       )}
     </Modal>
   );
