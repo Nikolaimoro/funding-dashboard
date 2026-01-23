@@ -115,7 +115,7 @@ export default function ExchangeFilter({
                   </label>
                   {renderExchangeActions && (
                     <div
-                      className="w-4 sm:w-6 flex items-center justify-center"
+                      className="w-4 sm:w-10 flex items-center justify-center sm:ml-4"
                       onClick={(event) => {
                         event.stopPropagation();
                       }}
