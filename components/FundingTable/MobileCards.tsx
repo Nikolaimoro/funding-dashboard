@@ -186,10 +186,10 @@ export default function FundingMobileCards({
               {Array.from({ length: 3 }).map((_, idx) => (
                 <div
                   key={idx}
-                className="h-44 rounded-2xl bg-[#1c202f] border border-[#343a4e] animate-pulse"
-              />
-            ))}
-          </div>
+                  className="h-44 rounded-2xl bg-[#1c202f] border border-[#343a4e] animate-pulse"
+                />
+              ))}
+            </div>
           )}
 
           <div ref={loadMoreRef} className="h-6" />
