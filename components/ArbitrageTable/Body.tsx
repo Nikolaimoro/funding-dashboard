@@ -485,16 +485,16 @@ export default function ArbitrageTableBody({
 
   return (
     <div className="overflow-auto">
-      <table className="w-full text-base table-fixed min-w-[900px] whitespace-nowrap">
+      <table className="w-full text-base table-fixed min-w-[1100px] sm:min-w-[900px] whitespace-nowrap">
         <colgroup>
-          <col className="w-[10%] min-w-[90px]" />
-          <col className="w-[8%] min-w-[70px]" />
-          <col className="w-[16%] min-w-[130px]" />
-          <col className="w-[16%] min-w-[130px]" />
-          <col className="w-[12%] min-w-[110px]" />
-          <col className="w-[12%] min-w-[110px]" />
-          <col className="w-[12%] min-w-[110px]" />
-          <col className="w-[6%] min-w-[50px]" />
+          <col className="w-[11%] min-w-[110px] sm:min-w-[90px]" />
+          <col className="w-[9%] min-w-[90px] sm:min-w-[70px]" />
+          <col className="w-[17%] min-w-[150px] sm:min-w-[130px]" />
+          <col className="w-[17%] min-w-[150px] sm:min-w-[130px]" />
+          <col className="w-[14%] min-w-[150px] sm:min-w-[110px]" />
+          <col className="w-[14%] min-w-[150px] sm:min-w-[110px]" />
+          <col className="w-[10%] min-w-[120px] sm:min-w-[110px]" />
+          <col className="w-[8%] min-w-[70px] sm:min-w-[50px]" />
         </colgroup>
         <thead className="sticky top-0 z-10 text-[13px] bg-[#292e40]">
           <tr className="border-b border-[#343a4e]">
