@@ -96,7 +96,7 @@ export default function ExchangeFilter({
                 >
                   <label
                     htmlFor={`exchange-${ex}`}
-                    className="flex items-center gap-0.5 sm:gap-1 cursor-pointer min-w-0"
+                    className="flex items-center gap-1.5 sm:gap-1 cursor-pointer min-w-0"
                   >
                     <input
                       id={`exchange-${ex}`}
