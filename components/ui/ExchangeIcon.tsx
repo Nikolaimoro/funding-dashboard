@@ -25,7 +25,7 @@ export const EXCHANGE_ICONS: Record<string, { file: string; bg?: string; scale?:
   grvt: { file: "grvt.png", bg: "#1a1a2e", scale: 1.4 },
   apex: { file: "apex.svg", bg: "#1a1a2e", scale: 0.6 },
   pacifica: { file: "pacifica.svg", bg: "#1a1a2e" },
-  reya : { file: "reya.svg", bg: "#1a1a2e"},
+  reya : { file: "reya.svg", bg: "#1a1a2e", scale: 0.6 },
 };
 
 interface ExchangeIconProps {
