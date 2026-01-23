@@ -78,7 +78,7 @@ export default function ArbitrageMobileCards({
             {Array.from({ length: 8 }).map((_, idx) => (
               <div
                 key={idx}
-                className="h-40 rounded-xl bg-[#1c202f] border border-[#343a4e] animate-pulse"
+                className="h-40 rounded-2xl bg-[#1c202f] border border-[#343a4e] animate-pulse"
               />
             ))}
           </div>
@@ -106,7 +106,7 @@ export default function ArbitrageMobileCards({
                         onOpenChart(row);
                       }
                     }}
-                    className="rounded-xl border border-[#343a4e] bg-[#1c202f] p-3 text-xs text-gray-200 flex flex-col gap-2 relative"
+                    className="rounded-2xl border border-[#343a4e] bg-[#1c202f] p-4 text-xs text-gray-200 flex flex-col gap-3 relative"
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-white text-sm">
@@ -186,7 +186,7 @@ export default function ArbitrageMobileCards({
                         />
                       </div>
                       <span className="text-[10px] text-gray-500 inline-flex items-center gap-1">
-                        Open Chart
+                        View Chart
                         <ArrowUpRight size={10} />
                       </span>
                     </div>
@@ -200,7 +200,7 @@ export default function ArbitrageMobileCards({
                 {Array.from({ length: 4 }).map((_, idx) => (
                   <div
                     key={idx}
-                    className="h-40 rounded-xl bg-[#1c202f] border border-[#343a4e] animate-pulse"
+                    className="h-40 rounded-2xl bg-[#1c202f] border border-[#343a4e] animate-pulse"
                   />
                 ))}
               </div>

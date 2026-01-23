@@ -9,6 +9,8 @@ import Pagination from "@/components/Table/Pagination";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import TableControls from "@/components/Table/TableControls";
 import FundingTableBody from "@/components/FundingTable/Body";
+import FundingMobileCards from "@/components/FundingTable/MobileCards";
+import FundingMobileSort from "@/components/FundingTable/MobileSort";
 import SkeletonLoader from "@/components/ui/SkeletonLoader";
 import { TableEmptyState, TableLoadingState } from "@/components/ui/TableStates";
 import { TAILWIND } from "@/lib/theme";
@@ -58,6 +60,7 @@ export default function FundingTable({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [minOI, setMinOI] = useState<number | "">(0);
   const [minVolume, setMinVolume] = useState<number | "">(0);
+  const [mobileSortOpen, setMobileSortOpen] = useState(false);
 
   const [sortKey, setSortKey] = useState<SortKey>("volume_24h");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -170,6 +173,12 @@ export default function FundingTable({
     resetPage();
   };
 
+  const setSort = (key: SortKey, dir: SortDir) => {
+    setSortKey(key);
+    setSortDir(dir);
+    resetPage();
+  };
+
   /**
    * Memoized complex sorting, filtering, and ordering of all rows
    * 
@@ -270,28 +279,36 @@ export default function FundingTable({
       <div className="rounded-2xl border border-[#343a4e] bg-[#292e40]">
         <div className="flex flex-wrap items-center gap-4 px-4 py-4">
           <h2 className="text-base font-roboto text-white">Markets</h2>
-          <TableControls
-            search={search}
-            onSearchChange={handleSearchChange}
-            exchanges={exchanges}
-            selectedExchanges={selectedExchanges}
-            onToggleExchange={toggleExchange}
-            onCheckAllExchanges={resetExchanges}
-            onUncheckAllExchanges={clearExchanges}
-            filterOpen={filterOpen}
-            onFilterOpenChange={setFilterOpen}
-            minOI={minOI}
-            onMinOIChange={handleMinOIChange}
-            minVolume={minVolume}
-            onMinVolumeChange={handleMinVolumeChange}
-            maxOI={maxOI}
-            maxVolume={maxVolume}
-            filtersOpen={filtersOpen}
-            onFiltersOpenChange={setFiltersOpen}
-            searchPlaceholder="Search market"
-            inputClassName={TAILWIND.input.default}
-            className="ml-auto"
-          />
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <FundingMobileSort
+              open={mobileSortOpen}
+              onOpenChange={setMobileSortOpen}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSelect={setSort}
+            />
+            <TableControls
+              search={search}
+              onSearchChange={handleSearchChange}
+              exchanges={exchanges}
+              selectedExchanges={selectedExchanges}
+              onToggleExchange={toggleExchange}
+              onCheckAllExchanges={resetExchanges}
+              onUncheckAllExchanges={clearExchanges}
+              filterOpen={filterOpen}
+              onFilterOpenChange={setFilterOpen}
+              minOI={minOI}
+              onMinOIChange={handleMinOIChange}
+              minVolume={minVolume}
+              onMinVolumeChange={handleMinVolumeChange}
+              maxOI={maxOI}
+              maxVolume={maxVolume}
+              filtersOpen={filtersOpen}
+              onFiltersOpenChange={setFiltersOpen}
+              searchPlaceholder="Search market"
+              inputClassName={TAILWIND.input.default}
+            />
+          </div>
         </div>
 
         {error && (
@@ -311,29 +328,41 @@ export default function FundingTable({
           </div>
         )}
 
+        <FundingMobileCards
+          rows={sortedAll}
+          loading={loading}
+          onOpenChart={openChart}
+        />
+
         {loading && (
-          <TableLoadingState message="Loading funding rates…" />
+          <div className="hidden min-[960px]:block">
+            <TableLoadingState message="Loading funding rates…" />
+          </div>
         )}
 
         {!loading && visible.length === 0 && (
-          <TableEmptyState message="No results for the current filters." />
+          <div className="hidden min-[960px]:block">
+            <TableEmptyState message="No results for the current filters." />
+          </div>
         )}
 
-        {loading ? (
-          <SkeletonLoader rows={8} columns={8} />
-        ) : (
-          <ErrorBoundary>
-            <FundingTableBody
-              rows={visible}
-              sortKey={sortKey}
-              sortDir={sortDir}
-              onSort={onSort}
-              onRowClick={openChart}
-            />
-          </ErrorBoundary>
-        )}
+        <div className="hidden min-[960px]:block">
+          {loading ? (
+            <SkeletonLoader rows={8} columns={8} />
+          ) : (
+            <ErrorBoundary>
+              <FundingTableBody
+                rows={visible}
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={onSort}
+                onRowClick={openChart}
+              />
+            </ErrorBoundary>
+          )}
+        </div>
 
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 hidden min-[960px]:block">
           <Pagination
             currentPage={page}
             totalPages={totalPages}
