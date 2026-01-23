@@ -370,7 +370,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
       height={CHART_CONFIG.MODAL_HEIGHT}
     >
       <div className="flex h-full flex-col">
-        <div className="h-[300px] sm:h-[420px]">
+        <div className="flex-1 min-h-[320px] sm:min-h-[440px]">
           {rows.length > 0 && (
             <Chart
               key={`${longMarketId}-${shortMarketId}`}
@@ -381,9 +381,9 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
           )}
         </div>
         {(longUrl || shortUrl || backtesterUrl) && (
-          <div className="mt-3 flex flex-col gap-2">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:flex-1">
+          <div className="mt-3 flex flex-col items-center gap-2">
+            <div className="w-full max-w-[360px]">
+              <div className="grid grid-cols-2 gap-2">
                 {longUrl && (
                   <a
                     href={longUrl}
@@ -412,7 +412,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
                   href={backtesterUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition sm:ml-auto"
+                  className="mt-2 inline-flex w-full items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition"
                 >
                   Backtester
                 </a>
