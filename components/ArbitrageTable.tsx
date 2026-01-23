@@ -638,14 +638,15 @@ export default function ArbitrageTable() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                        <span>Stability</span>
-                        <span className={`h-2.5 w-2.5 rounded-full ${getStabilityColor(row.stability)}`} />
-                      </div>
-
-                      <div className="absolute bottom-2 right-2 text-[10px] text-gray-500 inline-flex items-center gap-1">
-                        <span>Open Chart</span>
-                        <ArrowUpRight size={10} />
+                      <div className="flex items-center justify-between text-[11px] text-gray-400">
+                        <div className="flex items-center gap-2">
+                          <span>Stability</span>
+                          <span className={`h-2.5 w-2.5 rounded-full ${getStabilityColor(row.stability)}`} />
+                        </div>
+                        <span className="text-[10px] text-gray-500 inline-flex items-center gap-1">
+                          Open Chart
+                          <ArrowUpRight size={10} />
+                        </span>
                       </div>
                     </div>
                   );
