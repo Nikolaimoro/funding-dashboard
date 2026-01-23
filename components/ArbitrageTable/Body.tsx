@@ -444,10 +444,8 @@ interface ArbitrageTableBodyProps {
   onSort: (key: SortKey) => void;
   onRowClick?: (row: ArbRow) => void;
   loading?: boolean;
-  pinnedLongExchanges?: string[];
-  pinnedShortExchanges?: string[];
-  onTogglePinnedLong?: (exchange: string) => void;
-  onTogglePinnedShort?: (exchange: string) => void;
+  pinnedExchanges?: string[];
+  onTogglePinned?: (exchange: string) => void;
   showPins?: boolean;
 }
 
@@ -462,14 +460,11 @@ export default function ArbitrageTableBody({
   onSort,
   onRowClick,
   loading = false,
-  pinnedLongExchanges = [],
-  pinnedShortExchanges = [],
-  onTogglePinnedLong,
-  onTogglePinnedShort,
+  pinnedExchanges = [],
+  onTogglePinned,
   showPins = true,
 }: ArbitrageTableBodyProps) {
-  const pinnedLongSet = useMemo(() => new Set(pinnedLongExchanges), [pinnedLongExchanges]);
-  const pinnedShortSet = useMemo(() => new Set(pinnedShortExchanges), [pinnedShortExchanges]);
+  const pinnedSet = useMemo(() => new Set(pinnedExchanges), [pinnedExchanges]);
   const formatAPRNode = (v: number | null) => {
     const text = formatAPR(v);
     if (text === "–") {
@@ -619,8 +614,8 @@ export default function ArbitrageTableBody({
                     href={r.long_url}
                     label={formatExchange(r.long_exchange)}
                     exchange={r.long_exchange}
-                    pinned={pinnedLongSet.has(r.long_exchange)}
-                    onTogglePin={onTogglePinnedLong}
+                    pinned={pinnedSet.has(r.long_exchange)}
+                    onTogglePin={onTogglePinned}
                     showPin={showPins}
                   />
                 </td>
@@ -630,8 +625,8 @@ export default function ArbitrageTableBody({
                     href={r.short_url}
                     label={formatExchange(r.short_exchange)}
                     exchange={r.short_exchange}
-                    pinned={pinnedShortSet.has(r.short_exchange)}
-                    onTogglePin={onTogglePinnedShort}
+                    pinned={pinnedSet.has(r.short_exchange)}
+                    onTogglePin={onTogglePinned}
                     showPin={showPins}
                   />
                 </td>

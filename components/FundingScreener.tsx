@@ -646,8 +646,7 @@ export default function FundingScreener() {
                 open={filterOpen}
                 onOpenChange={setFilterOpen}
                 headerExtras={
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-gray-400">Pinned exchange</span>
+                  <div className="flex items-center justify-end">
                     <button
                       type="button"
                       onClick={() => {
@@ -662,7 +661,7 @@ export default function FundingScreener() {
                           : "text-gray-400/50",
                       ].join(" ")}
                     >
-                      Reset
+                      Reset pinned
                     </button>
                   </div>
                 }
@@ -679,10 +678,8 @@ export default function FundingScreener() {
                         setPinnedDirty(true);
                         setPinnedColumnKey((prev) => (prev === columnKey ? null : columnKey));
                       }}
-                      className={`p-1 rounded-md border ${
-                        isPinned
-                          ? "text-[#FA814D] border-[#FA814D]/40"
-                          : "text-gray-500 border-gray-500/30 hover:text-gray-300"
+                      className={`inline-flex items-center text-[11px] ${
+                        isPinned ? "text-[#FA814D]" : "text-gray-500 hover:text-gray-300"
                       }`}
                       aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
                       title={isPinned ? "Unpin" : "Pin"}
