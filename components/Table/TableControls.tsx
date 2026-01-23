@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Search, X } from "lucide-react";
 import ExchangeFilter from "@/components/Table/ExchangeFilter";
 import MinimumFilter from "@/components/Table/MinimumFilter";
@@ -14,6 +15,8 @@ interface TableControlsProps {
   onUncheckAllExchanges: () => void;
   filterOpen: boolean;
   onFilterOpenChange: (open: boolean) => void;
+  exchangeHeaderExtras?: ReactNode;
+  renderExchangeActions?: (exchange: string) => ReactNode;
   minOI: number | "";
   onMinOIChange: (value: number | "") => void;
   minVolume: number | "";
@@ -37,6 +40,8 @@ export default function TableControls({
   onUncheckAllExchanges,
   filterOpen,
   onFilterOpenChange,
+  exchangeHeaderExtras,
+  renderExchangeActions,
   minOI,
   onMinOIChange,
   minVolume,
@@ -70,6 +75,8 @@ export default function TableControls({
         onUncheckAll={onUncheckAllExchanges}
         open={filterOpen}
         onOpenChange={onFilterOpenChange}
+        headerExtras={exchangeHeaderExtras}
+        renderExchangeActions={renderExchangeActions}
       />
 
       <div className="relative">

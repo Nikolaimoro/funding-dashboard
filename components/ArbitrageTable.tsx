@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Pin } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import ArbitrageChart from "@/components/ArbitrageChart";
 import { formatExchange, normalizeToken } from "@/lib/formatters";
@@ -24,6 +24,9 @@ const MAX_ATTEMPTS = 2;
 const CACHE_KEY = "cache-arbitrage-rows";
 const CACHE_TTL_MS = 3 * 60 * 1000;
 const EXCHANGES_KEY = "arbitrage-exchanges";
+const PINNED_LONG_KEY = "arbitrage-pinned-long";
+const PINNED_SHORT_KEY = "arbitrage-pinned-short";
+const PINNING_ENABLED_KEY = "arbitrage-pinning-enabled";
 
 /* ================= COMPONENT ================= */
 
@@ -42,6 +45,10 @@ export default function ArbitrageTable() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [minOI, setMinOI] = useState<number | "">(0);
   const [minVolume, setMinVolume] = useState<number | "">(0);
+
+  const [pinningEnabled, setPinningEnabled] = useState(true);
+  const [pinnedLongExchanges, setPinnedLongExchanges] = useState<string[]>([]);
+  const [pinnedShortExchanges, setPinnedShortExchanges] = useState<string[]>([]);
 
   const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(0);
@@ -67,6 +74,23 @@ export default function ArbitrageTable() {
   const handleMinVolumeChange = (value: number | "") => {
     setMinVolume(value);
     resetPage();
+  };
+
+  const togglePinnedLong = (ex: string) => {
+    setPinnedLongExchanges((prev) =>
+      prev.includes(ex) ? prev.filter((e) => e !== ex) : [...prev, ex]
+    );
+  };
+
+  const togglePinnedShort = (ex: string) => {
+    setPinnedShortExchanges((prev) =>
+      prev.includes(ex) ? prev.filter((e) => e !== ex) : [...prev, ex]
+    );
+  };
+
+  const clearPinnedExchanges = () => {
+    setPinnedLongExchanges([]);
+    setPinnedShortExchanges([]);
   };
 
   const handleLimitChange = (value: number) => {
@@ -203,6 +227,9 @@ export default function ArbitrageTable() {
     [rows]
   );
 
+  const pinnedLongSet = useMemo(() => new Set(pinnedLongExchanges), [pinnedLongExchanges]);
+  const pinnedShortSet = useMemo(() => new Set(pinnedShortExchanges), [pinnedShortExchanges]);
+
   const toggleExchange = (ex: string) => {
     setSelectedExchanges((prev) =>
       prev.includes(ex) ? prev.filter((e) => e !== ex) : [...prev, ex]
@@ -261,6 +288,55 @@ export default function ArbitrageTable() {
     }
   }, [selectedExchanges, exchangesInitialized]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const enabled = window.localStorage.getItem(PINNING_ENABLED_KEY);
+      if (enabled !== null) {
+        setPinningEnabled(enabled === "true");
+      }
+      const storedLong = window.localStorage.getItem(PINNED_LONG_KEY);
+      if (storedLong) {
+        const parsed = JSON.parse(storedLong);
+        if (Array.isArray(parsed)) {
+          setPinnedLongExchanges(parsed.filter((ex): ex is string => typeof ex === "string"));
+        }
+      }
+      const storedShort = window.localStorage.getItem(PINNED_SHORT_KEY);
+      if (storedShort) {
+        const parsed = JSON.parse(storedShort);
+        if (Array.isArray(parsed)) {
+          setPinnedShortExchanges(parsed.filter((ex): ex is string => typeof ex === "string"));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(PINNING_ENABLED_KEY, String(pinningEnabled));
+    } catch {
+      // ignore
+    }
+  }, [pinningEnabled]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!pinningEnabled) {
+      clearPinnedExchanges();
+      return;
+    }
+    try {
+      window.localStorage.setItem(PINNED_LONG_KEY, JSON.stringify(pinnedLongExchanges));
+      window.localStorage.setItem(PINNED_SHORT_KEY, JSON.stringify(pinnedShortExchanges));
+    } catch {
+      // ignore
+    }
+  }, [pinningEnabled, pinnedLongExchanges, pinnedShortExchanges]);
+
   /**
    * Memoized filtering and sorting of arbitrage opportunities
    * 
@@ -306,11 +382,16 @@ export default function ArbitrageTable() {
     // MV уже отсортирована по apr_spread desc,
     // но после фильтров порядок может "плыть" — перестрахуемся
     return [...data].sort((a, b) => {
-  const av = a[sortKey] ?? 0;
-  const bv = b[sortKey] ?? 0;
-  return sortDir === "asc" ? av - bv : bv - av;
-});
-  }, [rows, search, selectedExchanges, sortKey, sortDir, minOI, minVolume]);
+      if (pinningEnabled && (pinnedLongSet.size > 0 || pinnedShortSet.size > 0)) {
+        const aPinned = pinnedLongSet.has(a.long_exchange) || pinnedShortSet.has(a.short_exchange);
+        const bPinned = pinnedLongSet.has(b.long_exchange) || pinnedShortSet.has(b.short_exchange);
+        if (aPinned !== bPinned) return aPinned ? -1 : 1;
+      }
+      const av = a[sortKey] ?? 0;
+      const bv = b[sortKey] ?? 0;
+      return sortDir === "asc" ? av - bv : bv - av;
+    });
+  }, [rows, search, selectedExchanges, sortKey, sortDir, minOI, minVolume, pinningEnabled, pinnedLongSet, pinnedShortSet]);
 
   /**
    * Pagination: Calculate total pages and slice visible rows
@@ -348,6 +429,79 @@ export default function ArbitrageTable() {
             onUncheckAllExchanges={clearExchanges}
             filterOpen={filterOpen}
             onFilterOpenChange={setFilterOpen}
+            exchangeHeaderExtras={
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-gray-400">Pinned exchanges</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPinningEnabled((prev) => !prev)}
+                    className="text-gray-300 hover:text-white transition-colors underline underline-offset-2"
+                  >
+                    {pinningEnabled ? "Hide" : "Show"}
+                  </button>
+                  <span className="text-gray-500">/</span>
+                  <button
+                    type="button"
+                    onClick={clearPinnedExchanges}
+                    disabled={pinnedLongExchanges.length === 0 && pinnedShortExchanges.length === 0}
+                    className={[
+                      "transition",
+                      pinnedLongExchanges.length || pinnedShortExchanges.length
+                        ? "text-gray-200 underline underline-offset-2"
+                        : "text-gray-400/50",
+                    ].join(" ")}
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            }
+            renderExchangeActions={(exchange) => {
+              if (!pinningEnabled) return null;
+              const isLongPinned = pinnedLongSet.has(exchange);
+              const isShortPinned = pinnedShortSet.has(exchange);
+              return (
+                <>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      togglePinnedLong(exchange);
+                    }}
+                    className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-md border ${
+                      isLongPinned
+                        ? "text-[#FA814D] border-[#FA814D]/40"
+                        : "text-gray-500 border-gray-500/30 hover:text-gray-300"
+                    }`}
+                    aria-label={isLongPinned ? "Unpin long exchange" : "Pin long exchange"}
+                    title={isLongPinned ? "Unpin long" : "Pin long"}
+                  >
+                    <Pin size={12} />
+                    <span className="opacity-70">L</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      togglePinnedShort(exchange);
+                    }}
+                    className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-md border ${
+                      isShortPinned
+                        ? "text-[#FA814D] border-[#FA814D]/40"
+                        : "text-gray-500 border-gray-500/30 hover:text-gray-300"
+                    }`}
+                    aria-label={isShortPinned ? "Unpin short exchange" : "Pin short exchange"}
+                    title={isShortPinned ? "Unpin short" : "Pin short"}
+                  >
+                    <Pin size={12} />
+                    <span className="opacity-70">S</span>
+                  </button>
+                </>
+              );
+            }}
             minOI={minOI}
             onMinOIChange={handleMinOIChange}
             minVolume={minVolume}
@@ -398,6 +552,11 @@ export default function ArbitrageTable() {
               onSort={toggleSort}
               onRowClick={openChart}
               loading={loading}
+              pinnedLongExchanges={pinnedLongExchanges}
+              pinnedShortExchanges={pinnedShortExchanges}
+              onTogglePinnedLong={togglePinnedLong}
+              onTogglePinnedShort={togglePinnedShort}
+              showPins={pinningEnabled}
             />
           </ErrorBoundary>
         )}

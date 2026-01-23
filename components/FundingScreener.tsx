@@ -330,6 +330,24 @@ export default function FundingScreener() {
     return new Set(Object.entries(counts).filter(([, c]) => c > 1).map(([e]) => e));
   }, [exchangeColumns]);
 
+  const columnKeysByExchange = useMemo(() => {
+    const map = new Map<string, ExchangeColumn[]>();
+    for (const col of exchangeColumns) {
+      if (!map.has(col.exchange)) {
+        map.set(col.exchange, []);
+      }
+      map.get(col.exchange)!.push(col);
+    }
+    return map;
+  }, [exchangeColumns]);
+
+  const getPreferredColumnKey = (exchange: string) => {
+    const cols = columnKeysByExchange.get(exchange);
+    if (!cols || cols.length === 0) return null;
+    const usdt = cols.find((col) => col.quote_asset.toLowerCase() === "usdt");
+    return (usdt ?? cols[0]).column_key;
+  };
+
   const pinnedParamByColumnKey = useMemo(() => {
     const map = new Map<string, string>();
     for (const col of exchangeColumns) {
@@ -627,6 +645,52 @@ export default function FundingScreener() {
                 }}
                 open={filterOpen}
                 onOpenChange={setFilterOpen}
+                headerExtras={
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-400">Pinned exchange</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPinnedDirty(true);
+                        setPinnedColumnKey(null);
+                      }}
+                      disabled={!pinnedColumnKey}
+                      className={[
+                        "transition",
+                        pinnedColumnKey
+                          ? "text-gray-200 underline underline-offset-2"
+                          : "text-gray-400/50",
+                      ].join(" ")}
+                    >
+                      Reset
+                    </button>
+                  </div>
+                }
+                renderExchangeActions={(exchange) => {
+                  const columnKey = getPreferredColumnKey(exchange);
+                  if (!columnKey) return null;
+                  const isPinned = pinnedColumnKey === columnKey;
+                  return (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setPinnedDirty(true);
+                        setPinnedColumnKey((prev) => (prev === columnKey ? null : columnKey));
+                      }}
+                      className={`p-1 rounded-md border ${
+                        isPinned
+                          ? "text-[#FA814D] border-[#FA814D]/40"
+                          : "text-gray-500 border-gray-500/30 hover:text-gray-300"
+                      }`}
+                      aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
+                      title={isPinned ? "Unpin" : "Pin"}
+                    >
+                      <Pin size={12} />
+                    </button>
+                  );
+                }}
               />
 
               {/* Search */}

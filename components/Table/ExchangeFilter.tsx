@@ -3,6 +3,7 @@
  * Used in FundingTable, ArbitrageTable
  */
 
+import type { ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { formatExchange } from "@/lib/formatters";
 import { TAILWIND } from "@/lib/theme";
@@ -16,6 +17,8 @@ interface ExchangeFilterProps {
   onUncheckAll: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  headerExtras?: ReactNode;
+  renderExchangeActions?: (exchange: string) => ReactNode;
 }
 
 export default function ExchangeFilter({
@@ -26,6 +29,8 @@ export default function ExchangeFilter({
   onUncheckAll,
   open,
   onOpenChange,
+  headerExtras,
+  renderExchangeActions,
 }: ExchangeFilterProps) {
   const canCheckAll = exchanges.length > 0 && selectedExchanges.length !== exchanges.length;
   const canUncheckAll = selectedExchanges.length > 0;
@@ -80,23 +85,42 @@ export default function ExchangeFilter({
                 </button>
               </div>
             </div>
+            {headerExtras && (
+              <div className="px-2 pb-2 text-[11px] text-gray-400">{headerExtras}</div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 max-h-[60vh] overflow-y-auto pr-1">
               {exchanges.map((ex) => (
-                <label
+                <div
                   key={ex}
-                  className="flex gap-2 px-2 py-1 cursor-pointer hover:bg-[#353b52] rounded-lg items-center"
+                  className="flex items-center justify-between gap-2 px-2 py-1 hover:bg-[#353b52] rounded-lg"
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedExchanges.includes(ex)}
-                    onChange={() => onToggleExchange(ex)}
-                    className="cursor-pointer h-4 w-4 accent-blue-500"
-                  />
-                  <span className="text-sm text-gray-200 inline-flex items-center gap-1.5">
-                    <ExchangeIcon exchange={ex} size={16} />
-                    {formatExchange(ex)}
-                  </span>
-                </label>
+                  <label
+                    htmlFor={`exchange-${ex}`}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      id={`exchange-${ex}`}
+                      type="checkbox"
+                      checked={selectedExchanges.includes(ex)}
+                      onChange={() => onToggleExchange(ex)}
+                      className="cursor-pointer h-4 w-4 accent-blue-500"
+                    />
+                    <span className="text-sm text-gray-200 inline-flex items-center gap-1.5">
+                      <ExchangeIcon exchange={ex} size={16} />
+                      {formatExchange(ex)}
+                    </span>
+                  </label>
+                  {renderExchangeActions && (
+                    <div
+                      className="flex items-center gap-1"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                      }}
+                    >
+                      {renderExchangeActions(ex)}
+                    </div>
+                  )}
+                </div>
               ))}
               {exchanges.length === 0 && (
                 <div className="px-2 py-2 text-gray-500 text-sm">
