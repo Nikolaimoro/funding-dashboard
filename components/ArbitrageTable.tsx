@@ -417,72 +417,73 @@ export default function ArbitrageTable() {
       <div className="rounded-2xl border border-[#343a4e] bg-[#292e40]">
         <div className="flex flex-wrap items-center gap-4 px-4 py-4">
           <h2 className="text-base font-roboto text-white">Opportunities</h2>
-          <TableControls
-            search={search}
-            onSearchChange={handleSearchChange}
-            exchanges={exchanges}
-            selectedExchanges={selectedExchanges}
-            onToggleExchange={toggleExchange}
-            onCheckAllExchanges={resetExchanges}
-            onUncheckAllExchanges={clearExchanges}
-            filterOpen={filterOpen}
-            onFilterOpenChange={setFilterOpen}
-            exchangeHeaderExtras={
-              <div className="flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={clearPinnedExchanges}
-                  disabled={pinnedExchanges.length === 0}
-                  className={[
-                    "transition",
-                    pinnedExchanges.length
-                      ? "text-gray-200 underline underline-offset-2"
-                      : "text-gray-400/50",
-                  ].join(" ")}
-                >
-                  Reset pinned
-                </button>
-              </div>
-            }
-            renderExchangeActions={(exchange) => {
-              const isPinned = pinnedSet.has(exchange);
-              return (
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    togglePinned(exchange);
-                  }}
-                  className={`inline-flex items-center text-[11px] ${
-                    isPinned ? "text-[#FA814D]" : "text-gray-500 hover:text-gray-300"
-                  }`}
-                  aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
-                  title={isPinned ? "Unpin" : "Pin"}
-                >
-                  <Pin size={14} className="sm:scale-90" />
-                </button>
-              );
-            }}
-            minOI={minOI}
-            onMinOIChange={handleMinOIChange}
-            minVolume={minVolume}
-            onMinVolumeChange={handleMinVolumeChange}
-            maxOI={maxOI}
-            maxVolume={maxVolume}
-            filtersOpen={filtersOpen}
-            onFiltersOpenChange={setFiltersOpen}
-            searchPlaceholder="Search asset"
-            inputClassName={TAILWIND.input.default}
-            className="ml-auto"
-          />
-          <MobileSort
-            open={mobileSortOpen}
-            onOpenChange={setMobileSortOpen}
-            sortKey={sortKey}
-            sortDir={sortDir}
-            onSelect={setSort}
-          />
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <TableControls
+              search={search}
+              onSearchChange={handleSearchChange}
+              exchanges={exchanges}
+              selectedExchanges={selectedExchanges}
+              onToggleExchange={toggleExchange}
+              onCheckAllExchanges={resetExchanges}
+              onUncheckAllExchanges={clearExchanges}
+              filterOpen={filterOpen}
+              onFilterOpenChange={setFilterOpen}
+              exchangeHeaderExtras={
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={clearPinnedExchanges}
+                    disabled={pinnedExchanges.length === 0}
+                    className={[
+                      "transition",
+                      pinnedExchanges.length
+                        ? "text-gray-200 underline underline-offset-2"
+                        : "text-gray-400/50",
+                    ].join(" ")}
+                  >
+                    Reset pinned
+                  </button>
+                </div>
+              }
+              renderExchangeActions={(exchange) => {
+                const isPinned = pinnedSet.has(exchange);
+                return (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      togglePinned(exchange);
+                    }}
+                    className={`inline-flex items-center text-[11px] ${
+                      isPinned ? "text-[#FA814D]" : "text-gray-500 hover:text-gray-300"
+                    }`}
+                    aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
+                    title={isPinned ? "Unpin" : "Pin"}
+                  >
+                    <Pin size={14} className="sm:scale-90" />
+                  </button>
+                );
+              }}
+              minOI={minOI}
+              onMinOIChange={handleMinOIChange}
+              minVolume={minVolume}
+              onMinVolumeChange={handleMinVolumeChange}
+              maxOI={maxOI}
+              maxVolume={maxVolume}
+              filtersOpen={filtersOpen}
+              onFiltersOpenChange={setFiltersOpen}
+              searchPlaceholder="Search asset"
+              inputClassName={TAILWIND.input.default}
+            />
+            <MobileSort
+              open={mobileSortOpen}
+              onOpenChange={setMobileSortOpen}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSelect={setSort}
+            />
+          </div>
         </div>
 
         {error && (

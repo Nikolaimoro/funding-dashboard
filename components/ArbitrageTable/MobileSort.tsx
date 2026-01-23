@@ -26,10 +26,8 @@ export default function MobileSort({
     dir: SortDir;
     label: string;
   }> = [
-    { key: "apr_spread", dir: "asc", label: "APR asc" },
-    { key: "apr_spread", dir: "desc", label: "APR desc" },
-    { key: "stability", dir: "asc", label: "Stability asc" },
-    { key: "stability", dir: "desc", label: "Stability desc" },
+    { key: "apr_spread", dir: "desc", label: "Highest APR" },
+    { key: "stability", dir: "desc", label: "Highest Stability" },
   ];
 
   return (
