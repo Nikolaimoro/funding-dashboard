@@ -53,7 +53,7 @@ export default function ExchangeFilter({
             onClick={() => onOpenChange(false)}
           />
           <div
-            className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded-lg left-0 w-[min(220px,calc(100vw-16px))] sm:w-[320px] max-w-[calc(100vw-16px)] max-h-[70vh] overflow-x-auto overflow-y-auto overscroll-contain shadow-lg animate-tooltip-zoom p-2"
+            className="absolute z-50 mt-2 bg-[#292e40] border border-[#343a4e] rounded-lg left-0 w-[min(220px,calc(100vw-16px))] sm:w-[380px] max-w-[calc(100vw-16px)] max-h-[70vh] overflow-x-auto overflow-y-auto overscroll-contain shadow-lg animate-tooltip-zoom p-2"
             onWheel={(event) => event.stopPropagation()}
             onTouchMove={(event) => event.stopPropagation()}
           >
@@ -95,11 +95,11 @@ export default function ExchangeFilter({
               {exchanges.map((ex) => (
                 <div
                   key={ex}
-                  className="grid grid-cols-[1fr_auto] items-center gap-0 px-2 py-3 sm:py-1.5 sm:flex sm:justify-between sm:gap-1.5 hover:bg-[#353b52] rounded-lg"
+                  className="grid grid-cols-[minmax(0,1fr)_24px] items-center gap-2 px-2 py-3 sm:py-1.5 hover:bg-[#353b52] rounded-lg"
                 >
                   <label
                     htmlFor={`exchange-${ex}`}
-                    className="flex items-center gap-1.5 sm:gap-1 cursor-pointer min-w-0"
+                    className="flex items-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 pr-2"
                   >
                     <input
                       id={`exchange-${ex}`}
@@ -108,14 +108,14 @@ export default function ExchangeFilter({
                       onChange={() => onToggleExchange(ex)}
                       className="cursor-pointer h-4 w-4 accent-blue-500"
                     />
-                    <span className="text-sm text-gray-200 inline-flex items-center gap-1">
+                    <span className="text-sm text-gray-200 inline-flex items-center gap-1 min-w-0">
                       <ExchangeIcon exchange={ex} size={16} />
-                      {formatExchange(ex)}
+                      <span className="min-w-0">{formatExchange(ex)}</span>
                     </span>
                   </label>
                   {renderExchangeActions && (
                     <div
-                      className="w-4 sm:w-10 flex items-center justify-center sm:ml-4"
+                      className="w-6 flex items-center justify-center"
                       onClick={(event) => {
                         event.stopPropagation();
                       }}
