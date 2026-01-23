@@ -11,7 +11,7 @@ export const EXCHANGE_ICONS: Record<string, { file: string; bg?: string; scale?:
   binance: { file: "binance.png", bg: "#1e2026" },
   bingx: { file: "bingx.png", bg: "#1a1a2e", scale: 1 },
   bybit: { file: "bybit.svg", bg: "#1a1a2e" },
-  gate: { file: "gate.png", bg: "#1a1a2e" },
+  gate: { file: "gate.png", bg: "#1a1a2e", scale: 0.6 },
   hyperliquid: { file: "hyperliquid.png", bg: "#1a1a2e" },
   mexc: { file: "mexc.svg", bg: "#1a1a2e", scale: 1 },
   okx: { file: "okx.png", bg: "#1a1a2e", scale: 1 },
@@ -25,7 +25,7 @@ export const EXCHANGE_ICONS: Record<string, { file: string; bg?: string; scale?:
   grvt: { file: "grvt.png", bg: "#1a1a2e", scale: 1.4 },
   apex: { file: "apex.svg", bg: "#1a1a2e", scale: 0.6 },
   pacifica: { file: "pacifica.svg", bg: "#1a1a2e" },
-  reya : { file: "reya.svg", bg: "#1a1a2e", scale: 0.6 },
+  reya : { file: "reya.svg", bg: "#1a1a2e", scale: 0.55 },
 };
 
 interface ExchangeIconProps {

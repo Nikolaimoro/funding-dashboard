@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ArrowUp, ArrowUpRight, ExternalLink } from "lucide-react";
 import { FundingRow } from "@/lib/types";
 import { formatAPR, formatCompactUSD, formatExchange } from "@/lib/formatters";
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
@@ -24,6 +24,7 @@ export default function FundingMobileCards({
   const [visibleCount, setVisibleCount] = useState(MOBILE_PAGE_SIZE);
   const [fetchingMore, setFetchingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     setVisibleCount(MOBILE_PAGE_SIZE);
@@ -52,6 +53,15 @@ export default function FundingMobileCards({
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
   }, [rows.length, visibleCount, fetchingMore]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="min-[960px]:hidden px-4 pb-4">
@@ -192,5 +202,20 @@ export default function FundingMobileCards({
         </>
       )}
     </div>
+
+    {showBackToTop && (
+      <button
+        type="button"
+        onClick={() => {
+          if (typeof window !== "undefined") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }}
+        className="min-[960px]:hidden fixed bottom-24 right-4 z-40 rounded-full bg-[#1c202f] border border-[#343a4e] text-gray-200 p-2 shadow-lg"
+        aria-label="Back to top"
+      >
+        <ArrowUp size={16} />
+      </button>
+    )}
   );
 }

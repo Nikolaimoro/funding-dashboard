@@ -19,6 +19,8 @@ import ExchangeFilter from "@/components/Table/ExchangeFilter";
 import APRRangeFilter from "@/components/Table/APRRangeFilter";
 import RateCell from "@/components/FundingScreener/RateCell";
 import APRCell from "@/components/FundingScreener/APRCell";
+import FundingScreenerMobileCards from "@/components/FundingScreener/MobileCards";
+import FundingScreenerMobileSort from "@/components/FundingScreener/MobileSort";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import SortableHeader from "@/components/ui/SortableHeader";
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
@@ -173,6 +175,7 @@ export default function FundingScreener() {
   const [pinnedColumnKey, setPinnedColumnKey] = useState<string | null>(null);
   const [pinnedInitialized, setPinnedInitialized] = useState(false);
   const [pinnedDirty, setPinnedDirty] = useState(false);
+  const [mobileSortOpen, setMobileSortOpen] = useState(false);
 
   const [sortKey, setSortKey] = useState<SortKey>("max_arb");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -455,6 +458,11 @@ export default function FundingScreener() {
   /* ---------- handlers ---------- */
   const resetPage = () => setPage(0);
 
+  const handleTogglePinned = (columnKey: string | null) => {
+    setPinnedDirty(true);
+    setPinnedColumnKey(columnKey);
+  };
+
   const handleSearchChange = (value: string) => {
     setSearch(value);
     resetPage();
@@ -486,6 +494,12 @@ export default function FundingScreener() {
       setSortKey(key);
       setSortDir("desc");
     }
+    resetPage();
+  };
+
+  const setSort = (key: SortKey, dir: SortDir) => {
+    setSortKey(key);
+    setSortDir(dir);
     resetPage();
   };
 
@@ -557,6 +571,23 @@ export default function FundingScreener() {
   const paginatedRows =
     limit === -1 ? filtered : filtered.slice(page * limit, page * limit + limit);
 
+  const sortOptions = useMemo(() => {
+    const base = [
+      { key: "max_arb", dir: "desc" as SortDir, label: "APR High" },
+      { key: "max_arb", dir: "asc" as SortDir, label: "APR Low" },
+      { key: "token", dir: "asc" as SortDir, label: "Asset A-Z" },
+      { key: "token", dir: "desc" as SortDir, label: "Asset Z-A" },
+    ];
+    const columnOptions = filteredColumns.flatMap((col) => {
+      const label = formatColumnHeader(col, exchangesWithMultipleQuotes);
+      return [
+        { key: col.column_key, dir: "desc" as SortDir, label: `${label} High` },
+        { key: col.column_key, dir: "asc" as SortDir, label: `${label} Low` },
+      ];
+    });
+    return [...base, ...columnOptions];
+  }, [filteredColumns, exchangesWithMultipleQuotes]);
+
   /* ---------- render ---------- */
   if (error) {
     return (
@@ -593,6 +624,14 @@ export default function FundingScreener() {
             <h2 className="text-base font-roboto text-white">Screener</h2>
 
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:ml-auto">
+              <FundingScreenerMobileSort
+                open={mobileSortOpen}
+                onOpenChange={setMobileSortOpen}
+                sortKey={sortKey}
+                sortDir={sortDir}
+                options={sortOptions}
+                onSelect={setSort}
+              />
               {/* Time window dropdown */}
               <div className="relative">
                 <select
@@ -714,8 +753,19 @@ export default function FundingScreener() {
             </div>
           </div>
 
+          <FundingScreenerMobileCards
+            rows={filtered}
+            loading={loading}
+            timeWindow={timeWindow}
+            filteredColumns={filteredColumns}
+            filteredColumnKeys={filteredColumnKeys}
+            pinnedColumnKey={pinnedColumnKey}
+            onTogglePinned={handleTogglePinned}
+            exchangesWithMultipleQuotes={exchangesWithMultipleQuotes}
+          />
+
           {/* ---------- table ---------- */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-[960px]:block hidden">
             <table className="table-fixed w-max border-collapse text-xs whitespace-nowrap">
               <colgroup>
                 <col className="w-[48px]" />
@@ -882,7 +932,7 @@ export default function FundingScreener() {
 
           {/* ---------- bottom pagination ---------- */}
           {paginatedRows.length > 0 && (
-            <div className="px-4 py-3 border-t border-[#343a4e]">
+            <div className="px-4 py-3 border-t border-[#343a4e] hidden min-[960px]:block">
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}
