@@ -127,6 +127,20 @@ export default function FundingScreener({
   const [sortKey, setSortKey] = useState<SortKey>("max_arb");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
+  const openModal = (payload: {
+    token: string;
+    arbPair: ArbPair;
+    maxArb: number | null;
+  }) => {
+    setModalData(payload);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalData(null);
+  };
+
   const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(0);
 
@@ -1054,16 +1068,3 @@ export default function FundingScreener({
     </ErrorBoundary>
   );
 }
-  const openModal = (payload: {
-    token: string;
-    arbPair: ArbPair;
-    maxArb: number | null;
-  }) => {
-    setModalData(payload);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setModalData(null);
-  };
