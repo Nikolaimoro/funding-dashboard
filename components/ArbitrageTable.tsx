@@ -574,6 +574,8 @@ export default function ArbitrageTable({
           baseAsset={selectedRow?.base_asset ?? ""}
           longMarketId={selectedRow?.long_market_id ?? 0}
           shortMarketId={selectedRow?.short_market_id ?? 0}
+          longExchange={selectedRow?.long_exchange ?? ""}
+          shortExchange={selectedRow?.short_exchange ?? ""}
           longLabel={
             selectedRow
               ? `${formatExchange(selectedRow.long_exchange)}${selectedRow.long_quote ? ` (${selectedRow.long_quote})` : ""}`

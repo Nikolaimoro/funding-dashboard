@@ -21,6 +21,7 @@ export const EXCHANGE_LABEL: Record<string, string> = {
   apex: "ApeX",
   pacifica: "Pacifica",
   reya: "REYA",
+  gmx: "GMX",
 };
 
 export const EXCHANGE_SEO_LIST = Object.values(EXCHANGE_LABEL);

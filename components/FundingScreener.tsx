@@ -1021,6 +1021,8 @@ export default function FundingScreener({
           baseAsset={modalData.token}
           longMarketId={modalData.arbPair.longMarket.market_id}
           shortMarketId={modalData.arbPair.shortMarket.market_id}
+          longExchange={modalData.arbPair.longMarket.exchange}
+          shortExchange={modalData.arbPair.shortMarket.exchange}
           longLabel={modalLongLabel}
           shortLabel={modalShortLabel}
           longUrl={modalData.arbPair.longMarket.ref_url}

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink } from "lucide-react";
+import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { Modal } from "@/components/ui/Modal";
 import { COLORS, CHART_CONFIG } from "@/lib/theme";
 import { ArbChartRow } from "@/lib/types";
@@ -47,6 +48,8 @@ export type ArbitrageChartProps = {
   baseAsset: string;
   longMarketId: number;
   shortMarketId: number;
+  longExchange: string;
+  shortExchange: string;
   longLabel: string;
   shortLabel: string;
   longUrl?: string | null;
@@ -111,7 +114,7 @@ async function fetchArbChartData(params: {
 /* ================= COMPONENT ================= */
 
 export default function ArbitrageChart(props: ArbitrageChartProps) {
-  const { open, onClose, baseAsset, longMarketId, shortMarketId, longLabel, shortLabel, longUrl, shortUrl, backtesterUrl } = props;
+  const { open, onClose, baseAsset, longMarketId, shortMarketId, longExchange, shortExchange, longLabel, shortLabel, longUrl, shortUrl, backtesterUrl } = props;
   const hasBacktester =
     typeof backtesterUrl === "string" &&
     (backtesterUrl.startsWith("/") && !backtesterUrl.startsWith("//") ||
@@ -400,6 +403,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
                     className="inline-flex items-center justify-center gap-1 rounded-lg border border-green-500/40 px-4 py-2 text-xs text-green-400 hover:border-green-500/70 transition whitespace-nowrap"
                   >
                     <ExternalLink size={12} />
+                    <ExchangeIcon exchange={longExchange} size={14} />
                     Long {longLabel}
                   </a>
                 )}
@@ -411,6 +415,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
                     className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-500/40 px-4 py-2 text-xs text-red-400 hover:border-red-500/70 transition whitespace-nowrap"
                   >
                     <ExternalLink size={12} />
+                    <ExchangeIcon exchange={shortExchange} size={14} />
                     Short {shortLabel}
                   </a>
                 )}
