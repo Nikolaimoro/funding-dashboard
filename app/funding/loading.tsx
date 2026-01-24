@@ -1,20 +1,19 @@
-import SkeletonLoader from "@/components/ui/SkeletonLoader";
+import PageHeader from "@/components/ui/PageHeader";
+import { TableLoadingState } from "@/components/ui/TableStates";
 
-export default function Loading() {
+export default function FundingLoading() {
   return (
-    <main className="min-h-screen bg-[#1c202f] p-6 text-gray-200">
-      <div className="mb-6">
-        <div className="h-8 w-72 rounded-lg bg-[#292e40] animate-pulse" />
-        <div className="mt-2 h-4 w-96 rounded-lg bg-[#292e40] animate-pulse" />
+    <main className="min-h-screen text-gray-200">
+      <PageHeader
+        title="Funding Rate Screener"
+        description="Compare funding rates across exchanges to find arbitrage opportunities"
+      />
+      <div className="rounded-2xl border border-[#343a4e] bg-[#292e40]">
+        <div className="flex flex-wrap items-center gap-4 px-4 py-4">
+          <h2 className="text-base font-roboto text-white">Screener</h2>
+        </div>
+        <TableLoadingState message="Loading funding screener…" />
       </div>
-
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="h-10 rounded-lg bg-[#292e40] animate-pulse" />
-        <div className="h-10 rounded-lg bg-[#292e40] animate-pulse" />
-        <div className="h-10 rounded-lg bg-[#292e40] animate-pulse" />
-      </div>
-
-      <SkeletonLoader rows={8} columns={8} />
     </main>
   );
 }
