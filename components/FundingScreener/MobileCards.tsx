@@ -378,7 +378,7 @@ export default function FundingScreenerMobileCards({
                       onClick={hasMore ? toggleExpanded : undefined}
                     >
                       {longMarket && longKey ? (
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 gap-2">
                           <div className="flex flex-col gap-1">
                             <ExchangeRateRow
                               label={
@@ -418,7 +418,7 @@ export default function FundingScreenerMobileCards({
                     {hasMore && (
                       <div className="flex flex-col gap-2">
                         <div
-                          className={`overflow-hidden rounded-lg transition-[max-height,opacity,transform] duration-300 ease-in-out ${
+                          className={`overflow-hidden rounded-lg transition-[max-height,opacity,transform] duration-500 ease-in-out ${
                             isExpanded
                               ? "max-h-96 opacity-100 translate-y-0"
                               : "max-h-0 opacity-0 translate-y-2"
