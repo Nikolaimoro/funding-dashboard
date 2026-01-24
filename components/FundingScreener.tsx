@@ -458,10 +458,6 @@ export default function FundingScreener() {
   /* ---------- handlers ---------- */
   const resetPage = () => setPage(0);
 
-  const handleTogglePinned = (columnKey: string | null) => {
-    setPinnedDirty(true);
-    setPinnedColumnKey(columnKey);
-  };
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -648,6 +644,24 @@ export default function FundingScreener() {
                 options={sortOptions}
                 onSelect={setSort}
               />
+              {/* Time window dropdown */}
+              <div className="relative min-[960px]:block hidden">
+                <select
+                  className="appearance-none bg-transparent border border-[#343a4e] rounded-lg pl-3 pr-7 py-2 text-sm text-gray-200 focus:outline-none cursor-pointer"
+                  value={timeWindow}
+                  onChange={(e) => {
+                    setTimeWindow(e.target.value as TimeWindow);
+                    resetPage();
+                  }}
+                >
+                  {SCREENER_TIME_WINDOWS.map((tw) => (
+                    <option key={tw} value={tw}>
+                      {SCREENER_TIME_LABELS[tw]}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
+              </div>
               {/* Filters dropdown with slider */}
               <APRRangeFilter
                 minAPR={minAPR}
@@ -726,9 +740,8 @@ export default function FundingScreener() {
                 }}
               />
 
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                {/* Search */}
-                <div className="relative flex-1 min-w-[180px]">
+              <div className="flex items-center gap-3 w-full min-[960px]:hidden">
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-4 h-4" />
                   <input
                     type="text"
@@ -748,8 +761,6 @@ export default function FundingScreener() {
                     </button>
                   )}
                 </div>
-
-                {/* Time window dropdown */}
                 <div className="relative shrink-0">
                   <select
                     className="appearance-none bg-transparent border border-[#343a4e] rounded-lg pl-3 pr-7 py-2 text-sm text-gray-200 focus:outline-none cursor-pointer"
@@ -768,6 +779,28 @@ export default function FundingScreener() {
                   <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
+
+              <div className="relative w-full order-last sm:order-none sm:w-auto hidden min-[960px]:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-4 h-4" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Search asset"
+                  className={`${TAILWIND.input.default} pl-10 pr-9 bg-transparent border border-[#383d50] focus:bg-transparent focus:border-[#383d50] w-full`}
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-[#383d50] border border-[#343a4e] text-gray-300 text-xs leading-none flex items-center justify-center transition-colors duration-200 hover:border-white hover:text-white"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+
             </div>
           </div>
 
@@ -778,7 +811,6 @@ export default function FundingScreener() {
             filteredColumns={filteredColumns}
             filteredColumnKeys={filteredColumnKeys}
             pinnedColumnKey={pinnedColumnKey}
-            onTogglePinned={handleTogglePinned}
             exchangesWithMultipleQuotes={exchangesWithMultipleQuotes}
           />
 

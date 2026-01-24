@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, ArrowUpRight, ChevronDown, Pin } from "lucide-react";
+import { ArrowUp, ArrowUpRight, ChevronDown } from "lucide-react";
 import { formatAPR, formatExchange } from "@/lib/formatters";
 import { getRate, findArbPair, ArbPair } from "@/lib/funding";
 import {
@@ -21,7 +21,6 @@ type Props = {
   filteredColumns: ExchangeColumn[];
   filteredColumnKeys: Set<string>;
   pinnedColumnKey: string | null;
-  onTogglePinned: (columnKey: string | null) => void;
   exchangesWithMultipleQuotes: Set<string>;
 };
 
@@ -119,13 +118,11 @@ function ExchangeRateRow({
   market,
   rate,
   pinned,
-  onTogglePinned,
 }: {
   label: string;
   market: FundingMatrixMarket;
   rate: number | null;
   pinned: boolean;
-  onTogglePinned: () => void;
 }) {
   const rateClass =
     rate == null
@@ -137,14 +134,18 @@ function ExchangeRateRow({
           : "text-gray-300";
 
   const exchangeContent = (
-    <span className="inline-flex items-center gap-3 min-w-0">
+    <span className="inline-flex items-center gap-2 min-w-0">
       <ExchangeIcon exchange={market.exchange} size={16} />
       <span className="truncate text-sm text-gray-100">{label}</span>
     </span>
   );
 
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div
+      className={`flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 ${
+        pinned ? "ring-1 ring-[#FA814D]/70" : ""
+      }`}
+    >
       <div className="flex items-center gap-2 min-w-0">
         {market.ref_url ? (
           <a
@@ -159,20 +160,6 @@ function ExchangeRateRow({
         ) : (
           exchangeContent
         )}
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onTogglePinned();
-          }}
-          className={`inline-flex items-center ${
-            pinned ? "text-[#FA814D]" : "text-gray-500 hover:text-gray-300"
-          }`}
-          aria-label={pinned ? "Unpin exchange" : "Pin exchange"}
-          title={pinned ? "Unpin" : "Pin"}
-        >
-          <Pin size={12} />
-        </button>
       </div>
       <span className={`font-mono text-sm ${rateClass}`}>
         {formatAPR(rate)}
@@ -188,7 +175,6 @@ export default function FundingScreenerMobileCards({
   filteredColumns,
   filteredColumnKeys,
   pinnedColumnKey,
-  onTogglePinned,
   exchangesWithMultipleQuotes,
 }: Props) {
   const [visibleCount, setVisibleCount] = useState(MOBILE_PAGE_SIZE);
@@ -251,7 +237,7 @@ export default function FundingScreenerMobileCards({
     <>
       <div className="min-[960px]:hidden px-4 pb-4">
         {loading ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {Array.from({ length: 6 }).map((_, idx) => (
               <div
                 key={idx}
@@ -265,7 +251,7 @@ export default function FundingScreenerMobileCards({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {visibleRows.map((row, idx) => {
                 const token = row.token ?? `token-${idx}`;
                 const arbPair = findArbPairPinned(
@@ -339,7 +325,7 @@ export default function FundingScreenerMobileCards({
                         handleOpenChart();
                       }
                     }}
-                    className="rounded-2xl border border-[#343a4e] bg-[#1c202f] p-4 text-xs text-gray-200 flex flex-col gap-4"
+                    className="rounded-2xl border border-[#343a4e] bg-[#1c202f] p-3 text-xs text-gray-200 flex flex-col gap-3"
                   >
                     <div
                       className={`relative flex items-start justify-between gap-4 ${
@@ -382,48 +368,54 @@ export default function FundingScreenerMobileCards({
                       onClick={hasMore ? toggleExpanded : undefined}
                     >
                       {longMarket && longKey ? (
-                        <ExchangeRateRow
-                          label={
-                            columnLabelByKey.get(longKey) ??
-                            formatExchange(longMarket.exchange)
-                          }
-                          market={longMarket}
-                          rate={longRate}
-                          pinned={pinnedColumnKey === longKey}
-                          onTogglePinned={() =>
-                            onTogglePinned(
-                              pinnedColumnKey === longKey ? null : longKey
-                            )
-                          }
-                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex flex-col gap-1">
+                            <div className="text-[10px] uppercase text-gray-500">
+                              Long
+                            </div>
+                            <ExchangeRateRow
+                              label={
+                                columnLabelByKey.get(longKey) ??
+                                formatExchange(longMarket.exchange)
+                              }
+                              market={longMarket}
+                              rate={longRate}
+                              pinned={pinnedColumnKey === longKey}
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <div className="text-[10px] uppercase text-gray-500">
+                              Short
+                            </div>
+                            {shortMarket && shortKey ? (
+                              <ExchangeRateRow
+                                label={
+                                  columnLabelByKey.get(shortKey) ??
+                                  formatExchange(shortMarket.exchange)
+                                }
+                                market={shortMarket}
+                                rate={shortRate}
+                                pinned={pinnedColumnKey === shortKey}
+                              />
+                            ) : (
+                              <div className="text-xs text-gray-500">
+                                No short
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       ) : (
                         <div className="text-xs text-gray-500">No APR pair</div>
-                      )}
-                      {shortMarket && shortKey && (
-                        <ExchangeRateRow
-                          label={
-                            columnLabelByKey.get(shortKey) ??
-                            formatExchange(shortMarket.exchange)
-                          }
-                          market={shortMarket}
-                          rate={shortRate}
-                          pinned={pinnedColumnKey === shortKey}
-                          onTogglePinned={() =>
-                            onTogglePinned(
-                              pinnedColumnKey === shortKey ? null : shortKey
-                            )
-                          }
-                        />
                       )}
                     </div>
 
                     {hasMore && (
                       <div className="flex flex-col gap-2">
                         <div
-                          className={`overflow-hidden transition-all duration-300 ${
+                          className={`overflow-hidden rounded-lg transition-[max-height,opacity,transform] duration-300 ease-in-out ${
                             isExpanded
-                              ? "max-h-96 opacity-100"
-                              : "max-h-0 opacity-0"
+                              ? "max-h-96 opacity-100 translate-y-0"
+                              : "max-h-0 opacity-0 translate-y-2"
                           }`}
                           onClick={(event) => {
                             event.stopPropagation();
@@ -446,13 +438,6 @@ export default function FundingScreenerMobileCards({
                                   market={market}
                                   rate={rate}
                                   pinned={pinnedColumnKey === col.column_key}
-                                  onTogglePinned={() =>
-                                    onTogglePinned(
-                                      pinnedColumnKey === col.column_key
-                                        ? null
-                                        : col.column_key
-                                    )
-                                  }
                                 />
                               );
                             })}
@@ -486,7 +471,7 @@ export default function FundingScreenerMobileCards({
             </div>
 
             {fetchingMore && (
-              <div className="grid grid-cols-2 gap-3 mt-3">
+              <div className="grid grid-cols-1 gap-3 mt-3">
                 {Array.from({ length: 3 }).map((_, idx) => (
                   <div
                     key={idx}
