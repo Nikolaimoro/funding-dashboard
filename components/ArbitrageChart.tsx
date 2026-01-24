@@ -112,6 +112,13 @@ async function fetchArbChartData(params: {
 
 export default function ArbitrageChart(props: ArbitrageChartProps) {
   const { open, onClose, baseAsset, longMarketId, shortMarketId, longLabel, shortLabel, longUrl, shortUrl, backtesterUrl } = props;
+  const hasBacktester =
+    typeof backtesterUrl === "string" &&
+    (backtesterUrl.startsWith("/") && !backtesterUrl.startsWith("//") ||
+      isValidUrl(backtesterUrl));
+  const hasLong = isValidUrl(longUrl);
+  const hasShort = isValidUrl(shortUrl);
+  const hasLinks = hasLong || hasShort || hasBacktester;
 
   const [rows, setRows] = useState<ArbChartRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -381,11 +388,11 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
             />
           )}
         </div>
-        {(isValidUrl(longUrl) || isValidUrl(shortUrl) || isValidUrl(backtesterUrl)) && (
+        {hasLinks && (
           <div className="mt-3 flex flex-col items-center gap-2">
             <div className="w-full max-w-[360px]">
-              <div className="grid grid-cols-2 gap-2">
-                {isValidUrl(longUrl) && (
+              <div className={`grid gap-2 ${hasBacktester ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2"}`}>
+                {hasLong && (
                   <a
                     href={longUrl}
                     target="_blank"
@@ -396,7 +403,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
                     Long {longLabel}
                   </a>
                 )}
-                {isValidUrl(shortUrl) && (
+                {hasShort && (
                   <a
                     href={shortUrl}
                     target="_blank"
@@ -407,17 +414,17 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
                     Short {shortLabel}
                   </a>
                 )}
+                {hasBacktester && (
+                  <a
+                    href={backtesterUrl!}
+                    target={backtesterUrl?.startsWith("/") ? undefined : "_blank"}
+                    rel={backtesterUrl?.startsWith("/") ? undefined : "noopener noreferrer"}
+                    className="col-span-2 sm:col-span-1 inline-flex items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition"
+                  >
+                    Backtester
+                  </a>
+                )}
               </div>
-              {isValidUrl(backtesterUrl) && (
-                <a
-                  href={backtesterUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex w-full items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition"
-                >
-                  Backtester
-                </a>
-              )}
             </div>
           </div>
         )}
