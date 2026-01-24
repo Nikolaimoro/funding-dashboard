@@ -390,14 +390,14 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
         </div>
         {hasLinks && (
           <div className="mt-3 flex flex-col items-center gap-2">
-            <div className="w-full max-w-[360px]">
+            <div className="w-full max-w-[440px]">
               <div className={`grid gap-2 ${hasBacktester ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2"}`}>
                 {hasLong && (
                   <a
                     href={longUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-green-500/40 px-3 py-2 text-xs text-green-400 hover:border-green-500/70 transition"
+                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-green-500/40 px-4 py-2 text-xs text-green-400 hover:border-green-500/70 transition whitespace-nowrap"
                   >
                     <ExternalLink size={12} />
                     Long {longLabel}
@@ -408,7 +408,7 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
                     href={shortUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-500/40 px-3 py-2 text-xs text-red-400 hover:border-red-500/70 transition"
+                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-500/40 px-4 py-2 text-xs text-red-400 hover:border-red-500/70 transition whitespace-nowrap"
                   >
                     <ExternalLink size={12} />
                     Short {shortLabel}
