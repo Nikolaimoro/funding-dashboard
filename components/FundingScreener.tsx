@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, ChevronDown, Search, X, Pin, ExternalLink } from "lucide-react";
+import { RefreshCw, ChevronDown, Search, X, Pin } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { normalizeToken, formatAPR, formatExchange } from "@/lib/formatters";
+import { normalizeToken, formatExchange } from "@/lib/formatters";
 import {
   getRate,
   findArbPair,
@@ -28,11 +29,13 @@ import APRCell from "@/components/FundingScreener/APRCell";
 import FundingScreenerMobileCards from "@/components/FundingScreener/MobileCards";
 import FundingScreenerMobileSort from "@/components/FundingScreener/MobileSort";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import { Modal } from "@/components/ui/Modal";
 import SortableHeader from "@/components/ui/SortableHeader";
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
 import { TAILWIND } from "@/lib/theme";
-import { isValidUrl } from "@/lib/validation";
+
+const ArbitrageChart = dynamic(() => import("@/components/ArbitrageChart"), {
+  ssr: false,
+});
 
 /* ================= TYPES ================= */
 
@@ -452,6 +455,14 @@ export default function FundingScreener({
     modalData && modalData.token
       ? buildBacktesterUrl(modalData.token, modalData.arbPair)
       : null;
+  const modalLongLabel = modalData
+    ? columnLabelByKey.get(modalData.arbPair.longKey) ??
+      formatExchange(modalData.arbPair.longMarket.exchange)
+    : "";
+  const modalShortLabel = modalData
+    ? columnLabelByKey.get(modalData.arbPair.shortKey) ??
+      formatExchange(modalData.arbPair.shortMarket.exchange)
+    : "";
 
   /* ---------- handlers ---------- */
   const resetPage = () => setPage(0);
@@ -1004,66 +1015,18 @@ export default function FundingScreener({
       </section>
 
       {modalData && (
-        <Modal
+        <ArbitrageChart
           open={modalOpen}
           onClose={closeModal}
-          title={`Funding APR · ${modalData.token}`}
-          height="320px"
-        >
-          <div className="flex h-full flex-col justify-between">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm text-gray-400">
-                <span>APR spread</span>
-                <span className="text-base font-mono text-white">
-                  {formatAPR(modalData.maxArb)}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {isValidUrl(modalData.arbPair.longMarket.ref_url) && (
-                  <a
-                    href={modalData.arbPair.longMarket.ref_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-green-500/40 px-3 py-2 text-xs text-green-400 hover:border-green-500/70 transition"
-                  >
-                    <ExternalLink size={12} />
-                    Long{" "}
-                    {columnLabelByKey.get(modalData.arbPair.longKey) ??
-                      formatExchange(modalData.arbPair.longMarket.exchange)}
-                  </a>
-                )}
-                {isValidUrl(modalData.arbPair.shortMarket.ref_url) && (
-                  <a
-                    href={modalData.arbPair.shortMarket.ref_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-500/40 px-3 py-2 text-xs text-red-400 hover:border-red-500/70 transition"
-                  >
-                    <ExternalLink size={12} />
-                    Short{" "}
-                    {columnLabelByKey.get(modalData.arbPair.shortKey) ??
-                      formatExchange(modalData.arbPair.shortMarket.exchange)}
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {modalBacktesterUrl && (
-              <button
-                type="button"
-                onClick={() => {
-                  const win = window.open(modalBacktesterUrl, "_blank");
-                  if (win) {
-                    win.opener = null;
-                  }
-                }}
-                className="inline-flex w-full items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition"
-              >
-                Open Backtester
-              </button>
-            )}
-          </div>
-        </Modal>
+          baseAsset={modalData.token}
+          longMarketId={modalData.arbPair.longMarket.market_id}
+          shortMarketId={modalData.arbPair.shortMarket.market_id}
+          longLabel={modalLongLabel}
+          shortLabel={modalShortLabel}
+          longUrl={modalData.arbPair.longMarket.ref_url}
+          shortUrl={modalData.arbPair.shortMarket.ref_url}
+          backtesterUrl={modalBacktesterUrl}
+        />
       )}
     </ErrorBoundary>
   );
