@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { RefreshCw, Pin } from "lucide-react";
-import ArbitrageChart from "@/components/ArbitrageChart";
+import dynamic from "next/dynamic";
 import { formatExchange, normalizeToken } from "@/lib/formatters";
 import { ArbRow, SortDir } from "@/lib/types";
 import Pagination from "@/components/Table/Pagination";
@@ -16,6 +16,9 @@ import { TableEmptyState, TableLoadingState } from "@/components/ui/TableStates"
 import { TAILWIND } from "@/lib/theme";
 import { getLocalCache, setLocalCache, withTimeout } from "@/lib/async";
 
+const ArbitrageChart = dynamic(() => import("@/components/ArbitrageChart"), {
+  ssr: false,
+});
 /* ================= TYPES ================= */
 
 type SortKey = "apr_spread" | "stability";
