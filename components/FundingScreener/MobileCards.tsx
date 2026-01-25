@@ -308,7 +308,6 @@ export default function FundingScreenerMobileCards({
                 const shortRate = arbPair?.shortRate ?? null;
                 const longKey = arbPair?.longKey ?? null;
                 const shortKey = arbPair?.shortKey ?? null;
-                const pinnedKey = getPinnedKeyForRow(row);
 
                 const availableMarkets = filteredColumns
                   .map((col) => {
