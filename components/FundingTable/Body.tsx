@@ -208,7 +208,7 @@ export default function FundingTableBody({
                         </span>
                       </span>
                       <span
-                        className={`absolute left-0.5 top-0.5 h-4 w-[calc(50%-2px)] rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        className={`absolute left-0.5 top-1/2 h-4 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                           r.gmxSide === "long"
                             ? "translate-x-0 bg-emerald-500/25"
                             : "translate-x-full bg-red-500/25"
