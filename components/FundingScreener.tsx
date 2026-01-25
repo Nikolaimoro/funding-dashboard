@@ -473,9 +473,13 @@ export default function FundingScreener({
           (market as unknown as { market?: string; symbol?: string }).symbol ??
           "")
           .toString();
-      const marketMatch = marketLabel.match(/\s+(LONG|SHORT)\s*$/i);
+      const marketMatch = marketLabel.match(/\b(LONG|SHORT)\b/i);
       if (marketMatch) {
         return marketMatch[1].toLowerCase() as "long" | "short";
+      }
+      const keyMatch = columnKey.match(/\b(LONG|SHORT)\b/i);
+      if (keyMatch) {
+        return keyMatch[1].toLowerCase() as "long" | "short";
       }
       return null;
     };
