@@ -453,57 +453,6 @@ export default function FundingScreener({
     }
   }, [pinnedColumnKey, filteredColumnKeys, pinnedInitialized]);
 
-  /* ---------- max APR for slider ---------- */
-  const maxAPRValue = useMemo(() => {
-    let max = 0;
-    for (const row of rows) {
-      const pinnedKey = getPinnedKeyForRow(row);
-      const arb = calculateMaxArbPinned(
-        row.markets,
-        timeWindow,
-        filteredColumnKeys,
-        pinnedKey
-      );
-      if (arb !== null && arb > max) max = arb;
-    }
-    return Math.ceil(max);
-  }, [rows, timeWindow, filteredColumnKeys, pinnedColumnKey, gmxColumnKeySet, gmxOptionsByToken, gmxSelectionByToken, gmxDefaultKeyByToken]);
-
-  const maxArbByRow = useMemo(() => {
-    const map = new Map<FundingMatrixRow, number | null>();
-    for (const row of rows) {
-      const pinnedKey = getPinnedKeyForRow(row);
-      map.set(
-        row,
-        calculateMaxArbPinned(row.markets, timeWindow, filteredColumnKeys, pinnedKey)
-      );
-    }
-    return map;
-  }, [rows, timeWindow, filteredColumnKeys, pinnedColumnKey, gmxColumnKeySet, gmxOptionsByToken, gmxSelectionByToken, gmxDefaultKeyByToken]);
-
-  const getMaxArb = (row: FundingMatrixRow) => maxArbByRow.get(row) ?? null;
-
-  const columnLabelByKey = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const col of filteredColumnsAll) {
-      map.set(col.column_key, formatColumnHeader(col, exchangesWithMultipleQuotes));
-    }
-    return map;
-  }, [filteredColumnsAll, exchangesWithMultipleQuotes]);
-
-  const modalBacktesterUrl =
-    modalData && modalData.token
-      ? buildBacktesterUrl(modalData.token, modalData.arbPair)
-      : null;
-  const modalLongLabel = modalData
-    ? columnLabelByKey.get(modalData.arbPair.longKey) ??
-      formatExchange(modalData.arbPair.longMarket.exchange)
-    : "";
-  const modalShortLabel = modalData
-    ? columnLabelByKey.get(modalData.arbPair.shortKey) ??
-      formatExchange(modalData.arbPair.shortMarket.exchange)
-    : "";
-
   const gmxDisplayColumnKey = useMemo(
     () => displayColumns.find((col) => col.isGmxGroup)?.column_key ?? null,
     [displayColumns]
@@ -584,9 +533,6 @@ export default function FundingScreener({
     return map;
   }, [gmxOptionsByToken]);
 
-  /* ---------- handlers ---------- */
-  const resetPage = () => setPage(0);
-
   const getGmxSelectedKey = (
     token: string | null | undefined,
     options: { columnKey: string }[]
@@ -611,6 +557,60 @@ export default function FundingScreener({
     const options = gmxOptionsByToken.get(row.token ?? "") ?? [];
     return getGmxSelectedKey(row.token, options) ?? pinnedColumnKey;
   };
+
+  /* ---------- max APR for slider ---------- */
+  const maxAPRValue = useMemo(() => {
+    let max = 0;
+    for (const row of rows) {
+      const pinnedKey = getPinnedKeyForRow(row);
+      const arb = calculateMaxArbPinned(
+        row.markets,
+        timeWindow,
+        filteredColumnKeys,
+        pinnedKey
+      );
+      if (arb !== null && arb > max) max = arb;
+    }
+    return Math.ceil(max);
+  }, [rows, timeWindow, filteredColumnKeys, pinnedColumnKey, gmxColumnKeySet, gmxOptionsByToken, gmxSelectionByToken, gmxDefaultKeyByToken]);
+
+  const maxArbByRow = useMemo(() => {
+    const map = new Map<FundingMatrixRow, number | null>();
+    for (const row of rows) {
+      const pinnedKey = getPinnedKeyForRow(row);
+      map.set(
+        row,
+        calculateMaxArbPinned(row.markets, timeWindow, filteredColumnKeys, pinnedKey)
+      );
+    }
+    return map;
+  }, [rows, timeWindow, filteredColumnKeys, pinnedColumnKey, gmxColumnKeySet, gmxOptionsByToken, gmxSelectionByToken, gmxDefaultKeyByToken]);
+
+  const getMaxArb = (row: FundingMatrixRow) => maxArbByRow.get(row) ?? null;
+
+  const columnLabelByKey = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const col of filteredColumnsAll) {
+      map.set(col.column_key, formatColumnHeader(col, exchangesWithMultipleQuotes));
+    }
+    return map;
+  }, [filteredColumnsAll, exchangesWithMultipleQuotes]);
+
+  const modalBacktesterUrl =
+    modalData && modalData.token
+      ? buildBacktesterUrl(modalData.token, modalData.arbPair)
+      : null;
+  const modalLongLabel = modalData
+    ? columnLabelByKey.get(modalData.arbPair.longKey) ??
+      formatExchange(modalData.arbPair.longMarket.exchange)
+    : "";
+  const modalShortLabel = modalData
+    ? columnLabelByKey.get(modalData.arbPair.shortKey) ??
+      formatExchange(modalData.arbPair.shortMarket.exchange)
+    : "";
+
+  /* ---------- handlers ---------- */
+  const resetPage = () => setPage(0);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -977,6 +977,7 @@ export default function FundingScreener({
             loading={loading}
             timeWindow={timeWindow}
             filteredColumns={displayColumns}
+            gmxColumns={gmxColumns}
             filteredColumnKeys={filteredColumnKeys}
             pinnedColumnKey={pinnedColumnKey}
             exchangesWithMultipleQuotes={exchangesWithMultipleQuotes}

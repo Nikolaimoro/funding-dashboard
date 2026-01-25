@@ -19,7 +19,8 @@ type Props = {
   rows: FundingMatrixRow[];
   loading: boolean;
   timeWindow: TimeWindow;
-  filteredColumns: ExchangeColumn[];
+  filteredColumns: (ExchangeColumn & { isGmxGroup?: boolean })[];
+  gmxColumns: ExchangeColumn[];
   filteredColumnKeys: Set<string>;
   pinnedColumnKey: string | null;
   exchangesWithMultipleQuotes: Set<string>;
@@ -111,6 +112,7 @@ export default function FundingScreenerMobileCards({
   loading,
   timeWindow,
   filteredColumns,
+  gmxColumns,
   filteredColumnKeys,
   pinnedColumnKey,
   exchangesWithMultipleQuotes,
@@ -172,6 +174,82 @@ export default function FundingScreenerMobileCards({
     return map;
   }, [filteredColumns, exchangesWithMultipleQuotes]);
 
+  const gmxByToken = useMemo(() => {
+    const map = new Map<string, FundingMatrixMarket | null>();
+    if (gmxColumns.length === 0) return map;
+    for (const row of rows) {
+      if (!row.token) continue;
+      let best: FundingMatrixMarket | null = null;
+      let bestOi = -Infinity;
+      for (const col of gmxColumns) {
+        const market = row.markets?.[col.column_key];
+        if (!market) continue;
+        const oi = market.open_interest ?? -Infinity;
+        if (oi > bestOi) {
+          bestOi = oi;
+          best = market;
+        }
+      }
+      map.set(row.token, best);
+    }
+    return map;
+  }, [rows, gmxColumns]);
+
+  const gmxOtherByToken = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        market: FundingMatrixMarket;
+        columnKey: string;
+        label: string;
+        rate: number | null;
+      }[]
+    >();
+    if (gmxColumns.length === 0) return map;
+
+    const getSideSuffix = (market: FundingMatrixMarket) => {
+      const raw =
+        ((market as unknown as { market?: string }).market ?? "").toString();
+      const match = raw.match(/\s+(LONG|SHORT)\s*$/i);
+      return match ? ` ${match[1].toUpperCase()}` : "";
+    };
+
+    for (const row of rows) {
+      if (!row.token) continue;
+      let bestKey: string | null = null;
+      let bestOi = -Infinity;
+      for (const col of gmxColumns) {
+        const market = row.markets?.[col.column_key];
+        if (!market) continue;
+        const oi = market.open_interest ?? -Infinity;
+        if (oi > bestOi) {
+          bestOi = oi;
+          bestKey = col.column_key;
+        }
+      }
+      const others = gmxColumns
+        .map((col) => {
+          if (col.column_key === bestKey) return null;
+          const market = row.markets?.[col.column_key];
+          if (!market) return null;
+          return {
+            market,
+            columnKey: col.column_key,
+            label: `GMX (${col.quote_asset})${getSideSuffix(market)}`,
+            rate: getRate(market, timeWindow),
+          };
+        })
+        .filter(Boolean) as {
+        market: FundingMatrixMarket;
+        columnKey: string;
+        label: string;
+        rate: number | null;
+      }[];
+      map.set(row.token, others);
+    }
+    return map;
+  }, [rows, gmxColumns, timeWindow]);
+
   return (
     <>
       <div className="min-[960px]:hidden px-4 pb-4">
@@ -211,10 +289,16 @@ export default function FundingScreenerMobileCards({
                 const shortKey = arbPair?.shortKey ?? null;
 
                 const availableMarkets = filteredColumns
-                  .map((col) => ({
-                    col,
-                    market: row.markets?.[col.column_key] ?? null,
-                  }))
+                  .map((col) => {
+                    if (col.isGmxGroup) {
+                      const market = row.token ? gmxByToken.get(row.token) ?? null : null;
+                      return { col, market };
+                    }
+                    return {
+                      col,
+                      market: row.markets?.[col.column_key] ?? null,
+                    };
+                  })
                   .filter((entry) => entry.market);
 
                 const usedKeys = new Set<string>();
@@ -224,8 +308,11 @@ export default function FundingScreenerMobileCards({
                 const remainingMarkets = availableMarkets.filter(
                   (entry) => !usedKeys.has(entry.col.column_key)
                 );
+                const gmxRemaining = row.token
+                  ? gmxOtherByToken.get(row.token) ?? []
+                  : [];
 
-                const remainingCount = remainingMarkets.length;
+                const remainingCount = remainingMarkets.length + gmxRemaining.length;
                 const isExpanded = expanded.has(token);
                 const hasMore = remainingCount > 0;
                 const hasHistory = !!historyUrl;
@@ -380,6 +467,15 @@ export default function FundingScreenerMobileCards({
                                 />
                               );
                             })}
+                            {gmxRemaining.map((entry) => (
+                              <ExchangeRateRow
+                                key={entry.columnKey}
+                                label={entry.label}
+                                market={entry.market}
+                                rate={entry.rate}
+                                pinned={pinnedColumnKey === entry.columnKey}
+                              />
+                            ))}
                           </div>
                         </div>
 
