@@ -21,6 +21,7 @@ interface GmxRateCellProps {
   onSelectKey: (key: string) => void;
   token?: string | null;
   role?: "long" | "short";
+  preferredSide?: "long" | "short";
 }
 
 function RoleIndicator({ role }: { role: "long" | "short" }) {
@@ -56,6 +57,7 @@ export default function GmxRateCell({
   onSelectKey,
   token,
   role,
+  preferredSide,
 }: GmxRateCellProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
@@ -78,54 +80,6 @@ export default function GmxRateCell({
       ? "text-red-400"
       : "text-gray-400";
 
-  const getOppositeOption = () => {
-    if (!selected.side) return null;
-    const sameQuote = options.filter((opt) => opt.quote === selected.quote);
-    const sameQuoteOpposite = sameQuote.find(
-      (opt) => opt.side && opt.side !== selected.side
-    );
-    if (sameQuoteOpposite) return sameQuoteOpposite;
-    return options.find((opt) => opt.side && opt.side !== selected.side) ?? null;
-  };
-
-  const oppositeOption = getOppositeOption();
-
-  const toggleSide = oppositeOption ? (
-    <button
-      type="button"
-      onClick={(event) => {
-        event.stopPropagation();
-        onSelectKey(oppositeOption.columnKey);
-      }}
-      className="relative inline-flex h-4 w-8 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
-      title={selected.side === "long" ? "Long rates" : "Short rates"}
-    >
-      <span className="relative z-10 grid w-full grid-cols-2">
-        <span
-          className={`text-center transition-colors ${
-            selected.side === "long" ? "text-emerald-200" : "text-gray-400"
-          }`}
-        >
-          L
-        </span>
-        <span
-          className={`text-center transition-colors ${
-            selected.side === "short" ? "text-red-200" : "text-gray-400"
-          }`}
-        >
-          S
-        </span>
-      </span>
-      <span
-        className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          selected.side === "long"
-            ? "translate-x-0 bg-emerald-500/25"
-            : "translate-x-full bg-red-500/25"
-        }`}
-      />
-    </button>
-  ) : null;
-
   const optionsByQuote = options.reduce((map, option) => {
     const entry = map.get(option.quote) ?? { long: null, short: null };
     if (option.side === "long") entry.long = option;
@@ -137,6 +91,9 @@ export default function GmxRateCell({
   const getPreferredForQuote = (quote: string) => {
     const group = optionsByQuote.get(quote);
     if (!group) return null;
+    if (preferredSide) {
+      return group[preferredSide] ?? group.short ?? group.long ?? null;
+    }
     if (selected.quote === quote && selected.side) return selected;
     return group.short ?? group.long ?? null;
   };
@@ -187,10 +144,7 @@ export default function GmxRateCell({
                 .map(([quote, group]) => {
                   const preferred = getPreferredForQuote(quote);
                   if (!preferred) return null;
-                  const opposite =
-                    preferred.side === "long" ? group.short : group.long;
-                  const showToggle = !!(group.long && group.short);
-                  const isActive = preferred.columnKey === selected.columnKey;
+                  const isActive = selected.quote === quote;
                   return (
                     <div
                       key={quote}
@@ -210,51 +164,19 @@ export default function GmxRateCell({
                       <div className="flex items-center justify-between text-gray-300">
                         <span className="inline-flex items-center gap-2">
                           <span className="text-gray-100">{quote}</span>
+                          {preferred.side && (
+                            <span
+                              className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                                preferred.side === "long"
+                                  ? "bg-emerald-500/20 text-emerald-300"
+                                  : "bg-red-500/20 text-red-300"
+                              }`}
+                            >
+                              {preferred.side === "long" ? "LONG" : "SHORT"}
+                            </span>
+                          )}
                         </span>
                         <span className="inline-flex items-center gap-2">
-                          {showToggle ? (
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                if (opposite) onSelectKey(opposite.columnKey);
-                              }}
-                              className="relative inline-flex h-4 w-8 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
-                              title={
-                                preferred.side === "long"
-                                  ? "Long rates"
-                                  : "Short rates"
-                              }
-                            >
-                              <span className="relative z-10 grid w-full grid-cols-2">
-                                <span
-                                  className={`text-center transition-colors ${
-                                    preferred.side === "long"
-                                      ? "text-emerald-200"
-                                      : "text-gray-400"
-                                  }`}
-                                >
-                                  L
-                                </span>
-                                <span
-                                  className={`text-center transition-colors ${
-                                    preferred.side === "short"
-                                      ? "text-red-200"
-                                      : "text-gray-400"
-                                  }`}
-                                >
-                                  S
-                                </span>
-                              </span>
-                              <span
-                                className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                                  preferred.side === "long"
-                                    ? "translate-x-0 bg-emerald-500/25"
-                                    : "translate-x-full bg-red-500/25"
-                                }`}
-                              />
-                            </button>
-                          ) : null}
                           <span className="font-mono text-gray-100">
                             {formatAPR(preferred.rate)}
                           </span>
@@ -291,7 +213,7 @@ export default function GmxRateCell({
   return (
     <div
       ref={triggerRef}
-      className="inline-flex items-center justify-end gap-2"
+      className="inline-flex items-center justify-end"
       onMouseEnter={openTooltip}
       onMouseLeave={scheduleClose}
     >
@@ -310,7 +232,6 @@ export default function GmxRateCell({
         rateNode
       )}
 
-      {toggleSide}
       {tooltip}
     </div>
   );

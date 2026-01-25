@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, ChevronDown, Search, X, Pin } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import { createPortal } from "react-dom";
+import { RefreshCw, ChevronDown, Search, X, Pin, Info } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { normalizeToken, formatExchange } from "@/lib/formatters";
@@ -97,6 +99,114 @@ function normalizePinnedParam(value: string) {
   return value.trim().toLowerCase();
 }
 
+function GmxInfo() {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
+  const [tooltipShiftX, setTooltipShiftX] = useState(0);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showTooltip) return;
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      if (
+        tooltipRef.current &&
+        !tooltipRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
+        setShowTooltip(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showTooltip]);
+
+  const updatePosition = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    setTooltipPos({
+      top: rect.top,
+      left: rect.left + rect.width / 2,
+    });
+    setTooltipShiftX(0);
+  };
+
+  const handleClick = (event: ReactMouseEvent) => {
+    event.stopPropagation();
+    if (!showTooltip && buttonRef.current) {
+      updatePosition();
+      setShowTooltip(true);
+      return;
+    }
+    setShowTooltip(false);
+  };
+
+  useEffect(() => {
+    if (!showTooltip) return;
+    const handleUpdate = () => updatePosition();
+    window.addEventListener("scroll", handleUpdate, true);
+    window.addEventListener("resize", handleUpdate);
+    return () => {
+      window.removeEventListener("scroll", handleUpdate, true);
+      window.removeEventListener("resize", handleUpdate);
+    };
+  }, [showTooltip]);
+
+  useEffect(() => {
+    if (!showTooltip || !tooltipRef.current) return;
+    const rect = tooltipRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    let shift = 0;
+    if (rect.left < 8) {
+      shift = 8 - rect.left;
+    } else if (rect.right > viewportWidth - 8) {
+      shift = (viewportWidth - 8) - rect.right;
+    }
+    if (shift !== tooltipShiftX) {
+      setTooltipShiftX(shift);
+    }
+  }, [showTooltip, tooltipShiftX]);
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={handleClick}
+        className="text-gray-500 hover:text-gray-300 transition-colors"
+        aria-label="GMX info"
+      >
+        <Info size={12} />
+      </button>
+      {showTooltip && tooltipPos && typeof window !== "undefined" &&
+        createPortal(
+          <div
+            ref={tooltipRef}
+            style={{
+              top: tooltipPos.top,
+              left: tooltipPos.left,
+              transform: `translate(-50%, calc(-100% - 8px)) translateX(${tooltipShiftX}px)`,
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            className="fixed z-[9999] w-64 max-w-[calc(100vw-32px)] p-3 rounded-lg bg-[#292e40] border border-[#343a4e] shadow-xl text-xs text-gray-300 leading-relaxed text-left animate-tooltip-zoom pointer-events-auto"
+          >
+            <p>
+              GMX uses separate funding rates for longs and shorts. Use this toggle to switch between them.
+            </p>
+            <div
+              style={{ left: `calc(50% - ${tooltipShiftX}px)` }}
+              className="absolute bottom-0 translate-y-full -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#343a4e]"
+            />
+          </div>,
+          document.body
+        )}
+    </>
+  );
+}
+
 /* ================= COMPONENT ================= */
 
 export default function FundingScreener({
@@ -131,6 +241,8 @@ export default function FundingScreener({
   const [mobileSortOpen, setMobileSortOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [gmxSelectionByToken, setGmxSelectionByToken] = useState<Record<string, string>>({});
+  const [gmxPreferredSide, setGmxPreferredSide] = useState<"long" | "short">("short");
+  const [gmxSideLocked, setGmxSideLocked] = useState(false);
   const [modalData, setModalData] = useState<{
     token: string;
     arbPair: ArbPair;
@@ -580,6 +692,67 @@ export default function FundingScreener({
     if (!token) return;
     setGmxSelectionByToken((prev) => ({ ...prev, [token]: key }));
   };
+
+  const resolveGmxKeyForSide = (
+    options: { columnKey: string; quote: string; side: "long" | "short" | null }[],
+    currentKey: string | null | undefined,
+    side: "long" | "short"
+  ) => {
+    if (options.length === 0) return null;
+    const current =
+      options.find((opt) => opt.columnKey === currentKey) ?? options[0];
+    const sameQuote = options.find(
+      (opt) => opt.quote === current.quote && opt.side === side
+    );
+    const preferred =
+      sameQuote ?? options.find((opt) => opt.side === side) ?? current;
+    return preferred.columnKey;
+  };
+
+  const applyGmxSide = (side: "long" | "short") => {
+    setGmxSideLocked(true);
+    setGmxPreferredSide(side);
+    if (gmxOptionsByToken.size === 0) return;
+    setGmxSelectionByToken((prev) => {
+      const next = { ...prev };
+      for (const [token, options] of gmxOptionsByToken.entries()) {
+        if (options.length === 0) continue;
+        const currentKey =
+          prev[token] ??
+          gmxDefaultKeyByToken.get(token) ??
+          options[0]?.columnKey;
+        const resolved = resolveGmxKeyForSide(options, currentKey, side);
+        if (resolved) next[token] = resolved;
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!gmxSideLocked) return;
+    if (gmxOptionsByToken.size === 0) return;
+    setGmxSelectionByToken((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const [token, options] of gmxOptionsByToken.entries()) {
+        if (options.length === 0) continue;
+        const currentKey =
+          prev[token] ??
+          gmxDefaultKeyByToken.get(token) ??
+          options[0]?.columnKey;
+        const resolved = resolveGmxKeyForSide(
+          options,
+          currentKey,
+          gmxPreferredSide
+        );
+        if (resolved && resolved !== prev[token]) {
+          next[token] = resolved;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [gmxOptionsByToken, gmxDefaultKeyByToken, gmxPreferredSide, gmxSideLocked]);
 
   const getPinnedKeyForRow = (row: FundingMatrixRow) => {
     if (!pinnedColumnKey) return null;
@@ -1059,7 +1232,10 @@ export default function FundingScreener({
                 <col className="w-[90px]" />
                 <col className="w-[80px]" />
                 {displayColumns.map((col) => (
-                  <col key={col.column_key} className="w-[75px]" />
+                  <col
+                    key={col.column_key}
+                    className={col.isGmxGroup ? "w-[110px]" : "w-[75px]"}
+                  />
                 ))}
               </colgroup>
 
@@ -1088,6 +1264,7 @@ export default function FundingScreener({
                   </th>
                   {displayColumns.map((col) => {
                     const isPinned = pinnedColumnKey === col.column_key;
+                    const isGmxGroup = !!col.isGmxGroup;
                     return (
                       <th
                         key={col.column_key}
@@ -1110,13 +1287,69 @@ export default function FundingScreener({
                               <Pin size={12} />
                             </button>
                           </div>
-                          <SortableHeader
-                            label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
-                            active={sortKey === col.column_key}
-                            dir={sortDir}
-                            onClick={() => toggleSort(col.column_key)}
-                            centered
-                          />
+                          {isGmxGroup ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <SortableHeader
+                                label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
+                                active={sortKey === col.column_key}
+                                dir={sortDir}
+                                onClick={() => toggleSort(col.column_key)}
+                              />
+                              <GmxInfo />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  applyGmxSide(
+                                    gmxPreferredSide === "long" ? "short" : "long"
+                                  );
+                                }}
+                                className="relative inline-flex h-4 w-9 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
+                                title={
+                                  gmxPreferredSide === "long"
+                                    ? "Long rates"
+                                    : "Short rates"
+                                }
+                                aria-label="Toggle GMX side"
+                              >
+                                <span className="relative z-10 grid w-full grid-cols-2">
+                                  <span
+                                    className={`text-center transition-colors ${
+                                      gmxPreferredSide === "long"
+                                        ? "text-emerald-200"
+                                        : "text-gray-400"
+                                    }`}
+                                  >
+                                    L
+                                  </span>
+                                  <span
+                                    className={`text-center transition-colors ${
+                                      gmxPreferredSide === "short"
+                                        ? "text-red-200"
+                                        : "text-gray-400"
+                                    }`}
+                                  >
+                                    S
+                                  </span>
+                                </span>
+                                <span
+                                  className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                                    gmxPreferredSide === "long"
+                                      ? "translate-x-0 bg-emerald-500/25"
+                                      : "translate-x-full bg-red-500/25"
+                                  }`}
+                                />
+                              </button>
+                            </div>
+                          ) : (
+                            <SortableHeader
+                              label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
+                              active={sortKey === col.column_key}
+                              dir={sortDir}
+                              onClick={() => toggleSort(col.column_key)}
+                              centered
+                            />
+                          )}
                         </div>
                       </th>
                     );
@@ -1231,6 +1464,7 @@ export default function FundingScreener({
                                     onSelectKey={(key) => setGmxSelectedKey(row.token, key)}
                                     token={row.token}
                                     role={role}
+                                    preferredSide={gmxSideLocked ? gmxPreferredSide : undefined}
                                   />
                                 ) : (
                                   <span className="text-gray-600 block text-center">–</span>
