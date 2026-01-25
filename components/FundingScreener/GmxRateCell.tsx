@@ -192,10 +192,17 @@ export default function GmxRateCell({
                   const showToggle = !!(group.long && group.short);
                   const isActive = preferred.columnKey === selected.columnKey;
                   return (
-                    <button
+                    <div
                       key={quote}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => onSelectKey(preferred.columnKey)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          onSelectKey(preferred.columnKey);
+                        }
+                      }}
                       className={`w-full rounded-lg px-2 py-1 text-left transition-colors duration-200 ${
                         isActive ? "bg-[#1f2434]" : "hover:bg-[#23283a]"
                       }`}
@@ -259,7 +266,7 @@ export default function GmxRateCell({
                         </span>
                         <span>Vol {formatCompactUSD(preferred.market.volume_24h)}</span>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
             </div>

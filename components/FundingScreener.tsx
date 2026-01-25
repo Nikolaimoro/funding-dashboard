@@ -565,12 +565,15 @@ export default function FundingScreener({
     options: { columnKey: string }[]
   ) => {
     if (!token) return null;
-    return (
-      gmxSelectionByToken[token] ??
-      gmxDefaultKeyByToken.get(token) ??
-      options[0]?.columnKey ??
-      null
-    );
+    const stored = gmxSelectionByToken[token];
+    if (stored && options.some((opt) => opt.columnKey === stored)) {
+      return stored;
+    }
+    const fallback = gmxDefaultKeyByToken.get(token);
+    if (fallback && options.some((opt) => opt.columnKey === fallback)) {
+      return fallback;
+    }
+    return options[0]?.columnKey ?? null;
   };
 
   const setGmxSelectedKey = (token: string | null | undefined, key: string) => {

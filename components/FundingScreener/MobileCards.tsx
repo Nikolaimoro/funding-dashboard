@@ -490,7 +490,6 @@ export default function FundingScreenerMobileCards({
                   .sort((a, b) => a.label.localeCompare(b.label));
                 const isExpanded = expanded.has(token);
                 const hasMore = remainingCount > 0;
-                const hasHistory = !!historyUrl;
                 const canOpenModal =
                   !!onOpenModal && !!arbPair && !!row.token;
 

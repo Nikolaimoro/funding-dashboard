@@ -422,8 +422,8 @@ export default function ArbitrageChart(props: ArbitrageChartProps) {
                 {hasBacktester && (
                   <a
                     href={backtesterUrl!}
-                    target={backtesterUrl?.startsWith("/") ? undefined : "_blank"}
-                    rel={backtesterUrl?.startsWith("/") ? undefined : "noopener noreferrer"}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="col-span-2 sm:col-span-1 inline-flex items-center justify-center rounded-lg border border-[#343a4e] px-3 py-2 text-xs text-gray-200 hover:border-white transition"
                   >
                     Backtester
