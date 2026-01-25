@@ -228,10 +228,10 @@ export default function FundingTable({
         const existing = prev[key];
         if (existing) {
           next[key] = existing;
-        } else if (group.longRow) {
-          next[key] = "long";
-        } else {
+        } else if (group.shortRow) {
           next[key] = "short";
+        } else {
+          next[key] = "long";
         }
       }
       return next;

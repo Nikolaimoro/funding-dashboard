@@ -11,11 +11,11 @@ import type { BacktesterChartData } from "@/lib/types/backtester";
 
 const BacktesterChart = dynamic(() => import("@/components/BacktesterChart"), { ssr: false });
 
-type Quote = { asset: string; marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null };
+type Quote = { asset: string; side: "long" | "short" | null; market: string | null; marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null };
 
 interface BacktesterFormProps {
   tokens: string[];
-  exchanges: { exchange: string; baseAssets: { asset: string; quotes: { asset: string; marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null }[] }[] }[];
+  exchanges: { exchange: string; baseAssets: { asset: string; quotes: Quote[] }[] }[];
   initialToken?: string;
   initialLongEx?: string;
   initialShortEx?: string;
@@ -41,6 +41,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
   const [selectedShortRefUrl, setSelectedShortRefUrl] = useState<string | null>(null);
   const [selectedShortVolume24h, setSelectedShortVolume24h] = useState<number | null>(null);
   const [selectedShortOpenInterest, setSelectedShortOpenInterest] = useState<number | null>(null);
+  const [selectedLongSide, setSelectedLongSide] = useState<"long" | "short" | null>(null);
+  const [selectedShortSide, setSelectedShortSide] = useState<"long" | "short" | null>(null);
 
   const [tokenSearch, setTokenSearch] = useState("");
   const [longExSearch, setLongExSearch] = useState("");
@@ -52,6 +54,12 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
   const [runToken, setRunToken] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const filterQuotesForSide = (quotes: Quote[], exchange: string, side: "long" | "short") => {
+    if (exchange.toLowerCase() !== "gmx") return quotes;
+    const filtered = quotes.filter((q) => q.side === side);
+    return filtered.length > 0 ? filtered : quotes;
+  };
 
   // Filtered tokens - normalized
   const filteredTokens = useMemo(() => {
@@ -148,14 +156,16 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       const normalizedToken = normalizeToken(selectedToken);
       const baseAsset = ex?.baseAssets.find(ba => normalizeToken(ba.asset) === normalizedToken);
       if (!baseAsset?.quotes?.length) return;
-      const preferred = baseAsset.quotes.find(q => q.asset === "USDT") ?? baseAsset.quotes[0];
-      const currentValid = baseAsset.quotes.some(q => q.asset === selectedLongQuote);
+      const filteredQuotes = filterQuotesForSide(baseAsset.quotes, selectedLongEx, "long");
+      const preferred = filteredQuotes.find(q => q.asset === "USDT") ?? filteredQuotes[0];
+      const currentValid = filteredQuotes.some(q => q.asset === selectedLongQuote);
       if (!selectedLongQuote || !currentValid) {
         setSelectedLongQuote(preferred.asset);
         setSelectedLongMarketId(preferred.marketId);
         setSelectedLongRefUrl(preferred.refUrl);
         setSelectedLongVolume24h(preferred.volume24h ?? null);
         setSelectedLongOpenInterest(preferred.openInterest ?? null);
+        setSelectedLongSide(preferred.side ?? null);
       }
     }
   }, [selectedLongEx, selectedToken, selectedLongQuote, exchanges]);
@@ -166,14 +176,16 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       const normalizedToken = normalizeToken(selectedToken);
       const baseAsset = ex?.baseAssets.find(ba => normalizeToken(ba.asset) === normalizedToken);
       if (!baseAsset?.quotes?.length) return;
-      const preferred = baseAsset.quotes.find(q => q.asset === "USDT") ?? baseAsset.quotes[0];
-      const currentValid = baseAsset.quotes.some(q => q.asset === selectedShortQuote);
+      const filteredQuotes = filterQuotesForSide(baseAsset.quotes, selectedShortEx, "short");
+      const preferred = filteredQuotes.find(q => q.asset === "USDT") ?? filteredQuotes[0];
+      const currentValid = filteredQuotes.some(q => q.asset === selectedShortQuote);
       if (!selectedShortQuote || !currentValid) {
         setSelectedShortQuote(preferred.asset);
         setSelectedShortMarketId(preferred.marketId);
         setSelectedShortRefUrl(preferred.refUrl);
         setSelectedShortVolume24h(preferred.volume24h ?? null);
         setSelectedShortOpenInterest(preferred.openInterest ?? null);
+        setSelectedShortSide(preferred.side ?? null);
       }
     }
   }, [selectedShortEx, selectedToken, selectedShortQuote, exchanges]);
@@ -184,24 +196,28 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       const ex = exchanges.find(e => e.exchange === initialLongEx);
       const normalizedToken = normalizeToken(initialToken);
       const baseAsset = ex?.baseAssets.find(ba => normalizeToken(ba.asset) === normalizedToken);
-      const quote = baseAsset?.quotes.find(q => q.asset === initialLongQuote);
+      const quote = baseAsset?.quotes.find(q => q.asset === initialLongQuote && q.side === "long") ??
+        baseAsset?.quotes.find(q => q.asset === initialLongQuote);
       if (quote) {
-        setSelectedLongMarketId(quote.marketId);
-        setSelectedLongRefUrl(quote.refUrl);
-        setSelectedLongVolume24h(quote.volume24h ?? null);
-        setSelectedLongOpenInterest(quote.openInterest ?? null);
+      setSelectedLongMarketId(quote.marketId);
+      setSelectedLongRefUrl(quote.refUrl);
+      setSelectedLongVolume24h(quote.volume24h ?? null);
+      setSelectedLongOpenInterest(quote.openInterest ?? null);
+      setSelectedLongSide(quote.side ?? null);
       }
     }
     if (initialToken && initialShortEx && initialShortQuote && !selectedShortMarketId) {
       const ex = exchanges.find(e => e.exchange === initialShortEx);
       const normalizedToken = normalizeToken(initialToken);
       const baseAsset = ex?.baseAssets.find(ba => normalizeToken(ba.asset) === normalizedToken);
-      const quote = baseAsset?.quotes.find(q => q.asset === initialShortQuote);
+      const quote = baseAsset?.quotes.find(q => q.asset === initialShortQuote && q.side === "short") ??
+        baseAsset?.quotes.find(q => q.asset === initialShortQuote);
       if (quote) {
-        setSelectedShortMarketId(quote.marketId);
-        setSelectedShortRefUrl(quote.refUrl);
-        setSelectedShortVolume24h(quote.volume24h ?? null);
-        setSelectedShortOpenInterest(quote.openInterest ?? null);
+      setSelectedShortMarketId(quote.marketId);
+      setSelectedShortRefUrl(quote.refUrl);
+      setSelectedShortVolume24h(quote.volume24h ?? null);
+      setSelectedShortOpenInterest(quote.openInterest ?? null);
+      setSelectedShortSide(quote.side ?? null);
       }
     }
   }, [initialToken, initialLongEx, initialLongQuote, initialShortEx, initialShortQuote, exchanges]);
@@ -326,25 +342,42 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     selectedShortOpenInterest,
   ]);
 
+  const findQuoteForSide = (
+    exchange: string,
+    token: string,
+    quoteAsset: string,
+    side: "long" | "short"
+  ) => {
+    const ex = exchanges.find(e => e.exchange === exchange);
+    if (!ex) return null;
+    const baseAsset = ex.baseAssets.find(ba => normalizeToken(ba.asset) === normalizeToken(token));
+    if (!baseAsset) return null;
+    const filtered = filterQuotesForSide(baseAsset.quotes, exchange, side);
+    const direct = filtered.find(q => q.asset === quoteAsset) ?? null;
+    if (direct) return direct;
+    const fallback = filtered.find(q => q.asset === "USDT") ?? filtered[0] ?? null;
+    return fallback;
+  };
+
   const handleSwapExchanges = () => {
-    const tempEx = selectedLongEx;
-    const tempQuote = selectedLongQuote;
-    const tempMarketId = selectedLongMarketId;
-    const tempRefUrl = selectedLongRefUrl;
-    const tempVolume = selectedLongVolume24h;
-    const tempOI = selectedLongOpenInterest;
+    const nextLong = findQuoteForSide(selectedShortEx, selectedToken, selectedShortQuote, "long");
+    const nextShort = findQuoteForSide(selectedLongEx, selectedToken, selectedLongQuote, "short");
+
     setSelectedLongEx(selectedShortEx);
-    setSelectedLongQuote(selectedShortQuote);
-    setSelectedLongMarketId(selectedShortMarketId);
-    setSelectedLongRefUrl(selectedShortRefUrl);
-    setSelectedLongVolume24h(selectedShortVolume24h);
-    setSelectedLongOpenInterest(selectedShortOpenInterest);
-    setSelectedShortEx(tempEx);
-    setSelectedShortQuote(tempQuote);
-    setSelectedShortMarketId(tempMarketId);
-    setSelectedShortRefUrl(tempRefUrl);
-    setSelectedShortVolume24h(tempVolume);
-    setSelectedShortOpenInterest(tempOI);
+    setSelectedLongQuote(nextLong?.asset ?? selectedShortQuote);
+    setSelectedLongMarketId(nextLong?.marketId ?? selectedShortMarketId);
+    setSelectedLongRefUrl(nextLong?.refUrl ?? selectedShortRefUrl);
+    setSelectedLongVolume24h(nextLong?.volume24h ?? selectedShortVolume24h);
+    setSelectedLongOpenInterest(nextLong?.openInterest ?? selectedShortOpenInterest);
+    setSelectedLongSide(nextLong?.side ?? selectedShortSide);
+
+    setSelectedShortEx(selectedLongEx);
+    setSelectedShortQuote(nextShort?.asset ?? selectedLongQuote);
+    setSelectedShortMarketId(nextShort?.marketId ?? selectedLongMarketId);
+    setSelectedShortRefUrl(nextShort?.refUrl ?? selectedLongRefUrl);
+    setSelectedShortVolume24h(nextShort?.volume24h ?? selectedLongVolume24h);
+    setSelectedShortOpenInterest(nextShort?.openInterest ?? selectedLongOpenInterest);
+    setSelectedShortSide(nextShort?.side ?? selectedLongSide);
   };
 
   const handleRun = async () => {
@@ -479,23 +512,24 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                       
                       return (
                         <div key={ex.exchange} className="border-b border-[#343a4e] last:border-b-0">
-                          {baseAsset.quotes.map((quote: Quote) => (
+                          {filterQuotesForSide(baseAsset.quotes, ex.exchange, "long").map((quote: Quote) => (
                             <button
-                              key={`${ex.exchange}-${quote.asset}`}
+                              key={`${ex.exchange}-${quote.asset}-${quote.side ?? "any"}`}
                               onClick={() => {
                                 setSelectedLongEx(ex.exchange);
-                                setSelectedLongQuote(quote.asset);
-                                setSelectedLongMarketId(quote.marketId);
-                                setSelectedLongRefUrl(quote.refUrl);
-                                setSelectedLongVolume24h(quote.volume24h ?? null);
-                                setSelectedLongOpenInterest(quote.openInterest ?? null);
+                              setSelectedLongQuote(quote.asset);
+                              setSelectedLongMarketId(quote.marketId);
+                              setSelectedLongRefUrl(quote.refUrl);
+                              setSelectedLongVolume24h(quote.volume24h ?? null);
+                              setSelectedLongOpenInterest(quote.openInterest ?? null);
+                              setSelectedLongSide(quote.side ?? null);
                                 setLongExSearch("");
                                 setOpenCombo(null);
                               }}
                               className="w-full px-3 py-2 text-left text-sm hover:bg-[#353b52] transition flex items-center gap-2"
                             >
                               <ExchangeIcon exchange={ex.exchange} size={16} />
-                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{baseAsset.quotes.length > 1 ? ` (${quote.asset})` : ""}
+                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{filterQuotesForSide(baseAsset.quotes, ex.exchange, "long").length > 1 ? ` (${quote.asset})` : ""}
                             </button>
                           ))}
                         </div>
@@ -558,23 +592,24 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                       
                       return (
                         <div key={ex.exchange} className="border-b border-[#343a4e] last:border-b-0">
-                          {baseAsset.quotes.map((quote: Quote) => (
+                          {filterQuotesForSide(baseAsset.quotes, ex.exchange, "short").map((quote: Quote) => (
                             <button
-                              key={`${ex.exchange}-${quote.asset}`}
+                              key={`${ex.exchange}-${quote.asset}-${quote.side ?? "any"}`}
                               onClick={() => {
                                 setSelectedShortEx(ex.exchange);
-                                setSelectedShortQuote(quote.asset);
-                                setSelectedShortMarketId(quote.marketId);
-                                setSelectedShortRefUrl(quote.refUrl);
-                                setSelectedShortVolume24h(quote.volume24h ?? null);
-                                setSelectedShortOpenInterest(quote.openInterest ?? null);
+                              setSelectedShortQuote(quote.asset);
+                              setSelectedShortMarketId(quote.marketId);
+                              setSelectedShortRefUrl(quote.refUrl);
+                              setSelectedShortVolume24h(quote.volume24h ?? null);
+                              setSelectedShortOpenInterest(quote.openInterest ?? null);
+                              setSelectedShortSide(quote.side ?? null);
                                 setShortExSearch("");
                                 setOpenCombo(null);
                               }}
                               className="w-full px-3 py-2 text-left text-sm hover:bg-[#353b52] transition flex items-center gap-2"
                             >
                               <ExchangeIcon exchange={ex.exchange} size={16} />
-                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{baseAsset.quotes.length > 1 ? ` (${quote.asset})` : ""}
+                              {EXCHANGE_LABEL[ex.exchange] || ex.exchange}{filterQuotesForSide(baseAsset.quotes, ex.exchange, "short").length > 1 ? ` (${quote.asset})` : ""}
                             </button>
                           ))}
                         </div>

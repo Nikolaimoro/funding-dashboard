@@ -7,9 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { normalizeToken, formatExchange } from "@/lib/formatters";
 import {
   getRate,
-  findArbPair,
-  findArbPairPinned,
-  calculateMaxArbPinned,
+  findArbPairPinnedWithForcedSides,
+  calculateMaxArbPinnedWithForcedSides,
   buildBacktesterUrl,
   ArbPair,
 } from "@/lib/funding";
@@ -328,29 +327,6 @@ export default function FundingScreener({
     return map;
   }, [exchangeColumns]);
 
-  const getPreferredColumnKey = (exchange: string) => {
-    const cols = columnKeysByExchange.get(exchange);
-    if (!cols || cols.length === 0) return null;
-    const usdt = cols.find((col) => col.quote_asset.toLowerCase() === "usdt");
-    return (usdt ?? cols[0]).column_key;
-  };
-
-  const pinnedParamByColumnKey = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const col of exchangeColumns) {
-      map.set(col.column_key, toPinnedParam(col, exchangesWithMultipleQuotes));
-    }
-    return map;
-  }, [exchangeColumns, exchangesWithMultipleQuotes]);
-
-  const columnKeyByPinnedParam = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const col of exchangeColumns) {
-      map.set(toPinnedParam(col, exchangesWithMultipleQuotes), col.column_key);
-    }
-    return map;
-  }, [exchangeColumns, exchangesWithMultipleQuotes]);
-
   const filteredColumnsAll = useMemo(() => {
     if (selectedExchanges.length === 0) return [];
     return exchangeColumns.filter((col) =>
@@ -381,6 +357,30 @@ export default function FundingScreener({
     }
     return columns;
   }, [filteredColumnsAll]);
+
+  const gmxDisplayColumnKey = useMemo(
+    () => displayColumns.find((col) => col.isGmxGroup)?.column_key ?? null,
+    [displayColumns]
+  );
+
+  const pinnedParamByColumnKey = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const col of exchangeColumns) {
+      map.set(col.column_key, toPinnedParam(col, exchangesWithMultipleQuotes));
+    }
+    return map;
+  }, [exchangeColumns, exchangesWithMultipleQuotes]);
+
+  const columnKeyByPinnedParam = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const col of exchangeColumns) {
+      map.set(toPinnedParam(col, exchangesWithMultipleQuotes), col.column_key);
+    }
+    if (gmxDisplayColumnKey) {
+      map.set(GMX_EXCHANGE, gmxDisplayColumnKey);
+    }
+    return map;
+  }, [exchangeColumns, exchangesWithMultipleQuotes, gmxDisplayColumnKey]);
 
   // Set of column keys from filtered exchanges for max arb calculation
   const filteredColumnKeys = useMemo(() => {
@@ -453,11 +453,6 @@ export default function FundingScreener({
     }
   }, [pinnedColumnKey, filteredColumnKeys, pinnedInitialized]);
 
-  const gmxDisplayColumnKey = useMemo(
-    () => displayColumns.find((col) => col.isGmxGroup)?.column_key ?? null,
-    [displayColumns]
-  );
-
   const gmxOptionsByToken = useMemo(() => {
     const map = new Map<
       string,
@@ -477,19 +472,20 @@ export default function FundingScreener({
           (market as unknown as { market?: string; symbol?: string }).symbol ??
           "")
           .toString();
-      const marketMatch = marketLabel.match(/\s+(LONG|SHORT)\s*$/i);
+      const marketMatch = marketLabel.match(/\b(LONG|SHORT)\b/i);
       if (marketMatch) {
         return marketMatch[1].toLowerCase() as "long" | "short";
       }
-      const lower = columnKey.toLowerCase();
-      if (lower.endsWith("long")) return "long" as const;
-      if (lower.endsWith("short")) return "short" as const;
+      const keyMatch = columnKey.match(/\b(LONG|SHORT)\b/i);
+      if (keyMatch) {
+        return keyMatch[1].toLowerCase() as "long" | "short";
+      }
       return null;
     };
 
     for (const row of rows) {
       if (!row.token) continue;
-      const options = gmxColumns
+      let options = gmxColumns
         .map((col) => {
           const market = row.markets?.[col.column_key];
           if (!market) return null;
@@ -509,21 +505,41 @@ export default function FundingScreener({
         rate: number | null;
       }[];
 
+      if (options.length === 0 && row.markets) {
+        options = Object.entries(row.markets)
+          .filter(([, market]) => market?.exchange?.toLowerCase() === GMX_EXCHANGE)
+          .map(([key, market]) => ({
+            columnKey: key,
+            quote: market.quote ?? "",
+            side: parseSide(key, market),
+            market,
+            rate: getRate(market, timeWindow),
+          }));
+      }
+
       map.set(row.token, options);
     }
     return map;
   }, [rows, gmxColumns, timeWindow]);
 
   const gmxColumnKeySet = useMemo(() => {
-    return new Set(gmxColumns.map((col) => col.column_key));
-  }, [gmxColumns]);
+    const set = new Set(gmxColumns.map((col) => col.column_key));
+    for (const options of gmxOptionsByToken.values()) {
+      for (const option of options) {
+        set.add(option.columnKey);
+      }
+    }
+    return set;
+  }, [gmxColumns, gmxOptionsByToken]);
 
   const gmxDefaultKeyByToken = useMemo(() => {
     const map = new Map<string, string>();
     for (const [token, options] of gmxOptionsByToken.entries()) {
       if (options.length === 0) continue;
-      let best = options[0];
-      for (const option of options) {
+      const shortOptions = options.filter((opt) => opt.side === "short");
+      const pool = shortOptions.length > 0 ? shortOptions : options;
+      let best = pool[0];
+      for (const option of pool) {
         const oi = option.market?.open_interest ?? -Infinity;
         const bestOi = best.market?.open_interest ?? -Infinity;
         if (oi > bestOi) best = option;
@@ -532,6 +548,17 @@ export default function FundingScreener({
     }
     return map;
   }, [gmxOptionsByToken]);
+
+  const getPreferredColumnKey = (exchange: string) => {
+    const lower = exchange.toLowerCase();
+    if (lower === GMX_EXCHANGE && gmxDisplayColumnKey) {
+      return gmxDisplayColumnKey;
+    }
+    const cols = columnKeysByExchange.get(exchange);
+    if (!cols || cols.length === 0) return null;
+    const usdt = cols.find((col) => col.quote_asset.toLowerCase() === "usdt");
+    return (usdt ?? cols[0]).column_key;
+  };
 
   const getGmxSelectedKey = (
     token: string | null | undefined,
@@ -558,16 +585,41 @@ export default function FundingScreener({
     return getGmxSelectedKey(row.token, options) ?? pinnedColumnKey;
   };
 
+  const getColumnKeysForRow = (row: FundingMatrixRow) => {
+    if (gmxColumnKeySet.size === 0) return filteredColumnKeys;
+    const next = new Set(filteredColumnKeys);
+    for (const key of gmxColumnKeySet) {
+      next.delete(key);
+    }
+    const options = gmxOptionsByToken.get(row.token ?? "") ?? [];
+    const selectedKey = getGmxSelectedKey(row.token, options);
+    if (selectedKey) {
+      next.add(selectedKey);
+    }
+    return next;
+  };
+
+  const getForcedSidesForRow = (row: FundingMatrixRow) => {
+    const options = gmxOptionsByToken.get(row.token ?? "") ?? [];
+    const selectedKey = getGmxSelectedKey(row.token, options);
+    const selectedOption = options.find((opt) => opt.columnKey === selectedKey);
+    if (!selectedOption?.side) return null;
+    return new Map([[selectedOption.columnKey, selectedOption.side]]);
+  };
+
   /* ---------- max APR for slider ---------- */
   const maxAPRValue = useMemo(() => {
     let max = 0;
     for (const row of rows) {
       const pinnedKey = getPinnedKeyForRow(row);
-      const arb = calculateMaxArbPinned(
+      const columnKeys = getColumnKeysForRow(row);
+      const forcedSides = getForcedSidesForRow(row) ?? undefined;
+      const arb = calculateMaxArbPinnedWithForcedSides(
         row.markets,
         timeWindow,
-        filteredColumnKeys,
-        pinnedKey
+        columnKeys,
+        pinnedKey,
+        forcedSides
       );
       if (arb !== null && arb > max) max = arb;
     }
@@ -578,9 +630,17 @@ export default function FundingScreener({
     const map = new Map<FundingMatrixRow, number | null>();
     for (const row of rows) {
       const pinnedKey = getPinnedKeyForRow(row);
+      const columnKeys = getColumnKeysForRow(row);
+      const forcedSides = getForcedSidesForRow(row) ?? undefined;
       map.set(
         row,
-        calculateMaxArbPinned(row.markets, timeWindow, filteredColumnKeys, pinnedKey)
+        calculateMaxArbPinnedWithForcedSides(
+          row.markets,
+          timeWindow,
+          columnKeys,
+          pinnedKey,
+          forcedSides
+        )
       );
     }
     return map;
@@ -978,6 +1038,10 @@ export default function FundingScreener({
             timeWindow={timeWindow}
             filteredColumns={displayColumns}
             gmxColumns={gmxColumns}
+            gmxOptionsByToken={gmxOptionsByToken}
+            gmxColumnKeySet={gmxColumnKeySet}
+            getGmxSelectedKey={getGmxSelectedKey}
+            onSelectGmxKey={setGmxSelectedKey}
             filteredColumnKeys={filteredColumnKeys}
             pinnedColumnKey={pinnedColumnKey}
             exchangesWithMultipleQuotes={exchangesWithMultipleQuotes}
@@ -1082,8 +1146,22 @@ export default function FundingScreener({
                 ) : (
                   paginatedRows.map((row, idx) => {
                     const pinnedKey = getPinnedKeyForRow(row);
-                    const maxArb = calculateMaxArbPinned(row.markets, timeWindow, filteredColumnKeys, pinnedKey);
-                    const arbPair = findArbPairPinned(row.markets, timeWindow, filteredColumnKeys, pinnedKey);
+                    const columnKeys = getColumnKeysForRow(row);
+                    const forcedSides = getForcedSidesForRow(row) ?? undefined;
+                    const maxArb = calculateMaxArbPinnedWithForcedSides(
+                      row.markets,
+                      timeWindow,
+                      columnKeys,
+                      pinnedKey,
+                      forcedSides
+                    );
+                    const arbPair = findArbPairPinnedWithForcedSides(
+                      row.markets,
+                      timeWindow,
+                      columnKeys,
+                      pinnedKey,
+                      forcedSides
+                    );
 
                     return (
                       <tr

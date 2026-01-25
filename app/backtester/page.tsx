@@ -103,15 +103,15 @@ async function getAllTokens(): Promise<string[]> {
  * //   }
  * // ]
  */
-async function getAllExchanges(): Promise<{ exchange: string; baseAssets: { asset: string; quotes: { asset: string; marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null }[] }[] }[]> {
-  type ExchangeRow = { exchange: string; base_asset: string; quote_asset: string; market_id: number; ref_url: string | null; volume_24h: number | null; open_interest: number | null };
+async function getAllExchanges(): Promise<{ exchange: string; baseAssets: { asset: string; quotes: { asset: string; side: "long" | "short" | null; market: string | null; marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null }[] }[] }[]> {
+  type ExchangeRow = { exchange: string; base_asset: string; quote_asset: string; market: string | null; market_id: number; ref_url: string | null; volume_24h: number | null; open_interest: number | null };
   let allRows: ExchangeRow[] = [];
   let from = 0;
 
   while (true) {
     const { data, error } = await supabase
       .from("funding_dashboard_mv")
-      .select("exchange, base_asset, quote_asset, market_id, ref_url, volume_24h, open_interest")
+      .select("exchange, base_asset, quote_asset, market, market_id, ref_url, volume_24h, open_interest")
       .range(from, from + PAGE_SIZE - 1);
 
     if (error) {
@@ -129,7 +129,14 @@ async function getAllExchanges(): Promise<{ exchange: string; baseAssets: { asse
   }
 
   // Group by exchange -> base_asset -> quote_asset
-  const exchangeMap = new Map<string, Map<string, Map<string, { marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null }>>>();
+  const exchangeMap = new Map<string, Map<string, Map<string, { asset: string; side: "long" | "short" | null; market: string | null; marketId: number; refUrl: string | null; volume24h: number | null; openInterest: number | null }>>>();
+
+  const getSide = (market: string | null) => {
+    if (!market) return null;
+    const match = market.match(/\s+(LONG|SHORT)\s*$/i);
+    if (!match) return null;
+    return match[1].toLowerCase() as "long" | "short";
+  };
 
   allRows.forEach(row => {
     if (!exchangeMap.has(row.exchange)) {
@@ -142,13 +149,20 @@ async function getAllExchanges(): Promise<{ exchange: string; baseAssets: { asse
     }
     
     const quoteMap = baseMap.get(row.base_asset)!;
-    if (row.quote_asset && row.market_id && !quoteMap.has(row.quote_asset)) {
-      quoteMap.set(row.quote_asset, {
-        marketId: row.market_id,
-        refUrl: row.ref_url || null,
-        volume24h: row.volume_24h ?? null,
-        openInterest: row.open_interest ?? null,
-      });
+    if (row.quote_asset && row.market_id) {
+      const side = getSide(row.market ?? null);
+      const key = side ? `${row.quote_asset}:${side}` : row.quote_asset;
+      if (!quoteMap.has(key)) {
+        quoteMap.set(key, {
+          asset: row.quote_asset,
+          side,
+          market: row.market ?? null,
+          marketId: row.market_id,
+          refUrl: row.ref_url || null,
+          volume24h: row.volume_24h ?? null,
+          openInterest: row.open_interest ?? null,
+        });
+      }
     }
   });
 
@@ -159,8 +173,20 @@ async function getAllExchanges(): Promise<{ exchange: string; baseAssets: { asse
         .map(([asset, quoteMap]) => ({
           asset,
           quotes: Array.from(quoteMap.entries())
-            .map(([quoteAsset, { marketId, refUrl, volume24h, openInterest }]) => ({ asset: quoteAsset, marketId, refUrl, volume24h, openInterest }))
-            .sort((a, b) => a.asset.localeCompare(b.asset)),
+            .map(([, { asset, side, market, marketId, refUrl, volume24h, openInterest }]) => ({
+              asset,
+              side,
+              market,
+              marketId,
+              refUrl,
+              volume24h,
+              openInterest,
+            }))
+            .sort((a, b) => {
+              const base = a.asset.localeCompare(b.asset);
+              if (base !== 0) return base;
+              return (a.side ?? "").localeCompare(b.side ?? "");
+            }),
         }))
         .sort((a, b) => a.asset.localeCompare(b.asset)),
     }))
