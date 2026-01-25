@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, ArrowUpRight, ChevronDown } from "lucide-react";
 import { formatAPR, formatExchange } from "@/lib/formatters";
-import { getRate, findArbPairPinned, buildBacktesterUrl, ArbPair } from "@/lib/funding";
+import {
+  getRate,
+  findArbPairPinnedWithForcedSides,
+  buildBacktesterUrl,
+  ArbPair,
+} from "@/lib/funding";
 import { isValidUrl } from "@/lib/validation";
 import {
   ExchangeColumn,
@@ -229,6 +234,8 @@ export default function FundingScreenerMobileCards({
         columnKey: string;
         label: string;
         rate: number | null;
+        quote: string;
+        side: "long" | "short" | null;
       }[]
     >();
     if (gmxColumns.length === 0) return map;
@@ -237,15 +244,46 @@ export default function FundingScreenerMobileCards({
       if (!row.token) continue;
       const options = gmxOptionsByToken.get(row.token) ?? [];
       const selectedKey = getGmxSelectedKey(row.token, options);
-      const others = options
-        .filter((opt) => opt.columnKey !== selectedKey)
-        .map((opt) => ({
-          market: opt.market,
-          columnKey: opt.columnKey,
-          label: `GMX (${opt.quote})`,
-          rate: opt.rate,
-        }));
-      map.set(row.token, others);
+      const selected = options.find((opt) => opt.columnKey === selectedKey) ?? null;
+      const grouped = new Map<
+        string,
+        { long: typeof options[number] | null; short: typeof options[number] | null }
+      >();
+      for (const opt of options) {
+        const entry = grouped.get(opt.quote) ?? { long: null, short: null };
+        if (opt.side === "long") entry.long = opt;
+        if (opt.side === "short") entry.short = opt;
+        grouped.set(opt.quote, entry);
+      }
+      const entries = Array.from(grouped.entries())
+        .map(([quote, group]) => {
+          const preferred =
+            selected?.quote === quote && selected.side
+              ? selected
+              : group.short ?? group.long ?? null;
+          if (!preferred) return null;
+          return {
+            market: preferred.market,
+            columnKey: preferred.columnKey,
+            label: `GMX (${quote})`,
+            rate: preferred.rate,
+            quote,
+            side: preferred.side,
+          };
+        })
+        .filter(
+          (
+            entry
+          ): entry is {
+            market: FundingMatrixMarket;
+            columnKey: string;
+            label: string;
+            rate: number | null;
+            quote: string;
+            side: "long" | "short" | null;
+          } => !!entry
+        );
+      map.set(row.token, entries);
     }
     return map;
   }, [rows, gmxColumns, gmxOptionsByToken, getGmxSelectedKey]);
@@ -279,7 +317,7 @@ export default function FundingScreenerMobileCards({
           event.stopPropagation();
           onSelectGmxKey(token, next.columnKey);
         }}
-        className="relative inline-flex h-4 w-8 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
+        className="relative inline-flex h-5 w-10 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[10px] font-medium text-gray-400"
         title={current.side === "long" ? "Long rates" : "Short rates"}
       >
         <span className="relative z-10 grid w-full grid-cols-2">
@@ -299,7 +337,7 @@ export default function FundingScreenerMobileCards({
           </span>
         </span>
         <span
-          className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`absolute left-0.5 top-1/2 h-4 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             current.side === "long"
               ? "translate-x-0 bg-emerald-500/25"
               : "translate-x-full bg-red-500/25"
@@ -346,11 +384,24 @@ export default function FundingScreenerMobileCards({
                 const token = row.token ?? `token-${idx}`;
                 const pinnedKey = getPinnedKeyForRow(row);
                 const columnKeys = getColumnKeysForRow(row);
-                const arbPair = findArbPairPinned(
+                const gmxSelection =
+                  row.token && gmxOptionsByToken.get(row.token)
+                    ? gmxOptionsByToken.get(row.token) ?? []
+                    : [];
+                const gmxSelectedKey = getGmxSelectedKey(row.token, gmxSelection);
+                const gmxSelectedOption =
+                  gmxSelection.find((opt) => opt.columnKey === gmxSelectedKey) ??
+                  gmxSelection[0] ??
+                  null;
+                const forcedSides = gmxSelectedOption?.side
+                  ? new Map([[gmxSelectedOption.columnKey, gmxSelectedOption.side]])
+                  : undefined;
+                const arbPair = findArbPairPinnedWithForcedSides(
                   row.markets,
                   timeWindow,
                   columnKeys,
-                  pinnedKey
+                  pinnedKey,
+                  forcedSides
                 );
                 const maxArb = arbPair ? arbPair.spread : null;
                 const historyUrl = row.token
@@ -363,14 +414,7 @@ export default function FundingScreenerMobileCards({
                 const longKey = arbPair?.longKey ?? null;
                 const shortKey = arbPair?.shortKey ?? null;
 
-                const gmxOptions = row.token
-                  ? gmxOptionsByToken.get(row.token) ?? []
-                  : [];
-                const gmxSelectedKey = getGmxSelectedKey(row.token, gmxOptions);
-                const gmxSelectedOption =
-                  gmxOptions.find((opt) => opt.columnKey === gmxSelectedKey) ??
-                  gmxOptions[0] ??
-                  null;
+                const gmxOptions = gmxSelection;
 
                 const availableMarkets = filteredColumns
                   .map((col) => {
@@ -396,9 +440,6 @@ export default function FundingScreenerMobileCards({
                   ? gmxOtherByToken.get(row.token) ?? []
                   : [];
 
-                const gmxPrimaryEntry = remainingMarkets.find(
-                  (entry) => entry.col.isGmxGroup
-                );
                 const remainingWithoutGmx = remainingMarkets.filter(
                   (entry) => !entry.col.isGmxGroup
                 );
@@ -417,13 +458,24 @@ export default function FundingScreenerMobileCards({
                       pinned: pinnedKey === col.column_key,
                     };
                   }),
-                  ...gmxRemaining.map((entry) => ({
-                    key: entry.columnKey,
-                    label: entry.label,
-                    market: entry.market,
-                    rate: entry.rate,
-                    pinned: pinnedKey === entry.columnKey,
-                  })),
+                  ...gmxRemaining
+                    .filter((entry) => !usedKeys.has(entry.columnKey))
+                    .map((entry) => ({
+                      key: entry.columnKey,
+                      label: entry.label,
+                      market: entry.market,
+                      rate: entry.rate,
+                      pinned: pinnedKey === entry.columnKey,
+                      toggle: buildGmxToggle(
+                        row.token,
+                        {
+                          quote: entry.quote,
+                          side: entry.side,
+                          columnKey: entry.columnKey,
+                        },
+                        gmxOptions
+                      ),
+                    })),
                 ]
                   .filter(
                     (entry): entry is {
@@ -432,6 +484,7 @@ export default function FundingScreenerMobileCards({
                       market: FundingMatrixMarket;
                       rate: number | null;
                       pinned: boolean;
+                      toggle?: React.ReactNode;
                     } => !!entry.market
                   )
                   .sort((a, b) => a.label.localeCompare(b.label));
@@ -601,28 +654,6 @@ export default function FundingScreenerMobileCards({
                       )}
                     </div>
 
-                    {gmxPrimaryEntry?.market &&
-                      gmxSelectedOption &&
-                      !usedKeys.has(gmxPrimaryEntry.col.column_key) && (
-                        <div className="flex flex-col gap-1">
-                          <ExchangeRateRow
-                            label={`GMX (${gmxSelectedOption.quote})`}
-                            market={gmxPrimaryEntry.market}
-                            rate={gmxSelectedOption.rate}
-                            pinned={pinnedKey === gmxSelectedOption.columnKey}
-                            toggle={buildGmxToggle(
-                              row.token,
-                              {
-                                quote: gmxSelectedOption.quote,
-                                side: gmxSelectedOption.side,
-                                columnKey: gmxSelectedOption.columnKey,
-                              },
-                              gmxOptions
-                            )}
-                          />
-                        </div>
-                      )}
-
                     {hasMore && (
                       <div className="flex flex-col gap-2">
                         <div
@@ -639,13 +670,14 @@ export default function FundingScreenerMobileCards({
                           }}
                         >
                           <div className="flex flex-col gap-3 pb-2">
-                            {expandedEntries.map(({ key, label, market, rate, pinned }) => (
+                            {expandedEntries.map(({ key, label, market, rate, pinned, toggle }) => (
                               <ExchangeRateRow
                                 key={key}
                                 label={label}
                                 market={market}
                                 rate={rate}
                                 pinned={pinned}
+                                toggle={toggle}
                               />
                             ))}
                           </div>

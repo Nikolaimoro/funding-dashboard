@@ -7,9 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { normalizeToken, formatExchange } from "@/lib/formatters";
 import {
   getRate,
-  findArbPair,
-  findArbPairPinned,
-  calculateMaxArbPinned,
+  findArbPairPinnedWithForcedSides,
+  calculateMaxArbPinnedWithForcedSides,
   buildBacktesterUrl,
   ArbPair,
 } from "@/lib/funding";
@@ -600,17 +599,27 @@ export default function FundingScreener({
     return next;
   };
 
+  const getForcedSidesForRow = (row: FundingMatrixRow) => {
+    const options = gmxOptionsByToken.get(row.token ?? "") ?? [];
+    const selectedKey = getGmxSelectedKey(row.token, options);
+    const selectedOption = options.find((opt) => opt.columnKey === selectedKey);
+    if (!selectedOption?.side) return null;
+    return new Map([[selectedOption.columnKey, selectedOption.side]]);
+  };
+
   /* ---------- max APR for slider ---------- */
   const maxAPRValue = useMemo(() => {
     let max = 0;
     for (const row of rows) {
       const pinnedKey = getPinnedKeyForRow(row);
       const columnKeys = getColumnKeysForRow(row);
-      const arb = calculateMaxArbPinned(
+      const forcedSides = getForcedSidesForRow(row) ?? undefined;
+      const arb = calculateMaxArbPinnedWithForcedSides(
         row.markets,
         timeWindow,
         columnKeys,
-        pinnedKey
+        pinnedKey,
+        forcedSides
       );
       if (arb !== null && arb > max) max = arb;
     }
@@ -622,9 +631,16 @@ export default function FundingScreener({
     for (const row of rows) {
       const pinnedKey = getPinnedKeyForRow(row);
       const columnKeys = getColumnKeysForRow(row);
+      const forcedSides = getForcedSidesForRow(row) ?? undefined;
       map.set(
         row,
-        calculateMaxArbPinned(row.markets, timeWindow, columnKeys, pinnedKey)
+        calculateMaxArbPinnedWithForcedSides(
+          row.markets,
+          timeWindow,
+          columnKeys,
+          pinnedKey,
+          forcedSides
+        )
       );
     }
     return map;
@@ -1131,8 +1147,21 @@ export default function FundingScreener({
                   paginatedRows.map((row, idx) => {
                     const pinnedKey = getPinnedKeyForRow(row);
                     const columnKeys = getColumnKeysForRow(row);
-                    const maxArb = calculateMaxArbPinned(row.markets, timeWindow, columnKeys, pinnedKey);
-                    const arbPair = findArbPairPinned(row.markets, timeWindow, columnKeys, pinnedKey);
+                    const forcedSides = getForcedSidesForRow(row) ?? undefined;
+                    const maxArb = calculateMaxArbPinnedWithForcedSides(
+                      row.markets,
+                      timeWindow,
+                      columnKeys,
+                      pinnedKey,
+                      forcedSides
+                    );
+                    const arbPair = findArbPairPinnedWithForcedSides(
+                      row.markets,
+                      timeWindow,
+                      columnKeys,
+                      pinnedKey,
+                      forcedSides
+                    );
 
                     return (
                       <tr
