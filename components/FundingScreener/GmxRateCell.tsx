@@ -84,6 +84,45 @@ export default function GmxRateCell({
       (opt) => opt.quote === selected.quote && opt.side && opt.side !== selected.side
     );
 
+  const toggleSide = hasOppositeSide ? (
+    <button
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        const next = options.find(
+          (opt) => opt.quote === selected.quote && opt.side && opt.side !== selected.side
+        );
+        if (next) onSelectKey(next.columnKey);
+      }}
+      className="relative inline-flex h-4 w-8 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
+      title={selected.side === "long" ? "Long rates" : "Short rates"}
+    >
+      <span className="relative z-10 grid w-full grid-cols-2">
+        <span
+          className={`text-center transition-colors ${
+            selected.side === "long" ? "text-emerald-200" : "text-gray-400"
+          }`}
+        >
+          L
+        </span>
+        <span
+          className={`text-center transition-colors ${
+            selected.side === "short" ? "text-red-200" : "text-gray-400"
+          }`}
+        >
+          S
+        </span>
+      </span>
+      <span
+        className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          selected.side === "long"
+            ? "translate-x-0 bg-emerald-500/25"
+            : "translate-x-full bg-red-500/25"
+        }`}
+      />
+    </button>
+  ) : null;
+
   const handleToggleSide = () => {
     if (!selected.side) return;
     const next = options.find(
@@ -211,41 +250,7 @@ export default function GmxRateCell({
         rateNode
       )}
 
-      {hasOppositeSide && (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            handleToggleSide();
-          }}
-          className="relative inline-flex h-4 w-8 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
-          title={selected.side === "long" ? "Long rates" : "Short rates"}
-        >
-          <span className="relative z-10 grid w-full grid-cols-2">
-            <span
-              className={`text-center transition-colors ${
-                selected.side === "long" ? "text-emerald-200" : "text-gray-400"
-              }`}
-            >
-              L
-            </span>
-            <span
-              className={`text-center transition-colors ${
-                selected.side === "short" ? "text-red-200" : "text-gray-400"
-              }`}
-            >
-              S
-            </span>
-          </span>
-          <span
-            className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              selected.side === "long"
-                ? "translate-x-0 bg-emerald-500/25"
-                : "translate-x-full bg-red-500/25"
-            }`}
-          />
-        </button>
-      )}
+      {toggleSide}
       {tooltip}
     </div>
   );

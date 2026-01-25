@@ -41,6 +41,8 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
   const [selectedShortRefUrl, setSelectedShortRefUrl] = useState<string | null>(null);
   const [selectedShortVolume24h, setSelectedShortVolume24h] = useState<number | null>(null);
   const [selectedShortOpenInterest, setSelectedShortOpenInterest] = useState<number | null>(null);
+  const [selectedLongSide, setSelectedLongSide] = useState<"long" | "short" | null>(null);
+  const [selectedShortSide, setSelectedShortSide] = useState<"long" | "short" | null>(null);
 
   const [tokenSearch, setTokenSearch] = useState("");
   const [longExSearch, setLongExSearch] = useState("");
@@ -163,6 +165,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         setSelectedLongRefUrl(preferred.refUrl);
         setSelectedLongVolume24h(preferred.volume24h ?? null);
         setSelectedLongOpenInterest(preferred.openInterest ?? null);
+        setSelectedLongSide(preferred.side ?? null);
       }
     }
   }, [selectedLongEx, selectedToken, selectedLongQuote, exchanges]);
@@ -182,6 +185,7 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
         setSelectedShortRefUrl(preferred.refUrl);
         setSelectedShortVolume24h(preferred.volume24h ?? null);
         setSelectedShortOpenInterest(preferred.openInterest ?? null);
+        setSelectedShortSide(preferred.side ?? null);
       }
     }
   }, [selectedShortEx, selectedToken, selectedShortQuote, exchanges]);
@@ -195,10 +199,11 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       const quote = baseAsset?.quotes.find(q => q.asset === initialLongQuote && q.side === "long") ??
         baseAsset?.quotes.find(q => q.asset === initialLongQuote);
       if (quote) {
-        setSelectedLongMarketId(quote.marketId);
-        setSelectedLongRefUrl(quote.refUrl);
-        setSelectedLongVolume24h(quote.volume24h ?? null);
-        setSelectedLongOpenInterest(quote.openInterest ?? null);
+      setSelectedLongMarketId(quote.marketId);
+      setSelectedLongRefUrl(quote.refUrl);
+      setSelectedLongVolume24h(quote.volume24h ?? null);
+      setSelectedLongOpenInterest(quote.openInterest ?? null);
+      setSelectedLongSide(quote.side ?? null);
       }
     }
     if (initialToken && initialShortEx && initialShortQuote && !selectedShortMarketId) {
@@ -208,10 +213,11 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
       const quote = baseAsset?.quotes.find(q => q.asset === initialShortQuote && q.side === "short") ??
         baseAsset?.quotes.find(q => q.asset === initialShortQuote);
       if (quote) {
-        setSelectedShortMarketId(quote.marketId);
-        setSelectedShortRefUrl(quote.refUrl);
-        setSelectedShortVolume24h(quote.volume24h ?? null);
-        setSelectedShortOpenInterest(quote.openInterest ?? null);
+      setSelectedShortMarketId(quote.marketId);
+      setSelectedShortRefUrl(quote.refUrl);
+      setSelectedShortVolume24h(quote.volume24h ?? null);
+      setSelectedShortOpenInterest(quote.openInterest ?? null);
+      setSelectedShortSide(quote.side ?? null);
       }
     }
   }, [initialToken, initialLongEx, initialLongQuote, initialShortEx, initialShortQuote, exchanges]);
@@ -336,25 +342,42 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
     selectedShortOpenInterest,
   ]);
 
+  const findQuoteForSide = (
+    exchange: string,
+    token: string,
+    quoteAsset: string,
+    side: "long" | "short"
+  ) => {
+    const ex = exchanges.find(e => e.exchange === exchange);
+    if (!ex) return null;
+    const baseAsset = ex.baseAssets.find(ba => normalizeToken(ba.asset) === normalizeToken(token));
+    if (!baseAsset) return null;
+    const filtered = filterQuotesForSide(baseAsset.quotes, exchange, side);
+    const direct = filtered.find(q => q.asset === quoteAsset) ?? null;
+    if (direct) return direct;
+    const fallback = filtered.find(q => q.asset === "USDT") ?? filtered[0] ?? null;
+    return fallback;
+  };
+
   const handleSwapExchanges = () => {
-    const tempEx = selectedLongEx;
-    const tempQuote = selectedLongQuote;
-    const tempMarketId = selectedLongMarketId;
-    const tempRefUrl = selectedLongRefUrl;
-    const tempVolume = selectedLongVolume24h;
-    const tempOI = selectedLongOpenInterest;
+    const nextLong = findQuoteForSide(selectedShortEx, selectedToken, selectedShortQuote, "long");
+    const nextShort = findQuoteForSide(selectedLongEx, selectedToken, selectedLongQuote, "short");
+
     setSelectedLongEx(selectedShortEx);
-    setSelectedLongQuote(selectedShortQuote);
-    setSelectedLongMarketId(selectedShortMarketId);
-    setSelectedLongRefUrl(selectedShortRefUrl);
-    setSelectedLongVolume24h(selectedShortVolume24h);
-    setSelectedLongOpenInterest(selectedShortOpenInterest);
-    setSelectedShortEx(tempEx);
-    setSelectedShortQuote(tempQuote);
-    setSelectedShortMarketId(tempMarketId);
-    setSelectedShortRefUrl(tempRefUrl);
-    setSelectedShortVolume24h(tempVolume);
-    setSelectedShortOpenInterest(tempOI);
+    setSelectedLongQuote(nextLong?.asset ?? selectedShortQuote);
+    setSelectedLongMarketId(nextLong?.marketId ?? selectedShortMarketId);
+    setSelectedLongRefUrl(nextLong?.refUrl ?? selectedShortRefUrl);
+    setSelectedLongVolume24h(nextLong?.volume24h ?? selectedShortVolume24h);
+    setSelectedLongOpenInterest(nextLong?.openInterest ?? selectedShortOpenInterest);
+    setSelectedLongSide(nextLong?.side ?? selectedShortSide);
+
+    setSelectedShortEx(selectedLongEx);
+    setSelectedShortQuote(nextShort?.asset ?? selectedLongQuote);
+    setSelectedShortMarketId(nextShort?.marketId ?? selectedLongMarketId);
+    setSelectedShortRefUrl(nextShort?.refUrl ?? selectedLongRefUrl);
+    setSelectedShortVolume24h(nextShort?.volume24h ?? selectedLongVolume24h);
+    setSelectedShortOpenInterest(nextShort?.openInterest ?? selectedLongOpenInterest);
+    setSelectedShortSide(nextShort?.side ?? selectedLongSide);
   };
 
   const handleRun = async () => {
@@ -494,11 +517,12 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                               key={`${ex.exchange}-${quote.asset}-${quote.side ?? "any"}`}
                               onClick={() => {
                                 setSelectedLongEx(ex.exchange);
-                                setSelectedLongQuote(quote.asset);
-                                setSelectedLongMarketId(quote.marketId);
-                                setSelectedLongRefUrl(quote.refUrl);
-                                setSelectedLongVolume24h(quote.volume24h ?? null);
-                                setSelectedLongOpenInterest(quote.openInterest ?? null);
+                              setSelectedLongQuote(quote.asset);
+                              setSelectedLongMarketId(quote.marketId);
+                              setSelectedLongRefUrl(quote.refUrl);
+                              setSelectedLongVolume24h(quote.volume24h ?? null);
+                              setSelectedLongOpenInterest(quote.openInterest ?? null);
+                              setSelectedLongSide(quote.side ?? null);
                                 setLongExSearch("");
                                 setOpenCombo(null);
                               }}
@@ -573,11 +597,12 @@ export default function BacktesterForm({ tokens, exchanges, initialToken = "", i
                               key={`${ex.exchange}-${quote.asset}-${quote.side ?? "any"}`}
                               onClick={() => {
                                 setSelectedShortEx(ex.exchange);
-                                setSelectedShortQuote(quote.asset);
-                                setSelectedShortMarketId(quote.marketId);
-                                setSelectedShortRefUrl(quote.refUrl);
-                                setSelectedShortVolume24h(quote.volume24h ?? null);
-                                setSelectedShortOpenInterest(quote.openInterest ?? null);
+                              setSelectedShortQuote(quote.asset);
+                              setSelectedShortMarketId(quote.marketId);
+                              setSelectedShortRefUrl(quote.refUrl);
+                              setSelectedShortVolume24h(quote.volume24h ?? null);
+                              setSelectedShortOpenInterest(quote.openInterest ?? null);
+                              setSelectedShortSide(quote.side ?? null);
                                 setShortExSearch("");
                                 setOpenCombo(null);
                               }}

@@ -308,6 +308,7 @@ export default function FundingScreenerMobileCards({
                 const shortRate = arbPair?.shortRate ?? null;
                 const longKey = arbPair?.longKey ?? null;
                 const shortKey = arbPair?.shortKey ?? null;
+                const pinnedKey = getPinnedKeyForRow(row);
 
                 const availableMarkets = filteredColumns
                   .map((col) => {
@@ -421,7 +422,7 @@ export default function FundingScreenerMobileCards({
                       {longMarket && longKey ? (
                         <div className="grid grid-cols-1 gap-2">
                           <div className="flex flex-col gap-1">
-                              <ExchangeRateRow
+                            <ExchangeRateRow
                               label={formatGmxLabel(
                                 longMarket,
                                 columnLabelByKey.get(longKey) ??
@@ -429,8 +430,62 @@ export default function FundingScreenerMobileCards({
                               )}
                               market={longMarket}
                               rate={longRate}
-                              pinned={pinnedColumnKey === longKey}
+                              pinned={pinnedKey === longKey}
                               role="long"
+                              toggle={
+                                longMarket.exchange.toLowerCase() === "gmx"
+                                  ? (() => {
+                                      const options = gmxOptionsByToken.get(row.token ?? "") ?? [];
+                                      const current = options.find(
+                                        (opt) => opt.market.market_id === longMarket.market_id
+                                      );
+                                      if (!current?.side) return null;
+                                      const next = options.find(
+                                        (opt) => opt.quote === current.quote && opt.side && opt.side !== current.side
+                                      );
+                                      if (!next) return null;
+                                      return (
+                                        <button
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            onSelectGmxKey(row.token, next.columnKey);
+                                          }}
+                                          className="relative inline-flex h-4 w-8 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
+                                          title={current.side === "long" ? "Long rates" : "Short rates"}
+                                        >
+                                          <span className="relative z-10 grid w-full grid-cols-2">
+                                            <span
+                                              className={`text-center transition-colors ${
+                                                current.side === "long"
+                                                  ? "text-emerald-200"
+                                                  : "text-gray-400"
+                                              }`}
+                                            >
+                                              L
+                                            </span>
+                                            <span
+                                              className={`text-center transition-colors ${
+                                                current.side === "short"
+                                                  ? "text-red-200"
+                                                  : "text-gray-400"
+                                              }`}
+                                            >
+                                              S
+                                            </span>
+                                          </span>
+                                          <span
+                                            className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                                              current.side === "long"
+                                                ? "translate-x-0 bg-emerald-500/25"
+                                                : "translate-x-full bg-red-500/25"
+                                            }`}
+                                          />
+                                        </button>
+                                      );
+                                    })()
+                                  : undefined
+                              }
                             />
                           </div>
                           <div className="flex flex-col gap-1">
@@ -445,8 +500,62 @@ export default function FundingScreenerMobileCards({
                                 }
                                 market={shortMarket}
                                 rate={shortRate}
-                                pinned={pinnedColumnKey === shortKey}
+                                pinned={pinnedKey === shortKey}
                                 role="short"
+                                toggle={
+                                  shortMarket.exchange.toLowerCase() === "gmx"
+                                    ? (() => {
+                                        const options = gmxOptionsByToken.get(row.token ?? "") ?? [];
+                                        const current = options.find(
+                                          (opt) => opt.market.market_id === shortMarket.market_id
+                                        );
+                                        if (!current?.side) return null;
+                                        const next = options.find(
+                                          (opt) => opt.quote === current.quote && opt.side && opt.side !== current.side
+                                        );
+                                        if (!next) return null;
+                                        return (
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              onSelectGmxKey(row.token, next.columnKey);
+                                            }}
+                                            className="relative inline-flex h-4 w-8 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
+                                            title={current.side === "long" ? "Long rates" : "Short rates"}
+                                          >
+                                            <span className="relative z-10 grid w-full grid-cols-2">
+                                              <span
+                                                className={`text-center transition-colors ${
+                                                  current.side === "long"
+                                                    ? "text-emerald-200"
+                                                    : "text-gray-400"
+                                                }`}
+                                              >
+                                                L
+                                              </span>
+                                              <span
+                                                className={`text-center transition-colors ${
+                                                  current.side === "short"
+                                                    ? "text-red-200"
+                                                    : "text-gray-400"
+                                                }`}
+                                              >
+                                                S
+                                              </span>
+                                            </span>
+                                            <span
+                                              className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                                                current.side === "long"
+                                                  ? "translate-x-0 bg-emerald-500/25"
+                                                  : "translate-x-full bg-red-500/25"
+                                              }`}
+                                            />
+                                          </button>
+                                        );
+                                      })()
+                                    : undefined
+                                }
                               />
                             ) : (
                               <div className="text-xs text-gray-500">
