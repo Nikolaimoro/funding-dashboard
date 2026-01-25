@@ -152,9 +152,25 @@ export default function FundingMobileCards({
                         className="relative inline-flex h-5 w-12 items-center rounded-full border border-[#343a4e] bg-[#23283a] px-1 text-[10px] font-medium text-gray-400 transition-colors"
                         title={row.gmxSide === "long" ? "Long rates" : "Short rates"}
                       >
-                        <span className="flex w-full items-center justify-between px-1">
-                          <span className="text-[10px]">L</span>
-                          <span className="text-[10px]">S</span>
+                        <span className="relative z-10 flex w-full items-center justify-between px-1">
+                          <span
+                            className={`text-[10px] transition-colors ${
+                              row.gmxSide === "long"
+                                ? "text-emerald-200"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            L
+                          </span>
+                          <span
+                            className={`text-[10px] transition-colors ${
+                              row.gmxSide === "short"
+                                ? "text-red-200"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            S
+                          </span>
                         </span>
                         <span
                           className={`absolute left-1 top-1/2 h-4 w-5 -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
