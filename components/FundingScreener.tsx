@@ -515,8 +515,10 @@ export default function FundingScreener({
     const map = new Map<string, string>();
     for (const [token, options] of gmxOptionsByToken.entries()) {
       if (options.length === 0) continue;
-      let best = options[0];
-      for (const option of options) {
+      const shortOptions = options.filter((opt) => opt.side === "short");
+      const pool = shortOptions.length > 0 ? shortOptions : options;
+      let best = pool[0];
+      for (const option of pool) {
         const oi = option.market?.open_interest ?? -Infinity;
         const bestOi = best.market?.open_interest ?? -Infinity;
         if (oi > bestOi) best = option;
