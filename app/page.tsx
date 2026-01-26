@@ -112,26 +112,26 @@ export default function Home() {
               {
                 title: "Compare",
                 body: "Funding rates across exchanges, side by side.",
-                accent: "bg-[#BFD4FF]",
-                inner: "bg-[#BFD4FF]/60",
+                accent: "from-[#BEEBFF] via-[#7CD3FF] to-[#BEEBFF]",
+                inner: "bg-[#9ADFFF]",
                 size: "md:col-span-2 md:min-h-[260px]",
-                bubble: "h-44 w-44",
+                bubble: "h-56 w-56",
               },
               {
                 title: "Neutral",
                 body: "Built for delta-neutral positioning.",
-                accent: "bg-[#C8EFD1]",
-                inner: "bg-[#C8EFD1]/60",
+                accent: "from-[#FFD7B5] via-[#FF8B3A] to-[#FF3B00]",
+                inner: "bg-[#FFB37A]",
                 size: "md:min-h-[200px]",
-                bubble: "h-24 w-24",
+                bubble: "h-32 w-32",
               },
               {
                 title: "History",
                 body: "Focus on consistent funding, not isolated spikes.",
-                accent: "bg-[#FFC9A3]",
-                inner: "bg-[#FFC9A3]/60",
+                accent: "from-[#F1E1FF] via-[#A79BFF] to-[#D6C9FF]",
+                inner: "bg-[#C7BCFF]",
                 size: "md:min-h-[200px]",
-                bubble: "h-24 w-24",
+                bubble: "h-32 w-32",
               },
             ].map((item) => (
               <div
@@ -139,10 +139,10 @@ export default function Home() {
                 className={`relative flex flex-col overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 ${item.size}`}
               >
                 <div
-                  className={`absolute -right-10 -top-10 rounded-full ${item.accent} ${item.bubble}`}
+                  className={`absolute -right-10 -top-10 rounded-full bg-gradient-to-br ${item.accent} ${item.bubble}`}
                 />
                 <div
-                  className={`absolute right-6 top-6 h-10 w-10 rounded-full ${item.inner}`}
+                  className={`absolute right-8 top-8 h-10 w-10 rounded-full ${item.inner} opacity-70`}
                 />
                 <div className="mt-auto pt-24">
                   <h3 className="text-lg font-semibold text-[#201D1D]">
@@ -178,18 +178,18 @@ export default function Home() {
                   maskSize: "contain",
                 }}
               />
-              <div className="mt-auto flex items-center gap-4 text-[#8F8E8E]">
+              <div className="mt-auto flex items-center gap-2 text-[#8F8E8E]">
                 <a
                   href="https://x.com/bendbasis"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bendbasis on X"
-                  className="inline-flex h-11 w-11 items-center justify-center"
+                  className="inline-flex h-9 w-9 items-center justify-center"
                 >
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 24 24"
-                    className="h-5 w-5 fill-current"
+                    className="h-4 w-4 fill-current"
                   >
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.504 11.24h-6.662l-5.213-6.818-5.967 6.818H1.68l7.73-8.844L1.25 2.25h6.83l4.713 6.231L18.244 2.25zm-1.161 17.52h1.833L7.08 4.126H5.114l11.97 15.644z" />
                   </svg>
@@ -199,11 +199,11 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bendbasis on Telegram"
-                  className="inline-flex h-11 w-11 items-center justify-center"
+                  className="inline-flex h-9 w-9 items-center justify-center"
                 >
                   <span
                     aria-hidden="true"
-                    className="h-5 w-5 inline-block"
+                    className="h-4 w-4 inline-block"
                     style={{
                       backgroundColor: "currentColor",
                       WebkitMaskImage: "url(/icons/social/telegram.svg)",
