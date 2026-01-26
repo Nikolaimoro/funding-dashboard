@@ -4,6 +4,7 @@ import ArbitrageTableServer from "@/components/ArbitrageTableServer";
 import PageHeader from "@/components/ui/PageHeader";
 import { TableLoadingState } from "@/components/ui/TableStates";
 import { EXCHANGE_SEO_LIST } from "@/lib/constants";
+import { safeJsonLd } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -72,7 +73,7 @@ export default function ArbitragePage() {
       </section>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(structuredData) }}
       />
     </main>
   );

@@ -9,7 +9,6 @@ export type SortDir = "asc" | "desc";
 export type FundingRow = {
   market_id: number | null;
   exchange: string;
-  symbol: string;
   market: string;
   ref_url: string | null;
 
@@ -23,7 +22,7 @@ export type FundingRow = {
   "15d": number | null;
   "30d": number | null;
 
-  updated: string;
+  updated?: string | null;
 };
 
 export type ArbRow = {
