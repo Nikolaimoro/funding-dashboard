@@ -36,7 +36,7 @@ export default function Home() {
   return (
     <main className="relative -mx-6 -my-4 min-h-screen bg-white px-6 py-4 text-[#201D1D]">
       <div className="fixed inset-0 z-0 bg-white" />
-      <div className="pointer-events-none absolute left-1/2 top-[-10px] z-0 h-[1260px] w-[1720px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,_rgba(158,93,238,0.2),_rgba(250,129,77,0.16),_transparent_65%)] blur-3xl opacity-70" />
+      <div className="pointer-events-none absolute left-1/2 top-[-420px] z-0 h-[1260px] w-[1720px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,_rgba(158,93,238,0.2),_rgba(250,129,77,0.16),_transparent_65%)] blur-3xl opacity-70" />
 
       <section className="relative z-10 pt-28 pb-12">
         <div className="mx-auto flex max-w-[860px] flex-col items-center text-center">
