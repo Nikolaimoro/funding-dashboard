@@ -42,7 +42,7 @@ export default function Home() {
       <div className="pointer-events-none absolute left-1/2 top-[-160px] z-0 h-[420px] w-[560px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,_rgba(158,93,238,0.16),_rgba(250,129,77,0.12),_transparent_65%)] blur-3xl opacity-70 md:top-[-420px] md:h-[1260px] md:w-[1720px]" />
 
       <section className="relative z-10 pt-28 pb-12">
-        <div className="mx-auto flex max-w-[860px] flex-col items-center text-center">
+        <div className="mx-auto flex max-w-[860px] flex-col items-center text-center md:text-center px-2 md:px-0">
           <h1 className="text-[42px] leading-[1.05] font-semibold sm:text-[64px]">
             Structured
             <span className="block">funding arbitrage</span>
@@ -63,24 +63,24 @@ export default function Home() {
 
       <section className="relative z-10 pb-24">
         <div className="mx-auto max-w-[1200px]">
-          <div className="relative max-md:grid max-md:grid-cols-2 max-md:gap-3 md:block">
+          <div className="relative">
             <div className="pointer-events-none absolute -left-24 top-0 h-full w-28 bg-white/80 backdrop-blur-3xl" />
             <div className="pointer-events-none absolute -right-24 top-0 h-full w-28 bg-white/80 backdrop-blur-3xl" />
-            <div className="space-y-4 max-md:space-y-0 max-md:contents">
+            <div className="hidden md:block space-y-4">
               {[0, 1, 2].map((row) => {
                 const rowItems = exchangeCards.slice(row * 6, row * 6 + 6);
                 const leftPad = row === 1 ? "md:pl-24" : "md:pl-0";
                 return (
                   <div
                     key={`row-${row}`}
-                    className={`flex flex-wrap justify-center gap-x-3 gap-y-3 ${leftPad} max-md:contents`}
+                    className={`flex flex-wrap justify-center gap-x-3 gap-y-3 ${leftPad}`}
                   >
                     {rowItems.map((exchange) => {
                       const width = Math.min(240, Math.max(160, 110 + exchange.label.length * 6));
                       return (
                         <div
                           key={exchange.key}
-                          className="flex w-full items-center justify-center gap-3 rounded-full border border-[#E7E2E0] bg-white px-5 py-2 transition-transform duration-700 ease-out hover:-translate-y-1.5 md:w-[var(--card-width)]"
+                          className="flex items-center justify-center gap-3 rounded-full border border-[#E7E2E0] bg-white px-5 py-2 transition-transform duration-700 ease-out hover:-translate-y-1.5 md:w-[var(--card-width)]"
                           style={{ ["--card-width" as any]: `${width}px` }}
                         >
                           <ExchangeIcon
@@ -98,13 +98,30 @@ export default function Home() {
                 );
               })}
             </div>
+            <div className="grid grid-cols-2 gap-3 md:hidden">
+              {exchangeCards.map((exchange) => (
+                <div
+                  key={exchange.key}
+                  className="flex items-center justify-center gap-2 rounded-full border border-[#E7E2E0] bg-white px-4 py-2"
+                >
+                  <ExchangeIcon
+                    exchange={exchange.key}
+                    size={20}
+                    bgColor="#201D1D"
+                  />
+                  <span className="text-[13px] font-medium text-[#201D1D]">
+                    {exchange.label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       <section className="relative z-10 py-24">
         <div className="mx-auto max-w-[1100px] px-8">
-          <h2 className="mb-12 text-[34px] font-semibold text-[#201D1D]">
+          <h2 className="mb-12 text-[34px] font-semibold text-[#201D1D] text-left">
             A better way to view funding
           </h2>
           <div className="grid gap-8 md:grid-cols-[1.4fr_1fr]">
