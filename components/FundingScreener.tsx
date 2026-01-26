@@ -1226,6 +1226,139 @@ export default function FundingScreener({
 
           {/* ---------- table ---------- */}
           <div className="overflow-x-auto min-[960px]:block hidden">
+            <div className="sticky top-[52px] z-30 border-b border-[#343a4e] bg-[#292e40]">
+              <table className="table-fixed w-max border-separate border-spacing-0 text-xs whitespace-nowrap">
+                <colgroup>
+                  <col className="w-[48px]" />
+                  <col className="w-[90px]" />
+                  <col className="w-[80px]" />
+                  {displayColumns.map((col) => (
+                    <col
+                      key={col.column_key}
+                      className={col.isGmxGroup ? "w-[110px]" : "w-[75px]"}
+                    />
+                  ))}
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-[#343a4e] bg-[#292e40]">
+                    <th className={`${TAILWIND.table.header} text-center md:sticky md:left-0 md:z-40 bg-[#292e40]`}>
+                      <span className="inline-flex w-full justify-center">
+                        <GradientStar filled size={14} />
+                      </span>
+                    </th>
+                    <th className={`${TAILWIND.table.header} md:sticky md:left-[48px] md:z-40 bg-[#292e40]`}>
+                      <SortableHeader
+                        label="Asset"
+                        active={sortKey === "token"}
+                        dir={sortDir}
+                        onClick={() => toggleSort("token")}
+                      />
+                    </th>
+                    <th className={`${TAILWIND.table.header} text-right md:sticky md:left-[138px] md:z-40 bg-[#292e40]`}>
+                      <SortableHeader
+                        label="APR"
+                        active={sortKey === "max_arb"}
+                        dir={sortDir}
+                        onClick={() => toggleSort("max_arb")}
+                      />
+                    </th>
+                    {displayColumns.map((col) => {
+                      const isPinned = pinnedColumnKey === col.column_key;
+                      const isGmxGroup = !!col.isGmxGroup;
+                      return (
+                        <th
+                          key={col.column_key}
+                          className={`${TAILWIND.table.header} text-center whitespace-nowrap bg-[#292e40] ${isPinned ? "bg-[#353b52]/60" : ""}`}
+                        >
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="flex items-center gap-1">
+                              <ExchangeIcon exchange={col.exchange} size={22} />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPinnedDirty(true);
+                                  setPinnedColumnKey((prev) => (prev === col.column_key ? null : col.column_key));
+                                }}
+                                className={`p-0.5 rounded ${isPinned ? "text-[#FA814D]" : "text-gray-500 hover:text-gray-300"}`}
+                                aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
+                                title={isPinned ? "Unpin" : "Pin"}
+                              >
+                                <Pin size={12} />
+                              </button>
+                            </div>
+                            {isGmxGroup ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <SortableHeader
+                                  label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
+                                  active={sortKey === col.column_key}
+                                  dir={sortDir}
+                                  onClick={() => toggleSort(col.column_key)}
+                                />
+                                <GmxInfo />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    applyGmxSide(
+                                      gmxPreferredSide === "long" ? "short" : "long"
+                                    );
+                                  }}
+                                  className="relative inline-flex h-4 w-9 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
+                                  title={
+                                    gmxPreferredSide === "long"
+                                      ? "Long rates"
+                                      : "Short rates"
+                                  }
+                                  aria-label="Toggle GMX side"
+                                >
+                                  <span className="relative z-10 grid w-full grid-cols-2">
+                                    <span
+                                      className={`text-center transition-colors ${
+                                        gmxPreferredSide === "long"
+                                          ? "text-emerald-200"
+                                          : "text-gray-400"
+                                      }`}
+                                    >
+                                      L
+                                    </span>
+                                    <span
+                                      className={`text-center transition-colors ${
+                                        gmxPreferredSide === "short"
+                                          ? "text-red-200"
+                                          : "text-gray-400"
+                                      }`}
+                                    >
+                                      S
+                                    </span>
+                                  </span>
+                                  <span
+                                    className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                                      gmxPreferredSide === "long"
+                                        ? "translate-x-0 bg-emerald-500/25"
+                                        : "translate-x-full bg-red-500/25"
+                                    }`}
+                                  />
+                                </button>
+                              </div>
+                            ) : (
+                              <SortableHeader
+                                label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
+                                active={sortKey === col.column_key}
+                                dir={sortDir}
+                                onClick={() => toggleSort(col.column_key)}
+                                centered
+                              />
+                            )}
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+              </table>
+            </div>
+
             <table className="table-fixed w-max border-separate border-spacing-0 text-xs whitespace-nowrap">
               <colgroup>
                 <col className="w-[48px]" />
@@ -1238,122 +1371,16 @@ export default function FundingScreener({
                   />
                 ))}
               </colgroup>
-
-              <thead className="sticky top-[52px] z-30">
-                <tr className="border-b border-[#343a4e] bg-[#292e40]">
-                  <th className={`${TAILWIND.table.header} text-center sticky top-[52px] z-30 md:sticky md:left-0 md:z-40 bg-[#292e40]`}>
-                    <span className="inline-flex w-full justify-center">
-                      <GradientStar filled size={14} />
-                    </span>
-                  </th>
-                  <th className={`${TAILWIND.table.header} sticky top-[52px] z-30 md:sticky md:left-[48px] md:z-40 bg-[#292e40]`}>
-                    <SortableHeader
-                      label="Asset"
-                      active={sortKey === "token"}
-                      dir={sortDir}
-                      onClick={() => toggleSort("token")}
-                    />
-                  </th>
-                  <th className={`${TAILWIND.table.header} text-right sticky top-[52px] z-30 md:sticky md:left-[138px] md:z-40 bg-[#292e40]`}>
-                    <SortableHeader
-                      label="APR"
-                      active={sortKey === "max_arb"}
-                      dir={sortDir}
-                      onClick={() => toggleSort("max_arb")}
-                    />
-                  </th>
-                  {displayColumns.map((col) => {
-                    const isPinned = pinnedColumnKey === col.column_key;
-                    const isGmxGroup = !!col.isGmxGroup;
-                    return (
-                      <th
-                        key={col.column_key}
-                        className={`${TAILWIND.table.header} text-center whitespace-nowrap sticky top-[52px] z-30 bg-[#292e40] ${isPinned ? "bg-[#353b52]/60" : ""}`}
-                      >
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="flex items-center gap-1">
-                            <ExchangeIcon exchange={col.exchange} size={22} />
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setPinnedDirty(true);
-                                setPinnedColumnKey((prev) => (prev === col.column_key ? null : col.column_key));
-                              }}
-                              className={`p-0.5 rounded ${isPinned ? "text-[#FA814D]" : "text-gray-500 hover:text-gray-300"}`}
-                              aria-label={isPinned ? "Unpin exchange" : "Pin exchange"}
-                              title={isPinned ? "Unpin" : "Pin"}
-                            >
-                              <Pin size={12} />
-                            </button>
-                          </div>
-                          {isGmxGroup ? (
-                            <div className="flex items-center justify-center gap-1">
-                              <SortableHeader
-                                label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
-                                active={sortKey === col.column_key}
-                                dir={sortDir}
-                                onClick={() => toggleSort(col.column_key)}
-                              />
-                              <GmxInfo />
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  applyGmxSide(
-                                    gmxPreferredSide === "long" ? "short" : "long"
-                                  );
-                                }}
-                                className="relative inline-flex h-4 w-9 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[9px] font-medium text-gray-400"
-                                title={
-                                  gmxPreferredSide === "long"
-                                    ? "Long rates"
-                                    : "Short rates"
-                                }
-                                aria-label="Toggle GMX side"
-                              >
-                                <span className="relative z-10 grid w-full grid-cols-2">
-                                  <span
-                                    className={`text-center transition-colors ${
-                                      gmxPreferredSide === "long"
-                                        ? "text-emerald-200"
-                                        : "text-gray-400"
-                                    }`}
-                                  >
-                                    L
-                                  </span>
-                                  <span
-                                    className={`text-center transition-colors ${
-                                      gmxPreferredSide === "short"
-                                        ? "text-red-200"
-                                        : "text-gray-400"
-                                    }`}
-                                  >
-                                    S
-                                  </span>
-                                </span>
-                                <span
-                                  className={`absolute left-0.5 top-1/2 h-3 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                                    gmxPreferredSide === "long"
-                                      ? "translate-x-0 bg-emerald-500/25"
-                                      : "translate-x-full bg-red-500/25"
-                                  }`}
-                                />
-                              </button>
-                            </div>
-                          ) : (
-                            <SortableHeader
-                              label={formatColumnHeader(col, exchangesWithMultipleQuotes)}
-                              active={sortKey === col.column_key}
-                              dir={sortDir}
-                              onClick={() => toggleSort(col.column_key)}
-                              centered
-                            />
-                          )}
-                        </div>
-                      </th>
-                    );
-                  })}
+              <thead className="sr-only" aria-hidden="true">
+                <tr>
+                  <th className={`${TAILWIND.table.header} text-center`}>Fav</th>
+                  <th className={`${TAILWIND.table.header}`}>Asset</th>
+                  <th className={`${TAILWIND.table.header} text-right`}>APR</th>
+                  {displayColumns.map((col) => (
+                    <th key={col.column_key} className={`${TAILWIND.table.header} text-center`}>
+                      {formatColumnHeader(col, exchangesWithMultipleQuotes)}
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
