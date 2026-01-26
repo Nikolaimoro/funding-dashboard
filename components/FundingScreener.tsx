@@ -23,7 +23,6 @@ import {
 } from "@/lib/types";
 import { SCREENER_TIME_WINDOWS, SCREENER_TIME_LABELS } from "@/lib/constants";
 import { getLocalCache, setLocalCache, withTimeout } from "@/lib/async";
-import Pagination from "@/components/Table/Pagination";
 import ExchangeFilter from "@/components/Table/ExchangeFilter";
 import APRRangeFilter from "@/components/Table/APRRangeFilter";
 import RateCell from "@/components/FundingScreener/RateCell";
@@ -269,8 +268,9 @@ export default function FundingScreener({
     setModalData(null);
   };
 
-  const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(0);
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
+  const limit = 20;
 
   /* ---------- fetch data ---------- */
   useEffect(() => {
@@ -850,7 +850,11 @@ export default function FundingScreener({
     : "";
 
   /* ---------- handlers ---------- */
-  const resetPage = () => setPage(0);
+  const resetPage = () => {
+    setPage(0);
+    const container = tableScrollRef.current;
+    if (container) container.scrollTop = 0;
+  };
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -977,17 +981,29 @@ export default function FundingScreener({
   }, [rows, search, sortKey, sortDir, timeWindow, minAPR, maxAPRFilter, favoriteSet, filteredColumnKeys, pinnedColumnKey, maxArbByRow, gmxDisplayColumnKey, gmxOptionsByToken, gmxSelectionByToken, gmxDefaultKeyByToken]);
 
   /* ---------- pagination ---------- */
-  const totalPages = limit === -1 ? 1 : Math.ceil(filtered.length / limit);
-  const paginatedRows =
-    limit === -1 ? filtered : filtered.slice(page * limit, page * limit + limit);
-  const rowsForHeight = useMemo(() => {
-    if (limit === -1) {
-      const count = filtered.length || 20;
-      return Math.min(Math.max(count, 20), MAX_ROWS_IN_VIEW);
-    }
-    return Math.min(limit, MAX_ROWS_IN_VIEW);
-  }, [limit, filtered.length]);
+  const paginatedRows = useMemo(
+    () => filtered.slice(0, (page + 1) * limit),
+    [filtered, page, limit]
+  );
+  const rowsForHeight = Math.min(limit, MAX_ROWS_IN_VIEW);
   const tableHeight = TABLE_HEADER_HEIGHT + rowsForHeight * TABLE_ROW_HEIGHT;
+
+  useEffect(() => {
+    const container = tableScrollRef.current;
+    if (!container) return;
+
+    const onScroll = () => {
+      if (container.scrollTop + container.clientHeight < container.scrollHeight - 120) return;
+      setPage((prev) => {
+        const next = prev + 1;
+        const maxPage = Math.max(0, Math.ceil(filtered.length / limit) - 1);
+        return prev >= maxPage ? prev : next;
+      });
+    };
+
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
+  }, [filtered.length, limit]);
 
   const sortOptions = useMemo(() => {
     const base = [
@@ -1239,6 +1255,7 @@ export default function FundingScreener({
           {/* ---------- table ---------- */}
           <div className="min-[960px]:block hidden">
             <div
+              ref={tableScrollRef}
               className="overflow-auto overscroll-contain"
               style={{ height: `${tableHeight}px` }}
             >
@@ -1521,22 +1538,6 @@ export default function FundingScreener({
             </div>
           </div>
 
-          {/* ---------- bottom pagination ---------- */}
-          {paginatedRows.length > 0 && (
-            <div className="px-4 py-3 border-t border-[#343a4e] hidden min-[960px]:block">
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                limit={limit}
-                onPageChange={setPage}
-                onLimitChange={(newLimit) => {
-                  setLimit(newLimit);
-                  resetPage();
-                }}
-                showPagination={limit !== -1}
-              />
-            </div>
-          )}
         </div>
       </section>
 
