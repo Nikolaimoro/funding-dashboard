@@ -61,48 +61,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative z-10 pb-16">
-        <div className="mx-auto max-w-[1040px] px-2">
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr]">
-            <div>
-              <h2 className="text-2xl font-semibold text-[#201D1D]">
-                Why BendBasis
-              </h2>
-              <p className="mt-4 text-[#5C5854]">
-                Funding arbitrage needs structure, not just a single rate. BendBasis
-                aligns funding data across exchanges, time windows, and long/short
-                positioning so delta-neutral decisions are clearer and more reliable.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3 text-sm text-[#5C5854]">
-                <span className="rounded-full bg-[#F8F8F8] px-4 py-2">
-                  Structured over snapshots
-                </span>
-                <span className="rounded-full bg-[#F8F8F8] px-4 py-2">
-                  Long/short asymmetry visible
-                </span>
-                <span className="rounded-full bg-[#F8F8F8] px-4 py-2">
-                  Cross-exchange comparability
-                </span>
-                <span className="rounded-full bg-[#F8F8F8] px-4 py-2">
-                  Delta-neutral by design
-                </span>
-              </div>
-            </div>
-            <div className="rounded-3xl bg-[#FCFCFC] p-6">
-              <h3 className="text-lg font-semibold text-[#201D1D]">
-                Built for
-              </h3>
-              <ul className="mt-4 space-y-3 text-sm text-[#5C5854]">
-                <li>Traders who focus on structure over speculation</li>
-                <li>Teams running market-neutral strategies</li>
-                <li>Analysts who value consistency and transparency</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative z-10 pb-32">
+      <section className="relative z-10 pb-20">
         <div className="mx-auto max-w-[1200px]">
           <div className="relative">
             <div className="pointer-events-none absolute -left-24 top-0 h-full w-28 bg-white/80 backdrop-blur-3xl" />
@@ -139,6 +98,44 @@ export default function Home() {
                 );
               })}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 pb-24">
+        <div className="mx-auto max-w-[1100px] px-8">
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                title: "Compare",
+                body: "Funding rates across exchanges, side by side.",
+                accent: "bg-[#EEF3FF]",
+              },
+              {
+                title: "Neutral",
+                body: "Built for delta-neutral positioning.",
+                accent: "bg-[#F1F6F1]",
+              },
+              {
+                title: "History",
+                body: "Focus on consistent funding, not isolated spikes.",
+                accent: "bg-[#FFF3E8]",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="relative overflow-hidden rounded-3xl bg-[#FCFCFC] p-6"
+              >
+                <div
+                  className={`absolute -right-10 -top-10 h-28 w-28 rounded-full ${item.accent}`}
+                />
+                <div className="absolute right-6 top-6 h-10 w-10 rounded-full border border-white/60 bg-white/60" />
+                <h3 className="mt-16 text-lg font-semibold text-[#201D1D]">
+                  {item.title}
+                </h3>
+                <p className="mt-3 text-sm text-[#5C5854]">{item.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

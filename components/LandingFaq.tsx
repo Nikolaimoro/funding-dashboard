@@ -45,20 +45,14 @@ export default function LandingFaq() {
               return (
                 <div
                   key={item.question}
-                  className="rounded-2xl bg-[#F8F8F8] px-6 py-5 cursor-pointer"
-                  role={hasAnswer ? "button" : undefined}
-                  tabIndex={hasAnswer ? 0 : -1}
-                  aria-expanded={hasAnswer ? isOpen : undefined}
-                  onClick={() => toggleIndex(index, hasAnswer)}
-                  onKeyDown={(event) => {
-                    if (!hasAnswer) return;
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      toggleIndex(index, hasAnswer);
-                    }
-                  }}
+                  className="rounded-2xl bg-[#F0F0F0] px-6 py-5"
                 >
-                  <div className="flex w-full items-center justify-between gap-4 text-left">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-4 text-left cursor-pointer"
+                    onClick={() => toggleIndex(index, hasAnswer)}
+                    aria-expanded={hasAnswer ? isOpen : undefined}
+                  >
                     <span className="text-base font-medium text-[#201D1D]">
                       {item.question}
                     </span>
@@ -76,7 +70,7 @@ export default function LandingFaq() {
                         />
                       </span>
                     )}
-                  </div>
+                  </button>
                   {hasAnswer && (
                     <div
                       className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
