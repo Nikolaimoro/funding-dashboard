@@ -104,13 +104,20 @@ export default function Home() {
 
       <section className="relative z-10 py-24">
         <div className="mx-auto max-w-[1100px] px-8">
-          <h2 className="mb-12 text-3xl font-semibold text-[#201D1D]">
+          <h2 className="mb-12 text-[34px] font-semibold text-[#201D1D]">
             A better way to view funding
           </h2>
           <div className="grid gap-8 md:grid-cols-[1.4fr_1fr]">
-            <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 md:min-h-[320px]">
+            <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 md:min-h-[320px] group">
               <span
-                className="pointer-events-none absolute -right-20 -top-16 h-72 w-72 opacity-40"
+                className="pointer-events-none absolute -right-20 -top-2 h-[26rem] w-[26rem] opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-50"
+                style={{
+                  background: "radial-gradient(circle, rgba(107,124,255,0.35) 0%, rgba(107,124,255,0) 70%)",
+                  filter: "blur(12px)",
+                }}
+              />
+              <span
+                className="pointer-events-none absolute -right-20 -top-2 h-[26rem] w-[26rem] opacity-20"
                 style={{
                   background: "linear-gradient(135deg, #8BD3FF 0%, #6B7CFF 55%, #E5D6FF 100%)",
                   WebkitMaskImage: "url(/brand/logo_icon.svg)",
@@ -124,19 +131,26 @@ export default function Home() {
                 }}
               />
               <div className="mt-auto pt-24">
-                <h3 className="text-lg font-semibold text-[#201D1D]">
+                <h3 className="text-xl font-semibold text-[#201D1D]">
                   Compare
                 </h3>
-                <p className="mt-3 text-sm text-[#5C5854]">
+                <p className="mt-3 text-base text-[#5C5854]">
                   Funding rates across exchanges, side by side.
                 </p>
               </div>
             </div>
 
             <div className="grid gap-8">
-              <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 md:min-h-[200px]">
+              <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 md:min-h-[200px] group">
                 <span
-                  className="pointer-events-none absolute -right-16 -top-12 h-56 w-56 opacity-40"
+                  className="pointer-events-none absolute -right-16 -top-12 h-56 w-56 opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-50"
+                  style={{
+                    background: "radial-gradient(circle, rgba(255,122,61,0.35) 0%, rgba(255,122,61,0) 70%)",
+                    filter: "blur(10px)",
+                  }}
+                />
+                <span
+                  className="pointer-events-none absolute -right-16 -top-12 h-56 w-56 opacity-20"
                   style={{
                     background: "linear-gradient(135deg, #FFC5A1 0%, #FF7A3D 55%, #FF3B00 100%)",
                     WebkitMaskImage: "url(/brand/logo_icon.svg)",
@@ -150,18 +164,25 @@ export default function Home() {
                   }}
                 />
                 <div className="mt-auto pt-20">
-                  <h3 className="text-lg font-semibold text-[#201D1D]">
+                  <h3 className="text-xl font-semibold text-[#201D1D]">
                     Neutral
                   </h3>
-                  <p className="mt-3 text-sm text-[#5C5854]">
+                  <p className="mt-3 text-base text-[#5C5854]">
                     Built for delta-neutral positioning.
                   </p>
                 </div>
               </div>
 
-              <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 md:min-h-[200px]">
+              <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 md:min-h-[200px] group">
                 <span
-                  className="pointer-events-none absolute -right-16 -top-12 h-56 w-56 opacity-40"
+                  className="pointer-events-none absolute -right-16 -top-12 h-56 w-56 opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-50"
+                  style={{
+                    background: "radial-gradient(circle, rgba(122,230,161,0.35) 0%, rgba(122,230,161,0) 70%)",
+                    filter: "blur(10px)",
+                  }}
+                />
+                <span
+                  className="pointer-events-none absolute -right-16 -top-12 h-56 w-56 opacity-20"
                   style={{
                     background: "linear-gradient(135deg, #D5F5DC 0%, #7AE6A1 55%, #4AC68B 100%)",
                     WebkitMaskImage: "url(/brand/logo_icon.svg)",
@@ -175,10 +196,10 @@ export default function Home() {
                   }}
                 />
                 <div className="mt-auto pt-20">
-                  <h3 className="text-lg font-semibold text-[#201D1D]">
+                  <h3 className="text-xl font-semibold text-[#201D1D]">
                     History
                   </h3>
-                  <p className="mt-3 text-sm text-[#5C5854]">
+                  <p className="mt-3 text-base text-[#5C5854]">
                     Focus on consistent funding, not isolated spikes.
                   </p>
                 </div>
