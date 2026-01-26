@@ -104,42 +104,52 @@ export default function Home() {
 
       <section className="relative z-10 py-24">
         <div className="mx-auto max-w-[1100px] px-8">
-          <h2 className="mb-10 text-3xl font-semibold text-[#201D1D]">
+          <h2 className="mb-12 text-3xl font-semibold text-[#201D1D]">
             A better way to view funding
           </h2>
-          <div className="grid gap-7 md:grid-cols-2">
+          <div className="grid gap-8 md:grid-cols-2">
             {[
               {
                 title: "Compare",
                 body: "Funding rates across exchanges, side by side.",
-                accent: "bg-[#EEF3FF]",
-                size: "md:row-span-2",
+                accent: "bg-[#BFD4FF]",
+                inner: "bg-[#BFD4FF]/60",
+                size: "md:col-span-2 md:min-h-[260px]",
+                bubble: "h-44 w-44",
               },
               {
                 title: "Neutral",
                 body: "Built for delta-neutral positioning.",
-                accent: "bg-[#F1F6F1]",
-                size: "",
+                accent: "bg-[#C8EFD1]",
+                inner: "bg-[#C8EFD1]/60",
+                size: "md:min-h-[200px]",
+                bubble: "h-24 w-24",
               },
               {
                 title: "History",
                 body: "Focus on consistent funding, not isolated spikes.",
-                accent: "bg-[#FFF3E8]",
-                size: "",
+                accent: "bg-[#FFC9A3]",
+                inner: "bg-[#FFC9A3]/60",
+                size: "md:min-h-[200px]",
+                bubble: "h-24 w-24",
               },
             ].map((item) => (
               <div
                 key={item.title}
-                className={`relative overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 ${item.size}`}
+                className={`relative flex flex-col overflow-hidden rounded-3xl bg-[#F9F9F9] p-6 ${item.size}`}
               >
                 <div
-                  className={`absolute -right-10 -top-10 h-28 w-28 rounded-full ${item.accent}`}
+                  className={`absolute -right-10 -top-10 rounded-full ${item.accent} ${item.bubble}`}
                 />
-                <div className="absolute right-6 top-6 h-10 w-10 rounded-full border border-white/60 bg-white/60" />
-                <h3 className="mt-16 text-lg font-semibold text-[#201D1D]">
-                  {item.title}
-                </h3>
-                <p className="mt-3 text-sm text-[#5C5854]">{item.body}</p>
+                <div
+                  className={`absolute right-6 top-6 h-10 w-10 rounded-full ${item.inner}`}
+                />
+                <div className="mt-auto pt-24">
+                  <h3 className="text-lg font-semibold text-[#201D1D]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 text-sm text-[#5C5854]">{item.body}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -151,24 +161,35 @@ export default function Home() {
       <footer className="relative z-10 pb-16">
         <div className="mx-auto max-w-[1100px] rounded-[28px] bg-[#F9F9F9] px-8 py-12">
           <div className="grid gap-10 md:grid-cols-[1.2fr_1fr]">
-            <div>
-              <img
-                src="/brand/logo_full.svg"
-                alt="bendbasis"
-                className="h-[18px] w-auto opacity-70"
+            <div className="flex h-full flex-col">
+              <span
+                className="inline-block h-[18px] w-[140px]"
+                aria-label="bendbasis"
+                role="img"
+                style={{
+                  backgroundColor: "#8F8E8E",
+                  WebkitMaskImage: "url(/brand/logo_full.svg)",
+                  maskImage: "url(/brand/logo_full.svg)",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "left center",
+                  maskPosition: "left center",
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                }}
               />
-              <div className="mt-10 flex items-center gap-3 text-[#8B847E]">
+              <div className="mt-auto flex items-center gap-4 text-[#8F8E8E]">
                 <a
                   href="https://x.com/bendbasis"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bendbasis on X"
-                  className="inline-flex h-9 w-9 items-center justify-center"
+                  className="inline-flex h-11 w-11 items-center justify-center"
                 >
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 24 24"
-                    className="h-4 w-4 fill-current"
+                    className="h-5 w-5 fill-current"
                   >
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.504 11.24h-6.662l-5.213-6.818-5.967 6.818H1.68l7.73-8.844L1.25 2.25h6.83l4.713 6.231L18.244 2.25zm-1.161 17.52h1.833L7.08 4.126H5.114l11.97 15.644z" />
                   </svg>
@@ -178,11 +199,11 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bendbasis on Telegram"
-                  className="inline-flex h-9 w-9 items-center justify-center"
+                  className="inline-flex h-11 w-11 items-center justify-center"
                 >
                   <span
                     aria-hidden="true"
-                    className="h-4 w-4 inline-block"
+                    className="h-5 w-5 inline-block"
                     style={{
                       backgroundColor: "currentColor",
                       WebkitMaskImage: "url(/icons/social/telegram.svg)",
