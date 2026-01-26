@@ -61,6 +61,47 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="relative z-10 pb-16">
+        <div className="mx-auto max-w-[1040px] px-2">
+          <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr]">
+            <div>
+              <h2 className="text-2xl font-semibold text-[#201D1D]">
+                Why BendBasis
+              </h2>
+              <p className="mt-4 text-[#5C5854]">
+                Funding arbitrage needs structure, not just a single rate. BendBasis
+                aligns funding data across exchanges, time windows, and long/short
+                positioning so delta-neutral decisions are clearer and more reliable.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3 text-sm text-[#5C5854]">
+                <span className="rounded-full bg-[#F8F8F8] px-4 py-2">
+                  Structured over snapshots
+                </span>
+                <span className="rounded-full bg-[#F8F8F8] px-4 py-2">
+                  Long/short asymmetry visible
+                </span>
+                <span className="rounded-full bg-[#F8F8F8] px-4 py-2">
+                  Cross-exchange comparability
+                </span>
+                <span className="rounded-full bg-[#F8F8F8] px-4 py-2">
+                  Delta-neutral by design
+                </span>
+              </div>
+            </div>
+            <div className="rounded-3xl bg-[#FCFCFC] p-6">
+              <h3 className="text-lg font-semibold text-[#201D1D]">
+                Built for
+              </h3>
+              <ul className="mt-4 space-y-3 text-sm text-[#5C5854]">
+                <li>Traders who focus on structure over speculation</li>
+                <li>Teams running market-neutral strategies</li>
+                <li>Analysts who value consistency and transparency</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="relative z-10 pb-32">
         <div className="mx-auto max-w-[1200px]">
           <div className="relative">

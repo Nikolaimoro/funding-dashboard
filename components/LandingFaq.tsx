@@ -28,6 +28,11 @@ const FAQ_ITEMS = [
 export default function LandingFaq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
+  const toggleIndex = (index: number, hasAnswer: boolean) => {
+    if (!hasAnswer) return;
+    setOpenIndex((prev) => (prev === index ? null : index));
+  };
+
   return (
     <section className="relative z-10 pb-24">
       <div className="mx-auto max-w-[1100px] px-8">
@@ -40,17 +45,20 @@ export default function LandingFaq() {
               return (
                 <div
                   key={item.question}
-                  className="rounded-2xl bg-[#F5F5F5] px-6 py-5"
+                  className="rounded-2xl bg-[#F8F8F8] px-6 py-5 cursor-pointer"
+                  role={hasAnswer ? "button" : undefined}
+                  tabIndex={hasAnswer ? 0 : -1}
+                  aria-expanded={hasAnswer ? isOpen : undefined}
+                  onClick={() => toggleIndex(index, hasAnswer)}
+                  onKeyDown={(event) => {
+                    if (!hasAnswer) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      toggleIndex(index, hasAnswer);
+                    }
+                  }}
                 >
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between gap-4 text-left cursor-pointer"
-                    onClick={() => {
-                      if (!hasAnswer) return;
-                      setOpenIndex((prev) => (prev === index ? null : index));
-                    }}
-                    aria-expanded={isOpen}
-                  >
+                  <div className="flex w-full items-center justify-between gap-4 text-left">
                     <span className="text-base font-medium text-[#201D1D]">
                       {item.question}
                     </span>
@@ -61,10 +69,14 @@ export default function LandingFaq() {
                         }`}
                       >
                         <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-[#201D1D]" />
-                        <span className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 bg-[#201D1D]" />
+                        <span
+                          className={`absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 bg-[#201D1D] transition-[transform,opacity] duration-300 ease-out ${
+                            isOpen ? "scale-y-0 opacity-0" : "scale-y-100 opacity-100"
+                          }`}
+                        />
                       </span>
                     )}
-                  </button>
+                  </div>
                   {hasAnswer && (
                     <div
                       className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
