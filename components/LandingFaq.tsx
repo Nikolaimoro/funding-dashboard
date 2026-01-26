@@ -40,7 +40,7 @@ export default function LandingFaq() {
               return (
                 <div
                   key={item.question}
-                  className="rounded-2xl bg-[#FCFCFC] px-6 py-5"
+                  className="rounded-2xl bg-[#F5F5F5] px-6 py-5"
                 >
                   <button
                     type="button"
@@ -55,15 +55,13 @@ export default function LandingFaq() {
                       {item.question}
                     </span>
                     {hasAnswer && (
-                      <span className="relative h-5 w-5 shrink-0">
-                        <span
-                          className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-[#201D1D] transition-transform duration-300"
-                        />
-                        <span
-                          className={`absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 bg-[#201D1D] transition-[transform,opacity] duration-300 ${
-                            isOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
-                          }`}
-                        />
+                      <span
+                        className={`relative h-5 w-5 shrink-0 transition-transform duration-300 ease-out ${
+                          isOpen ? "rotate-180" : "rotate-0"
+                        }`}
+                      >
+                        <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-[#201D1D]" />
+                        <span className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 bg-[#201D1D]" />
                       </span>
                     )}
                   </button>
