@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Send, X as XIcon } from "lucide-react";
 
 interface BurgerIconProps {
   open: boolean;
@@ -84,22 +83,13 @@ export default function AppHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const logoToneByPath: Record<string, "light" | "dark"> = {
-    "/": "dark",
-    "/markets": "light",
-    "/funding": "light",
-    "/arbitrage": "light",
-    "/backtester": "light",
-  };
-  const logoTone =
-    Object.entries(logoToneByPath).find(([route]) => path.startsWith(route))
-      ?.[1] ?? "light";
+  const logoTone = isHome ? "dark" : "light";
   const logoClassName =
     logoTone === "light"
       ? "h-[18px] w-auto invert"
       : "h-[18px] w-auto invert-0";
 
-  const burgerColor = logoTone === "light" ? "white" : "black";
+  const burgerColor = isHome ? "black" : "white";
 
   const navLink = (href: string, label: string, isFirst = false) => {
     const active = path.startsWith(href);
@@ -221,13 +211,15 @@ export default function AppHeader() {
           {mobileNavLink("/markets", "Markets")}
           {mobileNavLink("/arbitrage", "Arbitrage")}
           {mobileNavLink("/backtester", "Backtester")}
-          <Link
-            href="/funding"
-            onClick={() => setMobileMenuOpen(false)}
-            className="mt-6 w-full inline-flex items-center justify-center rounded-2xl bg-[#201D1D] text-white text-base font-medium py-3"
-          >
-            Open App
-          </Link>
+          {isHome && (
+            <Link
+              href="/funding"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-6 w-full inline-flex items-center justify-center rounded-2xl bg-[#201D1D] text-white text-base font-medium py-3"
+            >
+              Open App
+            </Link>
+          )}
         </nav>
         <div className="mt-auto w-full px-10 pb-8">
           <div className={`border-t pt-5 ${isHome ? "border-[#E7E2E0]" : "border-[#343a4e]"}`}>
@@ -246,7 +238,13 @@ export default function AppHeader() {
                     : "border-[#343a4e] bg-[#23283a] text-gray-200 hover:border-white"
                 }`}
               >
-                <XIcon size={18} />
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 fill-current"
+                >
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.504 11.24h-6.662l-5.213-6.818-5.967 6.818H1.68l7.73-8.844L1.25 2.25h6.83l4.713 6.231L18.244 2.25zm-1.161 17.52h1.833L7.08 4.126H5.114l11.97 15.644z" />
+                </svg>
               </a>
               <a
                 href="https://t.me/bendbasis"
@@ -259,7 +257,21 @@ export default function AppHeader() {
                     : "border-[#343a4e] bg-[#23283a] text-gray-200 hover:border-white"
                 }`}
               >
-                <Send size={18} />
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-4 inline-block"
+                  style={{
+                    backgroundColor: "currentColor",
+                    WebkitMaskImage: "url(/icons/social/telegram.svg)",
+                    maskImage: "url(/icons/social/telegram.svg)",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskPosition: "center",
+                    maskPosition: "center",
+                    WebkitMaskSize: "contain",
+                    maskSize: "contain",
+                  }}
+                />
               </a>
             </div>
           </div>
