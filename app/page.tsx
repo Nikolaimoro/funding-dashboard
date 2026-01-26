@@ -231,7 +231,7 @@ export default function Home() {
       <footer className="relative z-10 pb-16">
         <div className="mx-auto max-w-[1100px] rounded-[28px] bg-[#F9F9F9] px-8 py-12">
           <div className="flex flex-col gap-6 md:grid md:grid-cols-[1.2fr_1fr] md:gap-10">
-            <div className="flex min-h-[180px] flex-col">
+            <div className="flex flex-col gap-6">
               <span
                 className="inline-block h-[18px] w-[140px]"
                 aria-label="bendbasis"
