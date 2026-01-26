@@ -1239,7 +1239,7 @@ export default function FundingScreener({
                 ))}
               </colgroup>
 
-              <thead>
+              <thead className="sticky top-0 z-20">
                 <tr className="border-b border-[#343a4e] bg-[#292e40]">
                   <th className={`${TAILWIND.table.header} text-center md:sticky md:left-0 md:z-10 bg-[#292e40]`}>
                     <span className="inline-flex w-full justify-center">
