@@ -39,7 +39,7 @@ export default function Home() {
     <main className="relative -mx-6 -my-4 min-h-screen bg-white px-6 py-4 text-[#201D1D]">
       <LandingHeader />
       <div className="fixed inset-0 z-0 bg-white" />
-      <div className="pointer-events-none absolute left-1/2 top-[-420px] z-0 h-[1260px] w-[1720px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,_rgba(158,93,238,0.16),_rgba(250,129,77,0.12),_transparent_65%)] blur-3xl opacity-70" />
+      <div className="pointer-events-none absolute left-1/2 top-[-160px] z-0 h-[420px] w-[560px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,_rgba(158,93,238,0.16),_rgba(250,129,77,0.12),_transparent_65%)] blur-3xl opacity-70 md:top-[-420px] md:h-[1260px] md:w-[1720px]" />
 
       <section className="relative z-10 pt-28 pb-12">
         <div className="mx-auto flex max-w-[860px] flex-col items-center text-center">
@@ -66,7 +66,7 @@ export default function Home() {
           <div className="relative max-md:grid max-md:grid-cols-2 max-md:gap-3 md:block">
             <div className="pointer-events-none absolute -left-24 top-0 h-full w-28 bg-white/80 backdrop-blur-3xl" />
             <div className="pointer-events-none absolute -right-24 top-0 h-full w-28 bg-white/80 backdrop-blur-3xl" />
-            <div className="space-y-4">
+            <div className="space-y-4 max-md:space-y-0 max-md:contents">
               {[0, 1, 2].map((row) => {
                 const rowItems = exchangeCards.slice(row * 6, row * 6 + 6);
                 const leftPad = row === 1 ? "md:pl-24" : "md:pl-0";
@@ -117,7 +117,7 @@ export default function Home() {
                 }}
               />
               <span
-                className="pointer-events-none absolute -right-20 -top-8 h-[26rem] w-[26rem] opacity-20"
+                className="pointer-events-none absolute -right-12 -top-6 h-56 w-56 opacity-20 md:-right-20 md:-top-8 md:h-[26rem] md:w-[26rem]"
                 style={{
                   background: "linear-gradient(135deg, #8BD3FF 0%, #6B7CFF 55%, #E5D6FF 100%)",
                   WebkitMaskImage: "url(/brand/logo_icon.svg)",
@@ -213,7 +213,7 @@ export default function Home() {
 
       <footer className="relative z-10 pb-16">
         <div className="mx-auto max-w-[1100px] rounded-[28px] bg-[#F9F9F9] px-8 py-12">
-          <div className="grid gap-10 md:grid-cols-[1.2fr_1fr]">
+          <div className="flex flex-col gap-10 md:grid md:grid-cols-[1.2fr_1fr]">
             <div className="flex min-h-[180px] flex-col">
               <span
                 className="inline-block h-[18px] w-[140px]"
@@ -231,18 +231,18 @@ export default function Home() {
                   maskSize: "contain",
                 }}
               />
-              <div className="mt-auto flex items-center gap-2 text-[#8F8E8E]">
+              <div className="mt-auto hidden items-center gap-2 text-[#8F8E8E] md:flex">
                 <a
                   href="https://x.com/bendbasis"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bendbasis on X"
-                  className="inline-flex h-9 w-9 items-center justify-center"
+                  className="inline-flex h-8 w-8 items-center justify-center"
                 >
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 24 24"
-                    className="h-4 w-4 fill-current"
+                    className="h-5 w-5 fill-current"
                   >
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.504 11.24h-6.662l-5.213-6.818-5.967 6.818H1.68l7.73-8.844L1.25 2.25h6.83l4.713 6.231L18.244 2.25zm-1.161 17.52h1.833L7.08 4.126H5.114l11.97 15.644z" />
                   </svg>
@@ -252,11 +252,11 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bendbasis on Telegram"
-                  className="inline-flex h-9 w-9 items-center justify-center"
+                  className="inline-flex h-8 w-8 items-center justify-center"
                 >
                   <span
                     aria-hidden="true"
-                    className="h-4 w-4 inline-block"
+                    className="h-5 w-5 inline-block"
                     style={{
                       backgroundColor: "currentColor",
                       WebkitMaskImage: "url(/icons/social/telegram.svg)",
@@ -288,6 +288,46 @@ export default function Home() {
                   Backtester
                 </Link>
               </nav>
+            </div>
+            <div className="mt-6 flex items-center gap-2 text-[#8F8E8E] md:hidden">
+              <a
+                href="https://x.com/bendbasis"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Bendbasis on X"
+                className="inline-flex h-8 w-8 items-center justify-center"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5 fill-current"
+                >
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.504 11.24h-6.662l-5.213-6.818-5.967 6.818H1.68l7.73-8.844L1.25 2.25h6.83l4.713 6.231L18.244 2.25zm-1.161 17.52h1.833L7.08 4.126H5.114l11.97 15.644z" />
+                </svg>
+              </a>
+              <a
+                href="https://t.me/bendbasis"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Bendbasis on Telegram"
+                className="inline-flex h-8 w-8 items-center justify-center"
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-5 w-5 inline-block"
+                  style={{
+                    backgroundColor: "currentColor",
+                    WebkitMaskImage: "url(/icons/social/telegram.svg)",
+                    maskImage: "url(/icons/social/telegram.svg)",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskPosition: "center",
+                    maskPosition: "center",
+                    WebkitMaskSize: "contain",
+                    maskSize: "contain",
+                  }}
+                />
+              </a>
             </div>
           </div>
         </div>
