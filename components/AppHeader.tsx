@@ -142,7 +142,7 @@ export default function AppHeader() {
           "fixed top-0 left-0 right-0 z-50",
           "flex gap-2 border-b py-2 items-center",
           isHome
-            ? "border-[#E7E2E0] bg-white"
+            ? "border-transparent bg-white"
             : "border-[#343a4e] bg-[#1c202f]",
           isHome ? "max-w-[1100px] px-8" : "max-w-[1600px] px-6",
           "mx-auto transition-transform duration-300",
