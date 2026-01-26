@@ -144,8 +144,8 @@ export default function AppHeader() {
           isHome
             ? "border-[#E7E2E0] bg-white"
             : "border-[#343a4e] bg-[#1c202f]",
-          "max-w-[1600px] mx-auto px-6",
-          "transition-transform duration-300",
+          isHome ? "max-w-[1100px] px-8" : "max-w-[1600px] px-6",
+          "mx-auto transition-transform duration-300",
           !isVisible && !mobileMenuOpen ? "-translate-y-full" : "translate-y-0",
         ].join(" ")}
       >
