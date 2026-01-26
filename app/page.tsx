@@ -117,7 +117,7 @@ export default function Home() {
                 }}
               />
               <span
-                className="pointer-events-none absolute -right-20 -top-6 h-[26rem] w-[26rem] opacity-20"
+                className="pointer-events-none absolute -right-20 -top-8 h-[26rem] w-[26rem] opacity-20"
                 style={{
                   background: "linear-gradient(135deg, #8BD3FF 0%, #6B7CFF 55%, #E5D6FF 100%)",
                   WebkitMaskImage: "url(/brand/logo_icon.svg)",
@@ -150,7 +150,7 @@ export default function Home() {
                   }}
                 />
                 <span
-                  className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 opacity-20"
+                  className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 opacity-20"
                   style={{
                     background: "linear-gradient(135deg, #FFC5A1 0%, #FF7A3D 55%, #FF3B00 100%)",
                     WebkitMaskImage: "url(/brand/logo_icon.svg)",
@@ -182,7 +182,7 @@ export default function Home() {
                   }}
                 />
                 <span
-                  className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 opacity-20"
+                  className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 opacity-20"
                   style={{
                     background: "linear-gradient(135deg, #D5F5DC 0%, #7AE6A1 55%, #4AC68B 100%)",
                     WebkitMaskImage: "url(/brand/logo_icon.svg)",
