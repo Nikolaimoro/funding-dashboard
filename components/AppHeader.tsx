@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Send, X as XIcon } from "lucide-react";
 
 interface BurgerIconProps {
   open: boolean;
@@ -198,6 +199,33 @@ export default function AppHeader() {
           {mobileNavLink("/arbitrage", "Arbitrage")}
           {mobileNavLink("/backtester", "Backtester")}
         </nav>
+        <div className="mt-auto w-full px-10 pb-8">
+          <div className="border-t border-[#343a4e] pt-5">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-3">
+              Social
+            </p>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://x.com/bendbasis"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Bendbasis on X"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#343a4e] bg-[#23283a] text-gray-200 transition hover:border-white"
+              >
+                <XIcon size={18} />
+              </a>
+              <a
+                href="https://t.me/bendbasis"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Bendbasis on Telegram"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#343a4e] bg-[#23283a] text-gray-200 transition hover:border-white"
+              >
+                <Send size={18} />
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
