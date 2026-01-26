@@ -1227,7 +1227,7 @@ export default function FundingScreener({
 
           {/* ---------- table ---------- */}
           <div className="min-[960px]:block hidden">
-            <div className="overflow-x-auto">
+            <div className="max-h-[calc(100vh-260px)] overflow-auto overscroll-contain">
               <table className="table-fixed w-max border-separate border-spacing-0 text-xs whitespace-nowrap">
                 <colgroup>
                   <col className="w-[48px]" />
@@ -1242,12 +1242,12 @@ export default function FundingScreener({
                 </colgroup>
                 <thead>
                   <tr className="border-b border-[#343a4e] bg-[#292e40]">
-                    <th className={`${TAILWIND.table.header} sticky top-[52px] z-30 text-center md:sticky md:left-0 md:z-40 bg-[#292e40]`}>
+                    <th className={`${TAILWIND.table.header} sticky top-0 z-30 text-center md:sticky md:left-0 md:z-40 bg-[#292e40]`}>
                       <span className="inline-flex w-full justify-center">
                         <GradientStar filled size={14} />
                       </span>
                     </th>
-                    <th className={`${TAILWIND.table.header} sticky top-[52px] z-30 md:sticky md:left-[48px] md:z-40 bg-[#292e40]`}>
+                    <th className={`${TAILWIND.table.header} sticky top-0 z-30 md:sticky md:left-[48px] md:z-40 bg-[#292e40]`}>
                       <SortableHeader
                         label="Asset"
                         active={sortKey === "token"}
@@ -1255,7 +1255,7 @@ export default function FundingScreener({
                         onClick={() => toggleSort("token")}
                       />
                     </th>
-                    <th className={`${TAILWIND.table.header} sticky top-[52px] z-30 text-right md:sticky md:left-[138px] md:z-40 bg-[#292e40]`}>
+                    <th className={`${TAILWIND.table.header} sticky top-0 z-30 text-right md:sticky md:left-[138px] md:z-40 bg-[#292e40]`}>
                       <SortableHeader
                         label="APR"
                         active={sortKey === "max_arb"}
@@ -1269,7 +1269,7 @@ export default function FundingScreener({
                       return (
                         <th
                           key={col.column_key}
-                          className={`${TAILWIND.table.header} sticky top-[52px] z-30 text-center whitespace-nowrap bg-[#292e40] ${isPinned ? "bg-[#353b52]/60" : ""}`}
+                          className={`${TAILWIND.table.header} sticky top-0 z-30 text-center whitespace-nowrap bg-[#292e40] ${isPinned ? "bg-[#353b52]/60" : ""}`}
                         >
                           <div className="flex flex-col items-center gap-1">
                             <div className="flex items-center gap-1">
