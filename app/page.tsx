@@ -1,5 +1,34 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Sora } from "next/font/google";
+import { EXCHANGE_SEO_LIST } from "@/lib/constants";
+
+const sora = Sora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const exchangeCards = [
+  "Binance",
+  "Bybit",
+  "OKX",
+  "Hyperliquid",
+  "Gate.io",
+  "GMX",
+  "MEXC",
+  "dYdX",
+  "BingX",
+  "ApeX",
+  "Paradex",
+  "Variational",
+  "Aster",
+  "Lighter",
+  "edgeX",
+  "BloFin",
+  "Pacifica",
+  "REYA",
+];
 
 export const metadata: Metadata = {
   title: "Funding Arbitrage Dashboard | bendbasis",
@@ -14,20 +43,20 @@ export default function Home() {
   return (
     <main className="relative text-[#201D1D]">
       <div className="fixed inset-0 bg-white -z-10" />
-      <div className="pointer-events-none absolute -top-20 right-0 h-72 w-72 rounded-full bg-[#E6F4FF] blur-3xl opacity-70" />
-      <div className="pointer-events-none absolute top-40 -left-24 h-64 w-64 rounded-full bg-[#EAF7EC] blur-3xl opacity-70" />
+      <div className="pointer-events-none absolute left-1/2 top-[-140px] h-[520px] w-[720px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,_rgba(158,93,238,0.22),_rgba(250,129,77,0.18),_transparent_65%)] blur-3xl opacity-80" />
 
-      <section className="pt-24 pb-16">
+      <section className="pt-24 pb-10">
         <div className="max-w-[980px]">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#E7E2E0] bg-white px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#8B847E]">
-            Funding Arbitrage Intelligence
+            Live Funding Arbitrage
           </span>
-          <h1 className="mt-6 text-[40px] leading-tight font-semibold sm:text-[56px]">
-            Funding arbitrage, clearly mapped.
+          <h1 className={`mt-6 text-[42px] leading-tight sm:text-[64px] ${sora.className}`}>
+            See funding spreads,
+            <span className="block text-[#201D1D]">clearly and instantly.</span>
           </h1>
           <p className="mt-5 text-lg text-[#5C5854] max-w-[640px]">
-            bendbasis is a clean, real-time dashboard for funding rates across top exchanges.
-            Compare spreads, pin your preferred venues, and open backtests in seconds.
+            bendbasis maps funding rates across top exchanges in real time. Compare
+            long-short spreads, pin your venues, and open backtests in seconds.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link
@@ -36,93 +65,39 @@ export default function Home() {
             >
               Open App
             </Link>
-            <Link
-              href="/markets"
-              className="inline-flex items-center justify-center rounded-full border border-[#E7E2E0] text-sm font-medium px-6 py-3 text-[#201D1D] hover:border-[#201D1D] transition-colors"
-            >
-              Explore Markets
-            </Link>
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-3">
-            {[
-              { label: "Exchanges tracked", value: "30+" },
-              { label: "Funding windows", value: "Now to 30d" },
-              { label: "Backtests ready", value: "1 click" },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="rounded-2xl border border-[#E7E2E0] bg-white px-5 py-4"
-              >
-                <p className="text-xs uppercase tracking-[0.2em] text-[#8B847E]">
-                  {item.label}
-                </p>
-                <p className="mt-2 text-2xl font-semibold">{item.value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12">
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-          <div className="rounded-3xl border border-[#E7E2E0] bg-[#FAF8F5] p-8">
-            <h2 className="text-2xl font-semibold">All funding signals in one view</h2>
-            <p className="mt-3 text-[#5C5854]">
-              Filter by exchange, pin the venues you trust, and see funding spreads update in real time.
-              The screener highlights the best long-short pairs without the noise.
-            </p>
-            <ul className="mt-6 space-y-3 text-sm text-[#5C5854]">
-              <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#201D1D]" />
-                Fast filtering and sorting for any timeframe
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#201D1D]" />
-                Pin exchanges to lock funding assumptions
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#201D1D]" />
-                Mobile views tailored for quick decisions
-              </li>
-            </ul>
-          </div>
-          <div className="rounded-3xl border border-[#E7E2E0] bg-white p-8">
-            <h2 className="text-2xl font-semibold">From idea to backtest, instantly</h2>
-            <p className="mt-3 text-[#5C5854]">
-              Open the backtester directly from any spread. Compare how funding differentials
-              behave across time horizons before you commit.
-            </p>
-            <div className="mt-6 grid gap-4">
-              {[
-                "Arbitrage table with live long/short legs",
-                "Funding history snapshots for each market",
-                "Backtester link ready for execution",
-              ].map((text) => (
-                <div
-                  key={text}
-                  className="rounded-2xl border border-[#E7E2E0] bg-[#FBFBFA] px-4 py-3 text-sm text-[#4F4A46]"
-                >
-                  {text}
-                </div>
-              ))}
+            <div className="text-xs uppercase tracking-[0.2em] text-[#8B847E]">
+              Tracking {EXCHANGE_SEO_LIST.length}+ exchanges
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-12 pb-20">
-        <div className="rounded-[32px] border border-[#E7E2E0] bg-white px-8 py-10 text-center">
-          <h2 className="text-2xl font-semibold">Ready to see the funding edge?</h2>
-          <p className="mt-3 text-[#5C5854]">
-            Jump into the screener and start scanning the market.
-          </p>
-          <div className="mt-6 flex justify-center">
-            <Link
-              href="/funding"
-              className="inline-flex items-center justify-center rounded-full bg-[#201D1D] text-white text-sm font-medium px-8 py-3 hover:opacity-90 transition-opacity"
-            >
-              Open App
-            </Link>
+      <section className="pb-20">
+        <div className="max-w-[1100px]">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className={`text-lg font-semibold ${sora.className}`}>Available Exchanges</h2>
+            <span className="text-xs text-[#8B847E]">Updated daily</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {exchangeCards.map((name, idx) => {
+              const isWide = idx === 0 || idx === 3 || idx === 7;
+              const isTall = idx === 5;
+              return (
+                <div
+                  key={name}
+                  className={[
+                    "rounded-2xl border border-[#E7E2E0] bg-white px-4 py-3",
+                    "flex items-center justify-between text-sm font-medium text-[#201D1D]",
+                    "shadow-[0_12px_30px_rgba(32,29,29,0.04)]",
+                    isWide ? "sm:col-span-2" : "",
+                    isTall ? "lg:row-span-2 lg:min-h-[140px]" : "",
+                  ].join(" ")}
+                >
+                  <span>{name}</span>
+                  <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-r from-[#9E5DEE] to-[#FA814D]" />
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
