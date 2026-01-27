@@ -27,9 +27,9 @@ const exchangeCards = [
 ];
 
 export const metadata: Metadata = {
-  title: "Funding Arbitrage Dashboard | bendbasis",
+  title: "Funding Arbitrage Crypto | bendbasis",
   description:
-    "Live funding rate arbitrage signals, cross-exchange spreads, and backtests in one clean dashboard.",
+    "Funding rate arbitrage opportunities, cross-exchange spreads, and backtests in one clean dashboard.",
   alternates: {
     canonical: "/",
   },
@@ -82,7 +82,7 @@ export default function Home() {
                       return (
                         <div
                           key={exchange.key}
-                          className="reveal flex items-center justify-center gap-3 rounded-full border border-[#E7E2E0] bg-white px-5 py-2 transition-transform duration-700 ease-out hover:-translate-y-1 md:w-[var(--card-width)]"
+                          className="reveal flex items-center justify-center gap-3 rounded-full border border-[#E7E2E0] bg-white px-5 py-2 transition-transform duration-[1200ms] ease-out hover:-translate-y-1 md:w-[var(--card-width)]"
                           style={{ ["--card-width" as any]: `${width}px` }}
                           data-reveal
                           data-reveal-delay={String(row * 60)}
@@ -106,7 +106,7 @@ export default function Home() {
               {exchangeCards.map((exchange) => (
                 <div
                   key={exchange.key}
-                  className="reveal flex items-center justify-center gap-2 rounded-full border border-[#E7E2E0] bg-white px-4 py-2 transition-transform duration-700 ease-out hover:-translate-y-1"
+                  className="reveal flex items-center justify-center gap-2 rounded-full border border-[#E7E2E0] bg-white px-4 py-2 transition-transform duration-[1200ms] ease-out hover:-translate-y-1"
                   data-reveal
                 >
                   <ExchangeIcon
