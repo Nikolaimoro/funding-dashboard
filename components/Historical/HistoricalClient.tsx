@@ -351,7 +351,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
           callbacks: {
             label: (ctx) => {
               const v = ctx.parsed.y;
-              return Number.isFinite(v) ? `APR: ${v.toFixed(2)}%` : "";
+              return Number.isFinite(v) ? `APR: ${Number(v).toFixed(2)}%` : "";
             },
           },
         },
