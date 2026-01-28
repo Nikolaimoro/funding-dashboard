@@ -269,15 +269,19 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
     return items.sort((a, b) => a.label.localeCompare(b.label));
   }, [assetRows, gmxSideByQuote]);
 
+  const lastAssetRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!marketItems.length) {
       setSelectedMarketKeys([]);
+      lastAssetRef.current = selectedAsset || null;
       return;
     }
-    if (selectedMarketKeys.length === 0) {
+    if (lastAssetRef.current !== selectedAsset) {
       setSelectedMarketKeys(marketItems.map((m) => m.key));
+      lastAssetRef.current = selectedAsset;
     }
-  }, [selectedAsset, marketItems.length, selectedMarketKeys.length]);
+  }, [selectedAsset, marketItems]);
 
   useEffect(() => {
     if (!selectedAsset) return;
@@ -333,7 +337,8 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
       const marketId = Number(row.market_id);
       if (!allowedMarketIds.has(marketId)) return;
       if (!selectedIdsSet.has(marketId)) return;
-      if (row.funding_apr_8h == null || row.funding_count === 0) return;
+      const count = Number(row.funding_count);
+      if (row.funding_apr_8h == null || !Number.isFinite(count) || count <= 0) return;
       const apr = Number(row.funding_apr_8h);
       if (!Number.isFinite(apr)) return;
       if (!next[marketId]) next[marketId] = [];
@@ -613,7 +618,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4 h-[520px] lg:h-[620px] items-stretch">
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4 h-[480px] lg:h-[580px] items-stretch">
           <div className="relative h-full rounded-xl bg-[#1b2030] p-2">
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-[#1b2030]/70 backdrop-blur-sm z-10">
@@ -635,7 +640,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
                 {selectedMarketKeys.length}/{marketItems.length}
               </span>
             </div>
-            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            <div className="h-full overflow-y-auto p-2 space-y-1">
               {marketItems.map((market, idx) => {
                 const exchange = market.exchange;
                 const label = market.label ?? formatExchange(exchange);
@@ -657,35 +662,40 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
                     <ExchangeIcon exchange={exchange} size={16} />
                     <span className="text-sm text-gray-200 truncate">{label}</span>
                     {market.isGmx && (
-                      <span
+                      <button
+                        type="button"
+                        aria-pressed={market.side === "long"}
                         onClick={(event) => {
                           event.stopPropagation();
+                          setGmxSide(market.quote, market.side === "long" ? "short" : "long");
                         }}
-                        className="ml-auto inline-flex items-center gap-1 rounded-full bg-[#2b3144] p-1"
+                        className="ml-auto relative inline-flex h-5 w-12 items-center rounded-full border border-[#343a4e] bg-[#23283a] p-0.5 text-[10px] font-medium text-gray-400 transition-colors"
+                        title={market.side === "long" ? "Long rates" : "Short rates"}
                       >
-                        <button
-                          type="button"
-                          onClick={() => setGmxSide(market.quote, "long")}
-                          className={`px-2 py-0.5 text-[10px] rounded-full transition ${
+                        <span className="relative z-10 grid w-full grid-cols-2">
+                          <span
+                            className={`text-center text-[10px] transition-colors ${
+                              market.side === "long" ? "text-emerald-200" : "text-gray-400"
+                            }`}
+                          >
+                            L
+                          </span>
+                          <span
+                            className={`text-center text-[10px] transition-colors ${
+                              market.side === "short" ? "text-red-200" : "text-gray-400"
+                            }`}
+                          >
+                            S
+                          </span>
+                        </span>
+                        <span
+                          className={`absolute left-0.5 top-1/2 h-4 w-[calc(50%-2px)] -translate-y-1/2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                             market.side === "long"
-                              ? "bg-[#3b435a] text-gray-100"
-                              : "text-gray-400 hover:text-gray-200"
+                              ? "translate-x-0 bg-emerald-500/25"
+                              : "translate-x-full bg-red-500/25"
                           }`}
-                        >
-                          Long
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setGmxSide(market.quote, "short")}
-                          className={`px-2 py-0.5 text-[10px] rounded-full transition ${
-                            market.side === "short"
-                              ? "bg-[#3b435a] text-gray-100"
-                              : "text-gray-400 hover:text-gray-200"
-                          }`}
-                        >
-                          Short
-                        </button>
-                      </span>
+                        />
+                      </button>
                     )}
                   </button>
                 );
