@@ -425,6 +425,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
           x: new Date(r.funding_time).getTime(),
           y: r.apr,
         }));
+      data.sort((a, b) => a.x - b.x);
       const color = colorByKey.get(market.key) ?? COLORS.chart.primary;
       return {
         label: market.label,
@@ -435,6 +436,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
         pointHitRadius: 8,
         tension: 0.25,
         spanGaps: true,
+        showLine: true,
         parsing: false as const,
       };
     });
@@ -498,24 +500,60 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
         },
         legend: { display: false },
         tooltip: {
-          backgroundColor: "rgba(20, 24, 36, 0.92)",
-          borderColor: "rgba(148, 163, 184, 0.2)",
-          borderWidth: 1,
-          padding: 10,
-          titleColor: "#e2e8f0",
-          bodyColor: "#e2e8f0",
-          callbacks: {
-            title: (items) => {
-              if (!items.length) return "";
-              const ts = items[0].parsed.x;
-              return typeof ts === "number" ? new Date(ts).toLocaleDateString() : "";
-            },
-            label: (ctx) => {
-              const v = ctx.parsed.y;
-              if (!Number.isFinite(v)) return "";
-              const label = ctx.dataset.label ?? "";
-              return `${label}: ${Number(v).toFixed(2)}%`;
-            },
+          enabled: false,
+          external: (context) => {
+            const { chart, tooltip } = context;
+            let tooltipEl = chart.canvas.parentNode?.querySelector(
+              ".historical-tooltip"
+            ) as HTMLDivElement | null;
+
+            if (!tooltipEl) {
+              tooltipEl = document.createElement("div");
+              tooltipEl.className =
+                "historical-tooltip pointer-events-none absolute z-20 rounded-lg border border-[#343a4e] bg-[#171b28] px-3 py-2 text-xs text-gray-200 shadow-xl";
+              chart.canvas.parentNode?.appendChild(tooltipEl);
+            }
+
+            if (tooltip.opacity === 0) {
+              tooltipEl.style.opacity = "0";
+              return;
+            }
+
+            const title = tooltip.title?.[0] ?? "";
+            const rows = tooltip.dataPoints.map((point) => {
+              const label = point.dataset.label ?? "";
+              const value = Number(point.parsed.y);
+              const color =
+                typeof point.dataset.borderColor === "string"
+                  ? point.dataset.borderColor
+                  : "#60a5fa";
+              return { label, value, color };
+            });
+
+            tooltipEl.innerHTML = `
+              <div class="mb-1 text-[11px] text-gray-400">${title}</div>
+              <div class="space-y-1">
+                ${rows
+                  .map(
+                    (row) => `
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <span style="background:${row.color}" class="h-2 w-2 rounded-full flex-shrink-0"></span>
+                        <span class="truncate">${row.label}</span>
+                      </div>
+                      <span class="text-gray-100">${Number(row.value).toFixed(2)}%</span>
+                    </div>
+                  `
+                  )
+                  .join("")}
+              </div>
+            `;
+
+            const { offsetLeft, offsetTop } = chart.canvas;
+            tooltipEl.style.opacity = "1";
+            tooltipEl.style.left = `${offsetLeft + tooltip.caretX}px`;
+            tooltipEl.style.top = `${offsetTop + tooltip.caretY}px`;
+            tooltipEl.style.transform = "translate(-50%, -110%)";
           },
         },
       },
@@ -533,10 +571,18 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
             font: {
               size: 11,
             },
-            callback: (value) => {
+            callback: (value, index, ticks) => {
               const ts = Number(value);
               if (!Number.isFinite(ts)) return "";
-              return new Date(ts).toLocaleDateString();
+              const date = new Date(ts).toLocaleDateString();
+              if (index > 0) {
+                const prev = Number(ticks[index - 1]?.value);
+                if (Number.isFinite(prev)) {
+                  const prevDate = new Date(prev).toLocaleDateString();
+                  if (prevDate === date) return "";
+                }
+              }
+              return date;
             },
           },
         },

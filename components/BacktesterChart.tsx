@@ -284,10 +284,18 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
             autoSkip: true,
             maxRotation: 0,
             color: COLORS.text.secondary,
-            callback: (value) => {
+            callback: (value, index, ticks) => {
               const ts = Number(value);
               if (!Number.isFinite(ts)) return "";
-              return new Date(ts).toLocaleDateString();
+              const date = new Date(ts).toLocaleDateString();
+              if (index > 0) {
+                const prev = Number(ticks[index - 1]?.value);
+                if (Number.isFinite(prev)) {
+                  const prevDate = new Date(prev).toLocaleDateString();
+                  if (prevDate === date) return "";
+                }
+              }
+              return date;
             },
           },
           grid: { color: COLORS.chart.grid },
