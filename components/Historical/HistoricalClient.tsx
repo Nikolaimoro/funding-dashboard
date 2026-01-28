@@ -328,8 +328,18 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
     if (lastAssetRef.current !== selectedAsset) {
       setSelectedMarketKeys(marketItems.map((m) => m.key));
       lastAssetRef.current = selectedAsset;
+      return;
     }
-  }, [selectedAsset, marketItems]);
+    const validKeys = new Set(marketItems.map((m) => m.key));
+    const filtered = selectedMarketKeys.filter((key) => validKeys.has(key));
+    if (filtered.length !== selectedMarketKeys.length) {
+      setSelectedMarketKeys(filtered);
+      return;
+    }
+    if (filtered.length === 0 && marketItems.length) {
+      setSelectedMarketKeys(marketItems.map((m) => m.key));
+    }
+  }, [selectedAsset, marketItems, selectedMarketKeys]);
 
   useEffect(() => {
     if (!selectedAsset) return;
@@ -562,6 +572,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
           type: "time",
           time: {
             tooltipFormat: CHART_CONFIG.TOOLTIP_FORMAT,
+            unit: "day",
           },
           grid: {
             color: COLORS.chart.grid,
@@ -571,18 +582,10 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
             font: {
               size: 11,
             },
-            callback: (value, index, ticks) => {
+            callback: (value) => {
               const ts = Number(value);
               if (!Number.isFinite(ts)) return "";
-              const date = new Date(ts).toLocaleDateString();
-              if (index > 0) {
-                const prev = Number(ticks[index - 1]?.value);
-                if (Number.isFinite(prev)) {
-                  const prevDate = new Date(prev).toLocaleDateString();
-                  if (prevDate === date) return "";
-                }
-              }
-              return date;
+              return new Date(ts).toLocaleDateString();
             },
           },
         },

@@ -272,23 +272,16 @@ export default function FundingChart(props: FundingChartProps) {
           type: "time",
           time: {
             tooltipFormat: CHART_CONFIG.TOOLTIP_FORMAT,
+            unit: "day",
           },
           ticks: {
             autoSkip: true,
             maxRotation: 0,
             color: COLORS.text.secondary,
-            callback: (value, index, ticks) => {
+            callback: (value) => {
               const ts = Number(value);
               if (!Number.isFinite(ts)) return "";
-              const date = new Date(ts).toLocaleDateString();
-              if (index > 0) {
-                const prev = Number(ticks[index - 1]?.value);
-                if (Number.isFinite(prev)) {
-                  const prevDate = new Date(prev).toLocaleDateString();
-                  if (prevDate === date) return "";
-                }
-              }
-              return date;
+              return new Date(ts).toLocaleDateString();
             },
           },
           grid: {
