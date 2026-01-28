@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { Search, ExternalLink } from "lucide-react";
 import {
   Chart as ChartJS,
   LineElement,
@@ -56,10 +56,11 @@ type ExchangeMarket = {
 };
 
 type TokenFundingChartRow = {
-  exchange?: string | null;
-  market_id?: number | null;
-  funding_time: string;
-  apr: number;
+  exchange: string;
+  market_id: number;
+  h: string;
+  funding_apr_8h: number;
+  funding_count: number;
 };
 
 const TIME_WINDOWS = [
@@ -98,11 +99,11 @@ const CHART_COLORS = [
 ];
 
 async function fetchTokenFundingChartsAll(params: {
-  asset: string;
+  assetNorm: string;
   days?: number;
   signal?: AbortSignal;
 }): Promise<TokenFundingChartRow[]> {
-  const { asset, days = 30, signal } = params;
+  const { assetNorm, days = 30, signal } = params;
   const timeoutMs = 12000;
   const controller = new AbortController();
   let timedOut = false;
@@ -122,7 +123,7 @@ async function fetchTokenFundingChartsAll(params: {
 
   try {
     const res = await fetch(
-      `/api/chart/funding-all?asset=${encodeURIComponent(asset)}&days=${days}`,
+      `/api/chart/funding-all?asset=${encodeURIComponent(assetNorm)}&days=${days}`,
       {
         signal: controller.signal,
       }
@@ -146,7 +147,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
   const [assetSearch, setAssetSearch] = useState("");
   const [openAsset, setOpenAsset] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<string>("");
-  const [selectedWindow, setSelectedWindow] = useState<(typeof TIME_WINDOWS)[number]>(TIME_WINDOWS[2]);
+  const [selectedWindow, setSelectedWindow] = useState<(typeof TIME_WINDOWS)[number]>(TIME_WINDOWS[4]);
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [exchangeOpen, setExchangeOpen] = useState(false);
 
@@ -231,8 +232,9 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
     setLoading(true);
     setError("");
 
+    const assetNorm = normalizeToken(selectedAsset).toLowerCase();
     fetchTokenFundingChartsAll({
-      asset: selectedAsset,
+      assetNorm,
       days: selectedWindow.days,
       signal: controller.signal,
     })
@@ -267,25 +269,14 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
       }
     });
 
-    const filtered = chartRows.filter((row) => {
-      if (row.market_id != null) {
-        return allowedMarketIds.has(row.market_id);
-      }
-      if (row.exchange) {
-        return selectedExchanges.includes(row.exchange);
-      }
-      return false;
-    });
+    const filtered = chartRows.filter((row) => allowedMarketIds.has(row.market_id));
 
     const next: Record<string, FundingChartPoint[]> = {};
     filtered.forEach((row) => {
-      const exchange =
-        row.market_id != null
-          ? exchangeByMarketId.get(row.market_id)
-          : row.exchange ?? null;
+      const exchange = exchangeByMarketId.get(row.market_id) ?? row.exchange;
       if (!exchange || !selectedExchanges.includes(exchange)) return;
       if (!next[exchange]) next[exchange] = [];
-      next[exchange].push({ funding_time: row.funding_time, apr: row.apr });
+      next[exchange].push({ funding_time: row.h, apr: row.funding_apr_8h });
     });
 
     return next;
@@ -409,48 +400,49 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
   return (
     <section className="px-4 pb-16" ref={containerRef}>
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative">
+        <div className="relative min-w-[160px]">
+          <label className="block text-xs text-gray-500 mb-1">Asset</label>
           <button
             type="button"
             onClick={() => setOpenAsset((prev) => !prev)}
-            className={`${TAILWIND.button.secondary} inline-flex items-center gap-2 text-sm`}
+            className={`${TAILWIND.button.secondary} w-full text-left text-sm inline-flex items-center justify-between gap-2`}
           >
-            <span>Asset</span>
-            <ChevronDown className="h-4 w-4 text-gray-300" />
+            <span className="truncate">{selectedAsset || "BTC"}</span>
+            <Search className="h-4 w-4 text-gray-300 shrink-0" />
           </button>
           {openAsset && (
-            <div className="absolute z-50 mt-2 w-[min(220px,calc(100vw-16px))] sm:w-[260px] bg-[#292e40] border border-[#343a4e] rounded-lg shadow-lg">
-              <div className="flex items-center gap-2 px-3 py-2 border-b border-[#343a4e]">
-                <Search className="h-4 w-4 text-gray-400" />
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setOpenAsset(false)} />
+              <div className="absolute z-50 mt-2 w-full bg-[#292e40] border border-[#343a4e] rounded-lg shadow-lg animate-tooltip-zoom">
                 <input
-                  className="w-full bg-transparent text-sm text-gray-200 focus:outline-none"
-                  placeholder="Search asset"
+                  type="text"
+                  placeholder="Search assets..."
                   value={assetSearch}
                   onChange={(event) => setAssetSearch(event.target.value)}
+                  className="w-full px-3 py-2 bg-[#1c202f] border-b border-[#343a4e] rounded-t-lg text-sm text-gray-200 focus:outline-none"
+                  autoFocus
                 />
+                <div className="max-h-48 overflow-y-auto">
+                  {filteredAssets.map((asset) => (
+                    <button
+                      key={asset}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAsset(asset);
+                        setAssetSearch("");
+                        setOpenAsset(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-[#353b52] transition"
+                    >
+                      {asset}
+                    </button>
+                  ))}
+                  {!filteredAssets.length && (
+                    <div className="px-3 py-2 text-sm text-gray-500">No assets found</div>
+                  )}
+                </div>
               </div>
-              <div className="max-h-[240px] overflow-y-auto py-1">
-                {filteredAssets.map((asset) => (
-                  <button
-                    key={asset}
-                    type="button"
-                    onClick={() => {
-                      setSelectedAsset(asset);
-                      setOpenAsset(false);
-                      setAssetSearch("");
-                    }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-[#353b52] ${
-                      asset === selectedAsset ? "text-blue-300" : "text-gray-200"
-                    }`}
-                  >
-                    {asset}
-                  </button>
-                ))}
-                {!filteredAssets.length && (
-                  <div className="px-3 py-2 text-sm text-gray-400">No assets</div>
-                )}
-              </div>
-            </div>
+            </>
           )}
         </div>
 
@@ -509,7 +501,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
         </div>
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
-          <div className="relative min-h-[360px] rounded-xl border border-[#343a4e] bg-[#1b2030] p-2">
+          <div className="relative min-h-[540px] lg:min-h-[620px] rounded-xl border border-[#343a4e] bg-[#1b2030] p-2">
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-[#1b2030]/70 backdrop-blur-sm z-10">
                 <div className="h-6 w-6 rounded-full border-2 border-gray-500 border-t-transparent animate-spin" />
@@ -524,33 +516,34 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
           </div>
 
           <div className="rounded-xl border border-[#343a4e] bg-[#242a3d] overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-[#343a4e]">
-              <span className="text-xs uppercase tracking-[0.2em] text-gray-500">Legend</span>
-              <span className="text-[11px] text-gray-500">
-                {selectedExchanges.length}/{availableExchanges.length}
-              </span>
-            </div>
-            <div className="max-h-[320px] overflow-y-auto p-2 space-y-1">
-              {exchangeMarkets.map((market, idx) => {
-                const color = CHART_COLORS[idx % CHART_COLORS.length];
-                const active = selectedExchanges.includes(market.exchange);
-                return (
-                  <button
-                    key={market.exchange}
-                    type="button"
-                    onClick={() => toggleExchange(market.exchange)}
-                    className={`w-full flex items-center gap-2 rounded-lg px-2 py-2 text-left transition ${
-                      active ? "bg-[#2f364a]" : "hover:bg-[#2b3144]"
-                    }`}
-                  >
-                    <span
-                      className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: color, opacity: active ? 1 : 0.35 }}
-                    />
-                    <span className="text-sm text-gray-200 truncate">{market.label}</span>
-                  </button>
-                );
-              })}
+                <div className="flex items-center justify-between px-3 py-2 border-b border-[#343a4e]">
+                  <span className="text-xs uppercase tracking-[0.2em] text-gray-500">Legend</span>
+                  <span className="text-[11px] text-gray-500">
+                    {selectedExchanges.length}/{availableExchanges.length}
+                  </span>
+                </div>
+                <div className="max-h-[320px] overflow-y-auto p-2 space-y-1">
+                  {exchangeMarkets.map((market, idx) => {
+                    const color = CHART_COLORS[idx % CHART_COLORS.length];
+                    const active = selectedExchanges.includes(market.exchange);
+                    return (
+                      <button
+                        key={market.exchange}
+                        type="button"
+                        onClick={() => toggleExchange(market.exchange)}
+                        className={`w-full flex items-center gap-2 rounded-lg px-2 py-2 text-left transition ${
+                          active ? "bg-[#2f364a]" : "hover:bg-[#2b3144]"
+                        }`}
+                      >
+                        <span
+                          className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: color, opacity: active ? 1 : 0.35 }}
+                        />
+                        <ExchangeIcon exchange={market.exchange} size={16} />
+                        <span className="text-sm text-gray-200 truncate">{market.label}</span>
+                      </button>
+                    );
+                  })}
               {!exchangeMarkets.length && (
                 <div className="px-2 py-2 text-sm text-gray-500">No exchanges</div>
               )}
@@ -572,6 +565,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
             >
               <ExchangeIcon exchange={market.exchange} size={14} />
               {market.label}
+              <ExternalLink className="h-3.5 w-3.5 text-gray-400" />
             </a>
           ))}
       </div>

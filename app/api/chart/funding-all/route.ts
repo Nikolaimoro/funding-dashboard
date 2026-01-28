@@ -22,10 +22,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "asset required" }, { status: 400 });
     }
 
-    const { data, error } = await supabase.rpc(RPC_FUNCTIONS.TOKEN_FUNDING_CHARTS_ALL, {
-      p_base_asset: asset,
-      p_days: Number.isFinite(days) ? days : 30,
-    });
+    const { data, error } = await supabase.rpc(
+      RPC_FUNCTIONS.TOKEN_FUNDING_CHARTS_ALL,
+      {
+        p_base_asset_norm: asset,
+        p_days: Number.isFinite(days) ? days : 30,
+      }
+    );
 
     if (error) {
       throw new Error(error.message);
