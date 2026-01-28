@@ -225,7 +225,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
     setLoading(true);
     setError("");
 
-    const assetNorm = normalizeToken(selectedAsset).toLowerCase();
+    const assetNorm = normalizeToken(selectedAsset).toUpperCase();
     fetchTokenFundingChartsAll({
       assetNorm,
       days: selectedWindow.days,
