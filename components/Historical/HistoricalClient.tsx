@@ -1,19 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Chart as ChartJS } from "chart.js";
 import { Search, ExternalLink } from "lucide-react";
-import {
-  LineElement,
-  PointElement,
-  LinearScale,
-  TimeScale,
-  Tooltip,
-  Legend,
-  Filler,
-  type ChartOptions,
-} from "chart.js";
-import zoomPlugin from "chartjs-plugin-zoom";
+import type { ChartOptions } from "chart.js";
 import "chartjs-adapter-date-fns";
 import dynamic from "next/dynamic";
 import ExchangeIcon from "@/components/ui/ExchangeIcon";
@@ -21,21 +10,8 @@ import { formatExchange, normalizeToken } from "@/lib/formatters";
 import { COLORS, CHART_CONFIG, TAILWIND } from "@/lib/theme";
 import type { FundingChartPoint } from "@/lib/types";
 
-if (typeof window !== "undefined") {
-  ChartJS.register(
-    LineElement,
-    PointElement,
-    LinearScale,
-    TimeScale,
-    Tooltip,
-    Legend,
-    Filler,
-    zoomPlugin
-  );
-}
-
-const LineChart = dynamic(
-  () => import("react-chartjs-2").then((mod) => mod.Line),
+const HistoryChart = dynamic(
+  () => import("@/components/Historical/HistoryChart"),
   { ssr: false }
 );
 
@@ -581,7 +557,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
                 {error}
               </div>
             )}
-            <LineChart data={chartData} options={options} />
+            <HistoryChart data={chartData} options={options} />
           </div>
 
           <div className="rounded-xl bg-[#22273a] overflow-hidden h-full flex flex-col">
