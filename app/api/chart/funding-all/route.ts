@@ -5,6 +5,7 @@ import { RPC_FUNCTIONS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+const PAGE_SIZE = 1000;
 
 const getNextHourPlusFiveSeconds = () => {
   const now = new Date();
@@ -32,22 +33,31 @@ export async function GET(request: Request) {
           })
         : anonClient;
 
-    const { data, error } = await client.rpc(
-      RPC_FUNCTIONS.TOKEN_FUNDING_CHARTS_ALL,
-      {
-        p_base_asset: asset,
-        p_days: Number.isFinite(days) ? days : 30,
-      }
-    );
+    let allRows: unknown[] = [];
+    let from = 0;
 
-    if (error) {
-      throw new Error(error.message);
+    while (true) {
+      const { data, error } = await client
+        .rpc(RPC_FUNCTIONS.TOKEN_FUNDING_CHARTS_ALL, {
+          p_base_asset: asset,
+          p_days: Number.isFinite(days) ? days : 30,
+        })
+        .range(from, from + PAGE_SIZE - 1);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data?.length) break;
+      allRows = allRows.concat(data);
+      if (data.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
     }
 
     const ttl = getNextHourPlusFiveSeconds();
 
     return NextResponse.json(
-      { rows: data ?? [] },
+      { rows: allRows ?? [] },
       {
         headers: {
           "Cache-Control": `public, max-age=0, s-maxage=${ttl}, stale-while-revalidate=60`,

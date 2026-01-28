@@ -478,7 +478,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
   }, [datasets]);
 
   const fullRange = Math.max(1, maxX - minX);
-  const minRange = Math.min(CHART_CONFIG.SEVEN_DAYS_MS, fullRange);
+  const minRange = CHART_CONFIG.SEVEN_DAYS_MS;
 
   const options = useMemo<ChartOptions<"line">>(
     () => ({
