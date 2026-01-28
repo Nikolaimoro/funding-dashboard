@@ -390,7 +390,8 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
       if (!Number.isFinite(apr)) return;
       if (!next[marketId]) next[marketId] = [];
       const ts = row.h.includes("T") ? row.h : row.h.replace(" ", "T");
-      next[marketId].push({ funding_time: ts, apr });
+      const normalized = ts.replace(/\+00(:?00)?$/, "Z");
+      next[marketId].push({ funding_time: normalized, apr });
     });
 
     return next;
@@ -430,9 +431,10 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
         data,
         borderColor: color,
         borderWidth: 2,
-        pointRadius: 0,
+        pointRadius: data.length < 2 ? 3 : 0,
         pointHitRadius: 8,
         tension: 0.25,
+        spanGaps: true,
         parsing: false as const,
       };
     });
@@ -506,7 +508,7 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
             title: (items) => {
               if (!items.length) return "";
               const ts = items[0].parsed.x;
-              return typeof ts === "number" ? new Date(ts).toLocaleString() : "";
+              return typeof ts === "number" ? new Date(ts).toLocaleDateString() : "";
             },
             label: (ctx) => {
               const v = ctx.parsed.y;
@@ -530,6 +532,11 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
             color: "#9ca3af",
             font: {
               size: 11,
+            },
+            callback: (value) => {
+              const ts = Number(value);
+              if (!Number.isFinite(ts)) return "";
+              return new Date(ts).toLocaleDateString();
             },
           },
         },
@@ -772,13 +779,20 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
             quotesByExchange.get(row.exchange)?.add(row.quote_asset);
           });
 
-          return assetRows
+          const gmxRows = assetRows.filter((row) => row.exchange === "gmx");
+          const nonGmxRows = assetRows.filter((row) => row.exchange !== "gmx");
+
+          const links: JSX.Element[] = [];
+
+          nonGmxRows
             .filter((row) => row.ref_url)
-            .map((row) => {
+            .forEach((row) => {
               const quotes = quotesByExchange.get(row.exchange);
               const hasMultiple = quotes ? quotes.size > 1 : false;
-              const label = `${formatExchange(row.exchange)}${hasMultiple ? ` (${row.quote_asset})` : ""}`;
-              return (
+              const label = `${formatExchange(row.exchange)}${
+                hasMultiple ? ` (${row.quote_asset})` : ""
+              }`;
+              links.push(
                 <a
                   key={`${row.exchange}-${row.market_id}`}
                   href={row.ref_url ?? "#"}
@@ -792,6 +806,29 @@ export default function HistoricalClient({ initialRows }: { initialRows: Funding
                 </a>
               );
             });
+
+          if (gmxRows.length) {
+            const best = [...gmxRows]
+              .filter((row) => row.ref_url)
+              .sort((a, b) => (b.open_interest ?? -1) - (a.open_interest ?? -1))[0];
+            if (best?.ref_url) {
+              links.push(
+                <a
+                  key="gmx-single"
+                  href={best.ref_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#343a4e] bg-[#292e40] px-3 py-2 text-xs text-gray-200 hover:border-white transition"
+                >
+                  <ExchangeIcon exchange="gmx" size={14} />
+                  {formatExchange("gmx")}
+                  <ExternalLink className="h-3.5 w-3.5 text-gray-400" />
+                </a>
+              );
+            }
+          }
+
+          return links;
         })()}
       </div>
     </section>

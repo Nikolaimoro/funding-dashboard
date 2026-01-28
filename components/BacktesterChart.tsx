@@ -280,7 +280,16 @@ export default function BacktesterChart({ chartData, selectedLongEx, selectedSho
         x: {
           type: "time",
           time: { tooltipFormat: CHART_CONFIG.TOOLTIP_FORMAT },
-          ticks: { autoSkip: true, maxRotation: 0, color: COLORS.text.secondary },
+          ticks: {
+            autoSkip: true,
+            maxRotation: 0,
+            color: COLORS.text.secondary,
+            callback: (value) => {
+              const ts = Number(value);
+              if (!Number.isFinite(ts)) return "";
+              return new Date(ts).toLocaleDateString();
+            },
+          },
           grid: { color: COLORS.chart.grid },
         },
         y: {
